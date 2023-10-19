@@ -7,7 +7,8 @@ const jwt = require("jsonwebtoken");
 /* HOME PAGE */
 const home = async (req, res) => {
 	try {
-		res.render('studentHome', { layout: 'student_layout', title: "Trang chủ" });
+        const student = req.session.student;
+		res.render('studentHome', { layout: 'student_layout', title: "Trang chủ", student });
 	} catch (err) {
 		res.status(500).json({ error: err.message });
 	}

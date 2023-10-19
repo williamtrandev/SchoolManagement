@@ -6,12 +6,19 @@
     <div class="navbar-nav align-items-center ms-auto">
         <div class="nav-item dropdown">
             <div class="d-flex align-items-center ms-4 nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                {{#ifEquals student.gender true}}
                 <div class="position-relative">
                     <img class="rounded-circle" src="/imgs/male_student.png" alt="" style="width: 40px; height: 40px;">
                     <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
                 </div>
+                {{else}}
+                <div class="position-relative">
+                    <img class="rounded-circle" src="/imgs/female_student.png" alt="" style="width: 40px; height: 40px;">
+                    <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+                </div>
+                {{/ifEquals}}
                 <div class="ms-3">
-                    <div class="fw-bold">Nguyễn Khâm Thịnh Khoa</div>
+                    <div class="fw-bold">{{{student.name}}}</div>
                     <span>Học sinh</span>
                 </div>
             </div>

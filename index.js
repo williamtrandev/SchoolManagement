@@ -30,6 +30,7 @@ app.engine('hbs', exphbs.engine({
 	defaultLayout: false,
 	layoutsDir: __dirname + '/app/views/layouts/',
 	partialsDir: __dirname + '/app/views/partials/',
+	helpers: require('./helpers/handlebarsHelper'),
 }));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'app/views/pages'));
