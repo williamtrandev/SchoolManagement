@@ -8,6 +8,7 @@ const path = require("path");
 const exphbs = require("express-handlebars");
 const cookieParser = require("cookie-parser");
 const sessions = require('express-session');
+const flash = require('connect-flash');
 const route = require('./routes');
 
 dotenv.config();
@@ -20,6 +21,7 @@ app.use(sessions({
 	resave: false
 }));
 app.use(cookieParser());
+app.use(flash());
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, "public")));

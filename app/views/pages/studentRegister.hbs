@@ -3,13 +3,13 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Đăng nhập</title>
+    <title>DASHMIN - Bootstrap Admin Template</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
 
     <!-- Favicon -->
-    <link href="img/favicon.ico" rel="icon">
+    <link href="/img/favicon.ico" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,32 +42,55 @@
         <!-- Spinner End -->
 
 
-        <!-- Sign In Start -->
+        <!-- Sign Up Start -->
         <div class="container-fluid">
             <div class="row h-100 align-items-center justify-content-center" style="min-height: 100vh;">
                 <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
-                    <form method="post" action="login" class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
+                    <form method="post" action="/student/register" class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <a href="/" class="">
                                 <h3 class="text-primary">ESchool</h3>
                             </a>
-                            <h3>Đăng nhập</h3>
+                            <h3>Đăng ký</h3>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="email" name="email" class="form-control" id="floatingInput" placeholder="name@example.com" required>
-                            <label for="floatingInput">Email</label>
+                            <input type="text" name="studentId" class="form-control" id="floatingId" placeholder="jhondoe">
+                            <label for="floatingText">Mã học sinh</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" name="name" class="form-control" id="floatingText" placeholder="jhondoe">
+                            <label for="floatingText">Tên</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="date" class="form-control" id="floatingInput" name="birthday">
+                            <label for="floatingInput">Ngày sinh</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Password" required>
+                            <select class="form-control" id="exampleFormControlSelect1" name="gender">
+								<option value="1">Nam</option>
+								<option value="0">Nữ</option>
+							</select>
+                            <label for="floatingPassword">Giới tính</label>
+                        </div>
+						<div class="form-floating mb-4">
+                            <input type="text" class="form-control" id="floatingAddress" placeholder="Địa chỉ" name="address">
+                            <label for="floatingAddress">Địa chỉ</label>
+                        </div>
+                        <div class="form-floating mb-4">
+                            <input type="text" class="form-control" id="floatingEthnic" placeholder="Địa chỉ" name="ethnic">
+                            <label for="floatingAddress">Dân tộc</label>
+                        </div>
+						<div class="form-floating mb-4">
+                            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="password">
                             <label for="floatingPassword">Mật khẩu</label>
                         </div>
-                        <button type="submit" class="btn btn-primary py-2 w-100 mb-4">Đăng nhập</button>
-                        <p class="text-center mb-0">Chưa có tài khoản? <a href="./register">Đăng ký</a></p>
+                        <button type="submit" class="btn btn-primary py-3 w-100 mb-4">Sign Up</button>
+                        <p class="text-center mb-0">Already have an Account? <a href="/student/login">Sign In</a></p>
                     </form>
                 </div>
             </div>
         </div>
-        <!-- Sign In End -->
+        <!-- Sign Up End -->
     </div>
 
     <!-- JavaScript Libraries -->
