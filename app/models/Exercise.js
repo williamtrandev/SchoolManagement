@@ -4,10 +4,8 @@ var Schema = mongoose.Schema;
 var exerciseSchema = new Schema({
 	title: String,
 	description: String,
-	createAt: {
-		type: Date,
-		default: Date.now()
-	}
+}, {
+	timestamps: true,
 });
 
 module.exports = mongoose.model('Exercise', exerciseSchema);
