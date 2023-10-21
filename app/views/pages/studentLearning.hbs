@@ -1,79 +1,50 @@
 <!-- Works Start -->
 <div class="container-fluid pt-4 px-4">
     <div class="bg-primary text-center rounded p-4 mb-4 d-flex flex-column align-items-center justify-content-between">
-        <h3 class="mb-2 text-light">{{subject.name}}</h3>
+        <h3 class="mb-2 text-light">{{assignment.subject.name}}</h3>
         <h6 class="mb-0 text-light">Giáo viên: {{assignment.teacher.name}}</h6>
-        <!-- <div class="d-flex align-items-center justify-content-between">
-            <h6 class="mb-0">Giáo viên: Tên giáo viên</h6>
-        </div> -->
     </div>
-    {{#each announcements}}
-    <div class="bg-light rounded p-4 mb-2">
-        <div class="d-flex work mb-4">
-            <i class="fa-solid fa-bell me-4"></i>
-            <div>
-                <div class="mb-2 fs-5 fw-bold dark-link">{{title}}</div>
-                <div class="mb-0 text-secondary">{{createdAt}}</div>
+
+    {{#each combinedData}}
+        {{#if message}}
+            <div class="announcement bg-light rounded p-4 mb-2">
+                <div class="d-flex work mb-4">
+                    <i class="fa-solid fa-bell me-4"></i>
+                    <div>
+                        <div class="mb-2 fs-5 fw-bold dark-link">{{title}}</div>
+                        <div class="mb-0 text-secondary">{{annoucementDateFormat createdAt}}</div>
+                    </div>
+                </div>
+                <div class="line mt-4 mb-4"></div>
+                <div class="d-flex text-secondary">
+                    {{message}}
+                </div>
             </div>
-        </div>
-        <div class="line mt-4 mb-4"></div>
-        <div class="d-flex text-secondary">
-            {{message}}
-        </div>
-    </div>
+        {{else}}
+            <div class="bg-light rounded p-4 mb-2">
+                <div class="d-flex work">
+                    <i class="fa-solid fa-pen me-4"></i>
+                    <div>
+                        <div class="mb-2 fs-5 fw-bold dark-link">{{title}}</div>
+                        <div class="mb-2 text-secondary">{{annoucementDateFormat createdAt}}</div>
+                        <div class="text-danger">{{annoucementDateFormat deadline}}</div>
+                    </div>
+                </div>
+                <div class="line mt-4 mb-4"></div>
+                <div class="d-flex justify-content-between">
+                    <div class="text-break w-75">
+                        <p class="">
+                            {{description}}
+                        </p>
+                    </div>
+                    <div class="w-25 ms-4">
+                        <div class="mb-2">Chưa nộp</div>
+                        <button type="button" class="btn btn-primary w-100">Nộp bài</button>
+                    </div>
+                </div>
+            </div>
+        {{/if}}
     {{/each}}
-    <div class="bg-light rounded p-4 mb-2">
-        <div class="d-flex work">
-            <i class="fa-solid fa-pen me-4"></i>
-            <div>
-                <div class="mb-2 fs-5 fw-bold dark-link">Bài tập làm chơi chơi</div>
-                <div class="mb-2 text-secondary">13:30 06/09/2077</div>
-                <div class="text-danger">Hạn nộp: 13:30 06/09/2077</div>
-            </div>
-        </div>
-        <div class="line mt-4 mb-4"></div>
-        <div class="d-flex justify-content-between">
-            <div class="text-break w-75">
-                <p class="">
-                    Nội dung aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                </p>
-            </div>
-            <div class="w-25 ms-4">
-                <div class="mb-2">Chưa nộp</div>
-                <button type="button" class="btn btn-primary w-100">Nộp bài</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-light rounded p-4 mb-2">
-        <div class="d-flex work">
-            <i class="fa-solid fa-book me-4"></i>
-            <div>
-                <div class="mb-2 fs-5 fw-bold dark-link">Tài liệu mới</div>
-                <div class="mb-0 text-secondary">13:30 06/09/2077</div>
-            </div>
-        </div>
-        <div class="line mt-4 mb-4"></div>
-        <div>
-            Thêm link hoặc file vào chỗ này
-        </div>
-    </div>
-
-    <div class="bg-light rounded p-4 mb-2">
-        <div class="d-flex work mb-4">
-            <i class="fa-solid fa-bell me-4"></i>
-            <div>
-                <div class="mb-2 fs-5 fw-bold dark-link">Thông báo mới</div>
-                <div class="mb-0 text-secondary">13:30 06/09/2077</div>
-            </div>
-        </div>
-        <div class="line mt-4 mb-4"></div>
-        <div class="d-flex text-secondary">
-            Nội dung thông báo.ahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh
-        </div>
-    </div>
+    
 </div>
 <!-- Works End -->

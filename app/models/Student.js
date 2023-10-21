@@ -9,6 +9,10 @@ var studentSchema = new Schema({
 	ethnic: String,
 	address: String,
 	password: String,
+	currentClass: {
+		type: mongoose.Types.ObjectId,
+		ref: 'Class'
+	},
 });
 
 module.exports = mongoose.model('Student', studentSchema);

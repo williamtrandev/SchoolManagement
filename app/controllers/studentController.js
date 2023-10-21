@@ -5,6 +5,7 @@ const StudentClass = require("../models/StudentClass");
 const Subject = require("../models/Subject");
 const Assignment = require("../models/Assignment");
 const Announcement = require("../models/Announcement");
+const Exercise = require("../models/Exercise");
 const Year = require("../models/Year");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -13,24 +14,10 @@ const { multipleMongooseToObject, mongooseToObject } = require("../utils/mongoos
 /* HOME PAGE */
 const home = async (req, res) => {
 	try {
-		const date = new Date();
-		const currentYear = date.getFullYear();
-		const currentMonth = date.getMonth() + 1;
-		if (currentMonth < 6) {
-			currentYear--;
-		}
 		const student = req.session.student;
 		const subjects = await Subject.find();
-		const currentClass = await StudentClass.findOne({student: student._id})
-			.populate({
-				path: 'class',
-				populate: { 
-					path: 'year',
-					match: {startYear: currentYear}
-				}
-			});
-		req.session.currentClass = currentClass.class;
-		const assignments = await Assignment.find({class: currentClass.class})
+		
+		const assignments = await Assignment.find({class: student.currentClass})
 			.populate('teacher').populate('subject');
 		console.log(assignments);
 		res.render('studentHome', { 
@@ -87,25 +74,40 @@ const logout = (req, res) => {
 	res.redirect('/student/login');
 };
 
-const learning = async (req, res, next) => {
+const learningPage = async (req, res, next) => {
 	try {
 		const student = req.session.student;
-		const currentClass = req.session.currentClass; 
+		const currentClass = student.currentClass;
 		const slug = req.params.slug;
 		const subject = await Subject.findOne({slug});
+		const subjects = await Subject.find();
 		const assignment = await Assignment.findOne({subject, class: currentClass})
+			.populate('subject')
 			.populate('teacher');
-		const announcements = await Announcement.find({assignment});
+		const announcements = await Announcement.find({assignment}).sort({createdAt: 'desc'});
+		const exercises = await Exercise.find({assignment}).sort({createdAt: 'desc'});
+		const combinedData = announcements.concat(exercises);
+		combinedData.sort((a, b) => b.createdAt - a.createdAt);
 		res.render('studentLearning', {
 			layout: 'student_layout', 
 			title: `Học tập: ${subject.name}`, 
 			student,
-			subject: mongooseToObject(subject),
+			subjects: multipleMongooseToObject(subjects),
 			assignment: mongooseToObject(assignment),
-			announcements: multipleMongooseToObject(announcements),
+			combinedData: multipleMongooseToObject(combinedData),
 		});
 	} catch (err) {
 		res.status(500).json({ error: err.message });
+	}
+}
+
+const loadAnnouncement = async (req, res, next) => {
+	try {
+		const assignment = await Assignment.findById(req.params.id);
+		const announcements = await Announcement.find({assignment}).sort({createdAt: 'desc'});
+		res.json(multipleMongooseToObject(announcements));
+	} catch (err) {
+		console.log(err);
 	}
 }
 
@@ -180,6 +182,20 @@ const insertAnnouncement = async (req, res, next) => {
 	res.json(savedAnnouncement);
 }
 
+const insertExercise = async (req, res, next) => {
+	const {
+		title,
+		description,
+		assignmentId,
+	} = req.body;
+
+	const assignment = await Assignment.findById(assignmentId);
+
+	const newExercise = new Exercise({title, description, assignment});
+	const savedExercise = await newExercise.save();
+	res.json(savedExercise);
+}
+
 const insertYear = async (req, res, next) => {
 	const newYear = new Year(req.body);
 	const savedYear = await newYear.save();
@@ -215,16 +231,26 @@ const insertClass = async (req, res, next) => {
 	res.json(savedClass);
 }
 
+const changeCurrentClass = async (req, res, next) => {
+	const {studentId, classId} = req.body;
+	const currentClass = await Class.findById(classId);
+	const student = await Student.findOneAndUpdate({studentId}, {currentClass});
+	res.json(student);
+}
+
 module.exports = {
 	home,
 	login,
 	logout,
-	learning,
+	learningPage,
+	loadAnnouncement,
     register,
 	insertSubject,
 	insertAssignment,
 	insertAnnouncement,
+	insertExercise,
 	insertYear,
 	insertStudentClass,
 	insertClass,
+	changeCurrentClass,
 }
