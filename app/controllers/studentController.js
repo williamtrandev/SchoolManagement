@@ -238,6 +238,16 @@ const changeCurrentClass = async (req, res, next) => {
 	res.json(student);
 }
 
+const changeExerciseDeadline = async (req, res, next) => {
+	const {
+		exerciseId,
+		date,
+	} = req.body;
+
+	const exercise = await Exercise.findByIdAndUpdate(exerciseId, {deadline: date});
+	res.json(exercise);
+}
+
 module.exports = {
 	home,
 	login,
@@ -253,4 +263,5 @@ module.exports = {
 	insertStudentClass,
 	insertClass,
 	changeCurrentClass,
+	changeExerciseDeadline,
 }

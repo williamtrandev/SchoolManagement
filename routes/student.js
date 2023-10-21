@@ -31,5 +31,6 @@ router.post('/year', studentController.insertYear);
 router.post('/studentclass', studentController.insertStudentClass)
 router.post('/class', studentController.insertClass);
 router.put('/', studentController.changeCurrentClass);
+router.put('/exercise', studentController.changeExerciseDeadline);
 
 module.exports = router;
