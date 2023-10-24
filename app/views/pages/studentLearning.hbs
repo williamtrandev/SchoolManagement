@@ -11,7 +11,7 @@
                 <div class="d-flex work mb-4">
                     <i class="fa-solid fa-bell me-4"></i>
                     <div>
-                        <div class="mb-2 fs-5 fw-bold dark-link">{{title}}</div>
+                        <div class="mb-2 fs-5 fw-bold text-dark">{{title}}</div>
                         <div class="mb-0 text-secondary">{{annoucementDateFormat createdAt}}</div>
                     </div>
                 </div>
@@ -25,9 +25,9 @@
                 <div class="d-flex work">
                     <i class="fa-solid fa-pen me-4"></i>
                     <div>
-                        <div class="mb-2 fs-5 fw-bold dark-link">{{title}}</div>
+                        <div class="mb-2 fs-5 fw-bold text-dark">{{title}}</div>
                         <div class="mb-2 text-secondary">{{annoucementDateFormat createdAt}}</div>
-                        <div class="text-danger">{{annoucementDateFormat deadline}}</div>
+                        <div class="text-danger">Hạn nộp: {{annoucementDateFormat deadline}}</div>
                     </div>
                 </div>
                 <div class="line mt-4 mb-4"></div>
@@ -39,7 +39,11 @@
                     </div>
                     <div class="w-25 ms-4">
                         <div class="mb-2">Chưa nộp</div>
-                        <button type="button" class="btn btn-primary w-100">Nộp bài</button>
+                        <button type="button" class="submit-btn btn btn-primary w-100" data-toggle="modal" data-target="#submitModal"
+                            data-title="{{title}}"
+                        >
+                            Nộp bài
+                        </button>
                     </div>
                 </div>
             </div>
@@ -48,3 +52,31 @@
     
 </div>
 <!-- Works End -->
+
+<!-- Modal -->
+<div class="modal fade" id="submitModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Nộp bài</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div>Nộp bài cho <strong id="exerciseTitle"></strong></div>
+                <div class="input-group mb-3">
+                    <input type="file" class="form-control" id="inputFile">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary">Nộp</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('.submit-btn').click(function () {
+        $('#exerciseTitle').text($(this).data('title'));
+    });
+</script>

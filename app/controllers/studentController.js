@@ -19,7 +19,7 @@ const home = async (req, res) => {
 		
 		const assignments = await Assignment.find({class: student.currentClass})
 			.populate('teacher').populate('subject');
-		console.log(assignments);
+		
 		res.render('studentHome', { 
 			layout: 'student_layout', 
 			title: "Trang chủ", 
@@ -51,8 +51,8 @@ const login = async (req, res) => {
         }
 
 		const token = jwt.sign({ id: student._id }, process.env.JWT_SECRET);
-		// delete student.password;
-		res.cookie('jwt', token, { maxAge: 60 * 60 * 24, httpOnly: true });
+		delete student.password;
+		res.cookie('jwt', token, { maxAge: 60 * 60 * 1000, httpOnly: true });
 		// req.session.student = student;
 		// res.status(200).json({ token, teacher });
 		res.redirect('/student');
@@ -101,13 +101,34 @@ const learningPage = async (req, res, next) => {
 	}
 }
 
-const loadAnnouncement = async (req, res, next) => {
+const exercisesPage = async (req, res, next) => {
 	try {
-		const assignment = await Assignment.findById(req.params.id);
-		const announcements = await Announcement.find({assignment}).sort({createdAt: 'desc'});
-		res.json(multipleMongooseToObject(announcements));
+		const student = req.session.student;
+		const currentClass = student.currentClass;
+		const subjects = await Subject.find();
+
+		const assignment = await Assignment.findOne({class: currentClass})
+			.populate('subject');
+
+		const exercises = await Exercise.find({assignment})
+			.sort({createdAt: 'desc'})
+			.populate({
+				path: 'assignment',
+				populate: {
+					path: 'subject',
+					model: 'Subject'
+				}
+			});
+
+		res.render('studentExercises', {
+			layout: 'student_layout', 
+			title: 'Bài tập', 
+			student,
+			subjects: multipleMongooseToObject(subjects),
+			exercises: multipleMongooseToObject(exercises),
+		});
 	} catch (err) {
-		console.log(err);
+		res.status(500).json({ error: err.message });
 	}
 }
 
@@ -253,7 +274,7 @@ module.exports = {
 	login,
 	logout,
 	learningPage,
-	loadAnnouncement,
+	exercisesPage,
     register,
 	insertSubject,
 	insertAssignment,

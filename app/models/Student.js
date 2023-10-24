@@ -6,7 +6,7 @@ var studentSchema = new Schema({
 	name: String,
 	birthday: Date,
 	gender: Boolean,
-	ethnic: String,
+	ethnicity: String,
 	address: String,
 	password: String,
 	currentClass: {

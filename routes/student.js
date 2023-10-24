@@ -15,7 +15,8 @@ router.post('/login', studentController.login);
 router.get('/logout', studentController.logout);
 
 router.get('/learning/:slug', verifyToken, studentController.learningPage);
-router.get('/learning/api/announcement/:id', studentController.loadAnnouncement);
+
+router.get('/exercises', verifyToken, studentController.exercisesPage);
 
 router.get('/register', (req, res) => {
 	res.render('studentRegister');

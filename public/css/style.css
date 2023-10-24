@@ -288,14 +288,14 @@
     border-radius: 40px;
 }
 
-.dark-link {
+/* .dark-link {
     color: var(--dark);
 }
 
 .dark-link:hover {
     text-decoration: underline;
     color: var(--dark);
-}
+} */
 
 .line {
     background-color: var(--primary);
