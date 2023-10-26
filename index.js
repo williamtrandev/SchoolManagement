@@ -9,6 +9,7 @@ const exphbs = require("express-handlebars");
 const cookieParser = require("cookie-parser");
 const fileUpload = require('express-fileupload');
 const sessions = require('express-session');
+const flash = require('connect-flash');
 const route = require('./routes');
 
 dotenv.config();
@@ -22,6 +23,7 @@ app.use(sessions({
 }));
 
 app.use(cookieParser());
+app.use(flash());
 app.use(cors());
 app.use(fileUpload());
 app.use(morgan('dev'));
@@ -35,16 +37,16 @@ app.engine('hbs', exphbs.engine({
 }));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'app/views/pages'));
-/* FILE STORAGE */
-const storage = multer.diskStorage({
-	destination: function (req, file, cb) {
-		cb(null, "public/img");
-	},
-	filename: function (req, file, cb) {
-		cb(null, file.originalname);
-	},
-});
-const upload = multer({ storage });
+// /* FILE STORAGE */
+// const storage = multer.diskStorage({
+// 	destination: function (req, file, cb) {
+// 		cb(null, "public/img");
+// 	},
+// 	filename: function (req, file, cb) {
+// 		cb(null, file.originalname);
+// 	},
+// });
+// const upload = multer({ storage });
 
 // routes
 route(app);

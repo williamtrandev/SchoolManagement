@@ -7,9 +7,13 @@ var studentSchema = new Schema({
 	name: String,
 	birthday: Date,
 	gender: Boolean,
-	ethnic: String,
+	ethnicity: String,
 	address: String,
 	password: String,
+	currentClass: {
+		type: mongoose.Types.ObjectId,
+		ref: 'Class'
+	},
 });
 
 studentSchema.pre('save', async function (next) {

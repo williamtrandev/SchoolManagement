@@ -1,0 +1,166 @@
+<!-- Works Start -->
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-primary text-center rounded p-4 mb-4 d-flex flex-column align-items-center justify-content-between">
+        <h3 class="mb-2 text-light">{{assignment.subject.name}}</h3>
+        <h6 class="mb-0 text-light">Giáo viên: {{assignment.teacher.name}}</h6>
+    </div>
+
+    {{#each combinedData}}
+        {{#if message}}
+            <div class="announcement bg-light rounded p-4 mb-2">
+                <div class="d-flex work mb-4">
+                    <i class="fa-solid fa-bell me-4"></i>
+                    <div>
+                        <div class="mb-2 fs-5 fw-bold text-dark">{{title}}</div>
+                        <div class="mb-0 text-secondary">{{annoucementDateFormat createdAt}}</div>
+                    </div>
+                </div>
+                <div class="line mt-4 mb-4"></div>
+                <div class="d-flex text-secondary">
+                    {{message}}
+                </div>
+            </div>
+        {{else}}
+            <div class="bg-light rounded p-4 mb-2">
+                <div class="d-flex work">
+                    <i class="fa-solid fa-pen me-4"></i>
+                    <div>
+                        <div class="mb-2 fs-5 fw-bold text-dark">{{title}}</div>
+                        <div class="mb-2 text-secondary">{{annoucementDateFormat createdAt}}</div>
+                        <div class="text-danger">Hạn nộp: {{annoucementDateFormat deadline}}</div>
+                    </div>
+                </div>
+                <div class="line mt-4 mb-4"></div>
+                <div class="d-flex justify-content-between">
+                    <div class="text-break w-75">
+                        <p class="">
+                            {{description}}
+                        </p>
+                    </div>
+                    <div class="w-25 ms-4">
+                        {{#if submission}}
+                        <div id="exercise{{_id}}" class="mb-2">
+                            {{#each submission.imagePath}}
+                            <div class="btn bg-warning rounded-pill">{{this}}</div>
+                            {{/each}}
+                        </div>
+                        <button type="button" class="unsubmit-btn btn btn-danger w-100" data-toggle="modal" data-target="#unsubmitModal"
+                            data-title="{{title}}"
+                            data-id="{{_id}}"
+                        >
+                            Hủy nộp bài
+                        </button>
+                        {{else}}
+                        <div id="exercise{{_id}}" class="mb-2">
+                            <div>Chưa nộp</div>
+                        </div>
+                        <button type="button" class="submit-btn btn btn-primary w-100" data-toggle="modal" data-target="#submitModal"
+                            data-title="{{title}}"
+                            data-id="{{_id}}"
+                        >
+                            Nộp bài
+                        </button>
+                        {{/if}}
+                    </div>
+                </div>
+            </div>
+        {{/if}}
+    {{/each}}
+    
+</div>
+<!-- Works End -->
+
+<!-- Modal -->
+<div class="modal fade" id="submitModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Nộp bài</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div>Nộp bài cho <strong id="exerciseTitle"></strong></div>
+                <form action="" enctype="multipart/form-data" id="formSubmit">
+                    <div class="input-group mb-3">
+                        <input type="file" class="form-control" id="inputFile" multiple>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button id="submitBtn" type="button" class="btn btn-primary">Nộp</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /*var ajax = {};
+    function upload(files) {
+        ajax = {};
+        $('.progress-container').empty();
+        for (let i = 0; i < files.length; i++) {
+            let file = files[i];
+            ajax[i] = new XMLHttpRequest();
+            var form = new FormData();
+            form.append("file", file);
+            let progressCard = "";
+            progressCard += `
+                <div class="pg-bar mb-3">
+                    <div>${file.name}</div>
+                    <div class="progress">
+                        <div id="progress${i}" class="progress-bar progress-bar-striped" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+                    </div>
+                </div>
+            `;
+            $('.progress-container').append(progressCard);
+            
+            ajax[i].upload.myindex = i;
+            ajax[i].upload.addEventListener('progress', function(e) {
+                let index = e.currentTarget.myindex;
+                let percent = Math.round((e.loaded / e.total) * 100);
+                //let progressBar = document.querySelector("#progress"+index);
+                //progressBar.style.width = percent + "%";
+                let selector = "#progress"+index;
+                console.log(selector);
+                $(selector).width(percent+"%");
+            });
+
+            ajax[i].open('post', '/student/exercise-submit', true);
+            ajax[i].send(form);
+        }
+    }*/
+
+    $('.submit-btn').click(function () {
+        $('#exerciseTitle').text($(this).data('title'));
+        let id = $(this).data('id');
+        $('#submitBtn').click(function () {
+            const files = $('#inputFile').prop('files');
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+            let selector = "#exercise"+id;
+            fetch(`/student/exercise-submit/${id}`, {
+                method: 'POST',
+                body: formData,
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+                if (data.success) {
+                    $(selector).empty();
+                    let images = data.images;
+                    images.forEach(image => {
+                        $(selector).append(`<div>${image}</div>`)
+                    });
+                }
+            })
+            .catch(err => {
+                console.log(err);
+            })
+            $('#submitModal').modal('hide');
+        });
+    });
+    
+</script>

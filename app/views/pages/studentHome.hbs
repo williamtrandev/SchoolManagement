@@ -1,0 +1,67 @@
+<!-- table Start -->
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-light text-center rounded p-4">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h6 class="mb-0">Thời khóa biểu</h6>
+            <!-- <a href="">Show All</a> -->
+        </div>
+        <div class="table-responsive">
+            <table class="table text-start align-middle table-bordered mb-0">
+                <thead>
+                    <tr class="text-dark">
+                        <!-- <th scope="col"><input class="form-check-input" type="checkbox"></th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Invoice</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Action</th> -->
+                        <th>Tiết</th>
+                        <th>Thứ 2</th>
+                        <th>Thứ 3</th>
+                        <th>Thứ 4</th>
+                        <th>Thứ 5</th>
+                        <th>Thứ 6</th>
+                        <th>Thứ 7</th>
+                        <th>Chủ nhật</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Toán</td>
+                        <td>Lý</td>
+                        <td>Hóa</td>
+                        <td>Sinh</td>
+                        <td>Sử</td>
+                        <td>Địa</td>
+                        <td>Văn</td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- table Sales End -->
+
+<!-- home Start -->
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        {{#each assignments}}
+        <div class="col-sm-12 col-md-6 col-xl-4">
+            <div class="h-100 bg-light rounded p-4">
+                <div class="mb-4">
+                    <a href="subject.html" class="mb-0 fs-5 fw-bold dark-link">{{subject.name}}</a>
+                    <div class="mb-0">{{teacher.name}}</div>
+                </div>
+                <!-- Thêm content vào đây -->
+                <div class="d-flex mb-2">Bài tập mới</div>
+                <div class="d-flex mb-2">Bài tập mới</div>
+            </div>
+        </div>
+        {{/each}}
+
+    </div>
+</div>
+<!-- home End -->

@@ -296,3 +296,29 @@
     background: var(--dark);
     border-color: var(--primary);
 }
+
+/* Add to student learning page */
+.work i {
+    width: 50px;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    color: var(--light);
+    border-radius: 40px;
+}
+
+/* .dark-link {
+    color: var(--dark);
+}
+
+.dark-link:hover {
+    text-decoration: underline;
+    color: var(--dark);
+} */
+
+.line {
+    background-color: var(--primary);
+    height: 1px;
+}

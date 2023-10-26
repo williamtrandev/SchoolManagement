@@ -10,6 +10,10 @@ var assignmentSchema = new Schema({
 		type: Schema.Types.ObjectId,
 		ref: 'Subject'
 	},
+	class: {
+		type: mongoose.Types.ObjectId,
+		ref: 'Class'
+	},
 	year: {
 		type: Schema.Types.ObjectId,
 		ref: 'Year'

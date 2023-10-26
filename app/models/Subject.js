@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+const slug = require('mongoose-slug-updater');
 var Schema = mongoose.Schema;
 
 var subjectSchema = new Schema({
@@ -7,6 +8,9 @@ var subjectSchema = new Schema({
 		type: Schema.Types.ObjectId,
 		ref: 'Teacher',
 	},
+	slug: { type: String, slug: 'name', unique: true },
 })
+
+mongoose.plugin(slug);
 
 module.exports = mongoose.model('Subject', subjectSchema);
