@@ -1,0 +1,216 @@
+<div class="bg-light text-center rounded p-4">
+	<div class="d-flex align-items-center justify-content-between mb-4">
+		<div class="d-flex align-items-center">
+			<label for="grade">Khối</label>
+			<select class="form-select mx-3" id="grade" style="width: auto">
+				<option value="no" selected>Chọn khối</option>
+				<option value="6">6</option>
+				<option value="7">7</option>
+				<option value="8">8</option>
+				<option value="9">9</option>
+			</select>
+		</div>
+		<button type="button" class="btn btn-success" data-toggle="modal" data-target="#addClass">Thêm lớp</button>
+	</div>
+	<div class="table-responsive">
+		<table class="table text-center align-middle table-bordered table-hover mb-0" id="attendance-table">
+			<thead>
+				<tr class="text-dark">
+					<th scope="col">STT</th>
+					<th scope="col">Tên lớp</th>
+					<th scope="col">Số học sinh</th>
+					<th scope="col">Giáo viên chủ nhiệm</th>
+				</tr>
+			</thead>
+			<tbody>
+				{{#each classes}}
+					<tr>
+						<td>{{@index}}</td>
+						<td>{{name}}</td>
+						<td>{{numberStudent}}</td>
+						<td>
+							{{teacher}}
+							<i class="mx-2 fas fa-user-edit editClass text-primary" style="cursor: pointer;" data-id="{{_id}}"></i>
+						</td>
+					</tr>
+				{{/each}}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+
+<div class="modal fade" id="addClass">
+    <div class="modal-dialog">
+		<div class="modal-content p-2">
+			<!-- Modal Header -->
+			<div class="modal-header justify-content-center">
+				<h4 class="modal-title">Thêm lớp</h4>
+			</div>
+			
+			<!-- Modal body -->
+			<div class="modal-body">
+				<form>
+					<div class="form-group mb-3">
+						<label style="font-weight: bold" class="mb-1" for="nameClass">Tên lớp</label>
+						<input type="text" class="form-control" id="nameClass" placeholder="Vd: 6A1, 8A2" required>
+					</div>
+					<div class="form-group mb-3">
+						<label style="font-weight: bold" class="mb-1" for="teacher">Giáo viên chủ nhiệm</label>
+						<select class="form-select" id="teacher" required>
+							{{#each teachers}}
+								<option value="{{_id}}">{{name}}</option>
+							{{/each}}
+						</select>
+					</div>
+					<button type="button" class="btn btn-primary btn-save-class-single">Lưu</button>
+				</form>
+			</div>
+			<!-- Modal footer -->
+			<div class="modal-footer">
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div class="modal fade" id="addTeacherToClass">
+    <div class="modal-dialog">
+		<div class="modal-content p-2">
+			<!-- Modal Header -->
+			<div class="modal-header justify-content-center">
+				<h4 class="modal-title">Thay đổi giáo viên chủ nhiệm</h4>
+			</div>
+			
+			<!-- Modal body -->
+			<div class="modal-body">
+				<p id="currentTeacher"></p>
+				<table class="table text-center align-middle table-bordered table-hover mb-0" id="addTeacher-table">
+					<thead>
+						<tr class="text-dark">
+							<th scope="col">STT</th>
+							<th scope="col">Tên giáo viên</th>
+							<th scope="col">Ngày sinh</th>
+							<th scope="col">Giới tính</th>
+							<th scope="col">Số điện thoại</th>
+							<th scope="col">Thao tác</th>
+						</tr>
+					</thead>
+					<tbody>
+						
+					</tbody>
+				</table>
+			</div>
+			<!-- Modal footer -->
+			<div class="modal-footer">
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	$(function() {
+		$(".btn-save-class-single").click(() => {
+			let nameClass = $("#nameClass").val();
+			let teacherId = $("#teacher").val();
+			let teacherName = $('#teacher :selected').text();
+			let grade = parseInt(nameClass[0]);
+			const pattern = /^[6-9][A-Z][1-9]+$/;
+			if(pattern.test(nameClass)) {
+				fetch(`/teacher/addClass`, {
+					method: "POST",
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({name: nameClass, grade: grade, teacher: teacherId}),
+				})
+				.then(res => {
+					if (res.status === 409) {
+						// Trường hợp trùng lặp
+						toastr.error("Lớp học đã tồn tại.");
+						return;
+					} else if (!res.ok) {
+						throw new Error(`Mã lỗi HTTP: ${res.status}`);
+					}
+					return res.json();
+				})
+				.then(data => {
+					const latestRow = $("tbody tr:last");
+					// Lấy tất cả thẻ <td> trong hàng cuối cùng
+					const newIndex = parseInt(latestRow.find("td:first").text()) + 1;
+					let newTr = `<tr>
+						<td>${newIndex}</td>
+						<td>${data.name}</td>
+						<td>0</td>
+						<td>${teacherName}</td>
+					</tr>`;
+					$('tbody').append(newTr);
+					toastr.success("Thêm thành công");
+				})	
+				.catch(err => {
+					console.log(err);
+					toastr.error("Thêm lớp không thành công");
+				});
+			} else {
+				toastr.error("Vui lòng nhập tên lớp phù hợp (Ví dụ: 6A1, 9A10)");
+			}
+		});
+		$("#grade").change(function(){
+			let grade = $(this).val();
+			fetch(`/teacher/classes/${grade}`)
+			.then(res => res.json())
+			.then(data => {
+				console.log(data);
+				$('tbody').empty();
+				let tr = ``;
+				let i = 1;
+				data.classes.forEach(item => {
+					tr += `<tr>
+						<td>${i++}</td>
+						<td>${item.name}</td>
+						<td>${item.numberStudent}</td>
+						<td>${item.teacher}</td>
+					</tr>`;
+				});
+				$('tbody').append(tr);
+			})
+			.catch(err => {
+				console.log(err);
+				toastr.error("Đã có lỗi xảy ra");
+			});
+		});
+		$('.editClass').click(function() {
+			let id = $(this).data('id');	
+			fetch(`/teacher/getNoFormTeacher/${id}`)
+				.then(res => {
+					if(!res.ok) {
+						throw new Error("Lỗi");
+					} else {
+						return res.json();
+					}
+				})
+				.then(data => {
+					let htmls = ``;
+					if(!data.formTeacher) {
+						$('#currentTeacher').text('Chưa có giáo viên chủ nhiệm');
+					} else {
+						$('#currentTeacher').text(data.formTeacher.name);
+					}
+					console.log(data);
+					/*data.noFormTeachers.forEach(item => {
+						htmls += `<td scope="col">${item._id}</td>
+								<td scope="col">${item.name}</td>
+								<td scope="col">${item.birthday}</td>
+								<td scope="col">${item.gender}</td>
+								<td scope="col">${item.phone}</td>
+								<td scope="col"><i class="mx-2 fas fa-user-edit editClass text-primary" style="cursor: pointer;" data-id="${item._id}"></i></td>`;
+					});*/
+					$('#addTeacher-table tbody').append(htmls);
+					$('#addTeacherToClass').modal('show');
+				})
+				.catch(err => {
+					console.log(err);
+				});
+		})
+	})
+</script>

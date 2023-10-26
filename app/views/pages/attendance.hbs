@@ -40,6 +40,7 @@
 	<button class="btn btn-info text-white my-3 btn-save">Lưu</button>
 </div>
 
+
 <script>
 	function handleClickAttendance(e) {
 		
@@ -68,7 +69,7 @@
 			.then(res => res.json())
 			.then(data => {
 				$("#class").empty();
-				data.forEach(item => {
+				data.classes.forEach(item => {
 					$("#class").append(`<option value=${item._id}>${item.name}</option>`);
 				});
 				
