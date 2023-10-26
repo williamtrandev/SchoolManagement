@@ -27,17 +27,6 @@ $(function () {
     });
 
     
-    // Bắt sự kiện khi người dùng nhấn vào biểu tượng chỉnh sửa
-    $('.edit-icon').click(function () {
-        // Hiển thị form chỉnh sửa thông tin hoặc thực hiện các tác vụ cần thiết
-        alert("Hiển thị form chỉnh sửa thông tin");
-    });
-
-    // Bắt sự kiện khi người dùng nhấn vào biểu tượng xóa
-    $('.delete-icon').click(function () {
-        // Thực hiện xóa dữ liệu hoặc các tác vụ cần thiết
-        alert("Xóa thông tin");
-    });
     
 });
 

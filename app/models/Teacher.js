@@ -1,13 +1,19 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const mongoose = require('mongoose');
+const { ROLES } = require('../constants');
+const Schema = mongoose.Schema;
 
-var teacherSchema = new Schema({
+const teacherSchema = new Schema({
 	name: String,
 	birthday: Date,
 	gender: Boolean,
 	address: String,
 	phone: String,
 	email: String,
+	role: {
+		type: String,
+		default: ROLES.Teacher,
+		enum: [ROLES.Admin, ROLES.Teacher]
+	},
 	password: String,
 })
 
