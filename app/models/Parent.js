@@ -6,10 +6,10 @@ var parentSchema = new Schema({
 	job: String,
 	phone: String,
 	email: String,
-	student: {
+	students: [{
 		type: Schema.Types.ObjectId,
 		ref: 'Student',
-	}
+	}]
 });
 
 module.exports = mongoose.model('Parent', parentSchema);

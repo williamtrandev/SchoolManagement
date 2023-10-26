@@ -14,6 +14,9 @@ var studentSchema = new Schema({
 		type: mongoose.Types.ObjectId,
 		ref: 'Class'
 	},
+	parents: [{ type: Schema.Types.ObjectId, ref: 'Student' }],
+	submissions: [{ type: Schema.Types.ObjectId, ref: 'Submission' }],
+	studentClasses: [{ type: Schema.Types.ObjectId, ref: 'StudentClass' }]
 });
 
 studentSchema.pre('save', async function (next) {

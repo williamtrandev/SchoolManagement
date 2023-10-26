@@ -10,11 +10,7 @@ var studentClassSchema = new Schema({
 		type: mongoose.Types.ObjectId,
 		ref: 'Class'
 	},
-	absentDays: [
-		{
-			type: String, 
-		},
-	],
+	violations: [{ type: Schema.Types.ObjectId, ref: 'Violation' }]
 })
 
 module.exports = mongoose.model('StudentClass', studentClassSchema);

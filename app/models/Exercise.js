@@ -9,6 +9,7 @@ var exerciseSchema = new Schema({
 		ref: 'Assignment'
 	},
 	deadline: Date,
+	submissions: [{ type: Schema.Types.ObjectId, ref: 'Submission' }]
 }, {
 	timestamps: true,
 });

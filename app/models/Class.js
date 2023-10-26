@@ -17,6 +17,8 @@ var classSchema = new Schema({
 			type: String, // Ngày điểm danh
 		},
 	],
+	assignments: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }],
+	studentClasses: [{ type: Schema.Types.ObjectId, ref: 'StudentClass' }]
 });
 
 classSchema.index({ name: 1 });

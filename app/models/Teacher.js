@@ -15,6 +15,7 @@ const teacherSchema = new Schema({
 		enum: [ROLES.Admin, ROLES.Teacher]
 	},
 	password: String,
+	assignments: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }]
 })
 
 module.exports = mongoose.model('Teacher', teacherSchema);

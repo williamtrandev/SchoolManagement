@@ -2,9 +2,9 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var assignmentSchema = new Schema({
-	teacher: { 
+	teacher: {
 		type: Schema.Types.ObjectId,
-		ref: 'Teacher'      
+		ref: 'Teacher'
 	},
 	subject: {
 		type: Schema.Types.ObjectId,
@@ -17,7 +17,11 @@ var assignmentSchema = new Schema({
 	year: {
 		type: Schema.Types.ObjectId,
 		ref: 'Year'
-	}
+	},
+	anouncements: [{ type: Schema.Types.ObjectId, ref: 'Anouncement' }],
+	exercises: [{ type: Schema.Types.ObjectId, ref: 'Exercise' }],
+	schedules: [{ type: Schema.Types.ObjectId, ref: 'Schedule' }],
+	scoreTables: [{ type: Schema.Types.ObjectId, ref: 'ScoreTable' }],
 })
 
 module.exports = mongoose.model('Assignment', assignmentSchema);                

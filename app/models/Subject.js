@@ -4,11 +4,8 @@ var Schema = mongoose.Schema;
 
 var subjectSchema = new Schema({
 	name: String,
-	teacher: { 
-		type: Schema.Types.ObjectId,
-		ref: 'Teacher',
-	},
 	slug: { type: String, slug: 'name', unique: true },
+	assignments: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }]
 })
 
 mongoose.plugin(slug);
