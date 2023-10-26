@@ -7,6 +7,7 @@ const morgan = require("morgan");
 const path = require("path");
 const exphbs = require("express-handlebars");
 const cookieParser = require("cookie-parser");
+const fileUpload = require('express-fileupload');
 const sessions = require('express-session');
 const route = require('./routes');
 
@@ -19,8 +20,10 @@ app.use(sessions({
 	saveUninitialized: true,
 	resave: false
 }));
+
 app.use(cookieParser());
 app.use(cors());
+app.use(fileUpload());
 app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, "public")));
 app.engine('hbs', exphbs.engine({
@@ -28,6 +31,7 @@ app.engine('hbs', exphbs.engine({
 	defaultLayout: false,
 	layoutsDir: __dirname + '/app/views/layouts/',
 	partialsDir: __dirname + '/app/views/partials/',
+	helpers: require('./helpers/handlebarsHelper'),
 }));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'app/views/pages'));

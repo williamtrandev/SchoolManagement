@@ -19,4 +19,6 @@ var classSchema = new Schema({
 	],
 });
 
+classSchema.index({ name: 1 });
+
 module.exports = mongoose.model('Class', classSchema);
