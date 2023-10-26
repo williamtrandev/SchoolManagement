@@ -1,6 +1,4 @@
 const jwt = require("jsonwebtoken");
-const Student = require("../models/Student");
-const { mongooseToObject } = require("../utils/mongoose");
 
 const verifyToken = async (req, res, next) => {
 	try {
@@ -12,10 +10,7 @@ const verifyToken = async (req, res, next) => {
 		}
 		const verified = jwt.verify(token, process.env.JWT_SECRET);
 		req.user = verified;
-		const student = await Student.findById(verified.id);
-		const studentSaved = mongooseToObject(student);
-		studentSaved.password = null;
-		req.session.student = studentSaved;
+		req.session.student = verified.student;
 		next();
 	} catch (err) {
 		return res.json(err);

@@ -2,8 +2,12 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var submissionSchema = new Schema({
-	imagePath: String,
+	imagePath: [String],
 	score: Number,
+	student: {
+		type: Schema.Types.ObjectId,
+		ref: 'Student'
+	},
 	exercise: {
 		type: Schema.Types.ObjectId,
 		ref: 'Exercise'

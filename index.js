@@ -34,16 +34,16 @@ app.engine('hbs', exphbs.engine({
 }));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'app/views/pages'));
-/* FILE STORAGE */
-const storage = multer.diskStorage({
-	destination: function (req, file, cb) {
-		cb(null, "public/img");
-	},
-	filename: function (req, file, cb) {
-		cb(null, file.originalname);
-	},
-});
-const upload = multer({ storage });
+// /* FILE STORAGE */
+// const storage = multer.diskStorage({
+// 	destination: function (req, file, cb) {
+// 		cb(null, "public/img");
+// 	},
+// 	filename: function (req, file, cb) {
+// 		cb(null, file.originalname);
+// 	},
+// });
+// const upload = multer({ storage });
 
 // routes
 route(app);
