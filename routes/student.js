@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const studentController = require("../app/controllers/StudentController");
+const studentController = require("../app/controllers/studentController");
 const verifyToken = require("../app/middlewares/verifyTokenStudent");
 const flash = require("../app/middlewares/flash");
 const upload = require("../app/middlewares/upload");
 
 router.get('/', verifyToken, studentController.home);
 
-router.get('/login', flash, (req, res) => {
+router.get('/login', (req, res) => {
 	let token = req.cookies.jwt;
 	if (token) {
 		res.redirect('/student');

@@ -17,17 +17,18 @@ class StudentController {
 	async home(req, res) {
 		try {
 			const student = req.session.student;
-			const subjects = await Subject.find();
+			const subjects = await Subject.find().lean();
 			
 			const assignments = await Assignment.find({class: student.currentClass})
-				.populate('teacher').populate('subject');
+				.populate('teacher').populate('subject').lean();
 			
 			res.render('studentHome', { 
 				layout: 'student_layout', 
 				title: "Trang chủ", 
+				activeHome: "active",
 				student, 
-				subjects: multipleMongooseToObject(subjects), 
-				assignments: multipleMongooseToObject(assignments),
+				subjects,
+				assignments,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
@@ -38,27 +39,22 @@ class StudentController {
 	async login(req, res) {
 		try {
 			const { studentId, password } = req.body;
-			const student = await Student.findOne({ studentId: studentId });
+			const student = await Student.findOne({ studentId: studentId }).lean();
 			if (!student) {
-				req.flash('error', 'Mã học sinh không tồn tại');
-				res.redirect('/student/login');
-				return;
+				return res.status(404).json({ error: 'Mã học sinh không tồn tại' });
 			}
 
-			const isMatch = await bcrypt.compare(password, student.password);
+			const isMatch = bcrypt.compare(password, student.password);
 			if (!isMatch) {
-				req.flash('error', 'Mật khẩu không chính xác');
-				res.redirect('/student/login');
-				return;
+				return res.status(401).json({ error: 'Mật khẩu không chính xác' });
 			}
 
-			const studentObj = student.toObject();
-			delete studentObj.password;
-			const token = jwt.sign({ student: studentObj }, process.env.JWT_SECRET);
+			delete student.password;
+			const token = jwt.sign({ student: student }, process.env.JWT_SECRET);
 			res.cookie('jwt', token, { maxAge: 60 * 60 * 1000, httpOnly: true });
 			// req.session.student = student;
 			// res.status(200).json({ token, teacher });
-			res.redirect('/student');
+			return res.status(200).json({ success: 'Đăng nhập thành công' });
 		} catch (err) {
 			console.log(err)
 			res.redirect('/login');
@@ -72,7 +68,13 @@ class StudentController {
 			}
 		});
 		// Xóa cookie
-		res.clearCookie('jwt');
+		// Lấy danh sách tất cả các cookie trong request
+		const cookies = Object.keys(req.cookies);
+
+		// Lặp qua danh sách cookie và xóa chúng
+		cookies.forEach(cookieName => {
+			res.clearCookie(cookieName);
+		});
 		// Chuyển về login
 		res.redirect('/student/login');
 	};
@@ -83,30 +85,48 @@ class StudentController {
 			const currentClass = student.currentClass;
 			const slug = req.params.slug;
 			const subject = await Subject.findOne({slug});
-			const subjects = await Subject.find();
+			const subjects = await Subject.find().lean();
+			// const assignment = await Assignment.findOne({subject, class: currentClass})
+			// 	.populate('subject')
+			// 	.populate('teacher');
+			// const announcements = await Announcement.find({assignment}).sort({createdAt: 'desc'});
+			// const announcementsObj = multipleMongooseToObject(announcements);
+			// const exercises = await Exercise.find({assignment}).sort({createdAt: 'desc'});
+			// const exercisesObj = multipleMongooseToObject(exercises);
+			// for (let i = 0; i < exercisesObj.length; i++) {
+			// 	let submission = await Submission.findOne({ student: student._id, exercise: exercisesObj[i] });
+			// 	if (submission) {
+			// 		exercisesObj[i].submission = mongooseToObject(submission);
+			// 	}
+			// }
+			let combinedData = [];
 			const assignment = await Assignment.findOne({subject, class: currentClass})
 				.populate('subject')
-				.populate('teacher');
-			const announcements = await Announcement.find({assignment}).sort({createdAt: 'desc'});
-			const announcementsObj = multipleMongooseToObject(announcements);
-			const exercises = await Exercise.find({assignment}).sort({createdAt: 'desc'});
-			const exercisesObj = multipleMongooseToObject(exercises);
-			for (let i = 0; i < exercisesObj.length; i++) {
-				let submission = await Submission.findOne({ student: student._id, exercise: exercisesObj[i] });
-				if (submission) {
-					exercisesObj[i].submission = mongooseToObject(submission);
-				}
+				.populate('teacher')
+				.populate('announcements')
+				.populate({
+					path: 'exercises',
+					populate: {
+						path: 'submissions',
+						model: 'Submission',
+						match: { student: student._id }
+					}
+				}).lean();
+			if (assignment && assignment.announcements && assignment.exercises ) {
+				const announcements = assignment.announcements;
+				const exercises = assignment.exercises;
+	
+				combinedData = announcements.concat(exercises);
+				combinedData.sort((a, b) => b.createdAt - a.createdAt);
 			}
-
-			const combinedData = announcementsObj.concat(exercisesObj);
-			combinedData.sort((a, b) => b.createdAt - a.createdAt);
 			console.log(combinedData);
 			res.render('studentLearning', {
 				layout: 'student_layout', 
 				title: `Học tập: ${subject.name}`, 
+				activeLearning: "active",
 				student,
-				subjects: multipleMongooseToObject(subjects),
-				assignment: mongooseToObject(assignment),
+				subjects,
+				assignment,
 				combinedData,
 			});
 		} catch (err) {
@@ -118,27 +138,41 @@ class StudentController {
 		try {
 			const student = req.session.student;
 			const currentClass = student.currentClass;
-			const subjects = await Subject.find();
+			const subjects = await Subject.find().lean();
 
-			const assignment = await Assignment.findOne({class: currentClass})
-				.populate('subject');
-
-			const exercises = await Exercise.find({assignment})
-				.sort({createdAt: 'desc'})
+			const assignments = await Assignment.find({class: currentClass})
+				.populate('subject')
 				.populate({
-					path: 'assignment',
+					path: 'exercises',
+					populate: {
+						path: 'submissions',
+						match: { student: student._id }
+					}
+				})
+				.populate({
+					path: 'exercises',
 					populate: {
 						path: 'subject',
-						model: 'Subject'
 					}
-				});
+				}).lean();
+
+			// const exercises = await Exercise.find({assignment})
+			// 	.sort({createdAt: 'desc'})
+			// 	.populate({
+			// 		path: 'assignment',
+			// 		populate: {
+			// 			path: 'subject',
+			// 			model: 'Subject'
+			// 		}
+			// 	});
 
 			res.render('studentExercises', {
 				layout: 'student_layout', 
-				title: 'Bài tập', 
+				title: 'Bài tập',
+				activeExercises: "active", 
 				student,
-				subjects: multipleMongooseToObject(subjects),
-				exercises: multipleMongooseToObject(exercises),
+				subjects,
+				assignments,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
@@ -159,14 +193,15 @@ class StudentController {
 			student: student._id,
 			exercise: id
 		});
-		const savedSubmission = await newSubmission.save();
+		await newSubmission.save();
+		await Exercise.findByIdAndUpdate(id, { $push: { submissions: newSubmission._id } });
 		res.status(200).json({ success: 'Files uploaded successfully', images: images });
 	}
 
 	async learningResultPage(req, res, next) {
 		try {
 			const student = req.session.student;
-			const subjects = await Subject.find();
+			const subjects = await Subject.find().lean();
 			const studentClass = await StudentClass.find({ student: student._id })
 				.populate({
 					path: 'class',
@@ -174,7 +209,7 @@ class StudentController {
 						path: 'year',
 						model: 'Year',
 					}
-				});
+				}).lean();
 
 			console.log(studentClass);
 			
@@ -185,9 +220,10 @@ class StudentController {
 			res.render('studentLearningResult', {
 				layout: 'student_layout', 
 				title: 'Kết quả học tập', 
+				activeResult: 'active', 
 				student,
-				subjects: multipleMongooseToObject(subjects),
-				years: multipleMongooseToObject(years),
+				subjects,
+				years,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
