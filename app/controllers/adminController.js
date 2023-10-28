@@ -11,7 +11,7 @@ const Excel = require('exceljs');
 
 const workbook = new Excel.Workbook();
 
-class TeacherController {
+class AdminController {
 	/* HOME PAGE */
 	home = async (req, res) => {
 		try {
@@ -556,4 +556,4 @@ class TeacherController {
 }
 
 
-module.exports = new TeacherController;
+module.exports = new AdminController;
