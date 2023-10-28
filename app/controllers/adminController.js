@@ -8,10 +8,11 @@ const Assignment = require("../models/Assignment");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Excel = require('exceljs');
+const { ROLES } = require('../constants');
 
 const workbook = new Excel.Workbook();
 
-class TeacherController {
+class AdminController {
 	/* HOME PAGE */
 	home = async (req, res) => {
 		try {
@@ -48,7 +49,7 @@ class TeacherController {
 			});
 			const savedTeacher = await newTeacher.save();
 			// res.status(201).json(savedTeacher);
-			res.redirect('/teacher/login');
+			res.redirect('/admin/login');
 		} catch (err) {
 			res.status(500).json({ error: err.message });
 		}
@@ -69,7 +70,11 @@ class TeacherController {
 			res.cookie('jwt', token, { maxAge: 60 * 60 * 24, httpOnly: true });
 			req.session.teacher = teacher;
 			// res.status(200).json({ token, teacher });
-			res.redirect('/admin');
+			if (teacher.role === ROLES.Admin) {
+				return res.redirect('/admin');
+			} else {
+				return res.redirect('/teacher');
+			}
 		} catch (err) {
 			res.redirect('/login');
 		}
@@ -556,4 +561,4 @@ class TeacherController {
 }
 
 
-module.exports = new TeacherController;
+module.exports = new AdminController;
