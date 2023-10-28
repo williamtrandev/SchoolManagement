@@ -4,6 +4,7 @@ const Student = require("../models/Student");
 const StudentClass = require("../models/StudentClass");
 const Parent = require("../models/Parent");
 const Year = require("../models/Year");
+const Assignment = require("../models/Assignment");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Excel = require('exceljs');
@@ -68,7 +69,7 @@ class TeacherController {
 			res.cookie('jwt', token, { maxAge: 60 * 60 * 24, httpOnly: true });
 			req.session.teacher = teacher;
 			// res.status(200).json({ token, teacher });
-			res.redirect('/teacher');
+			res.redirect('/admin');
 		} catch (err) {
 			res.redirect('/login');
 		}
@@ -89,19 +90,17 @@ class TeacherController {
 			res.clearCookie(cookieName);
 		});
 		// Chuyển về login
-		res.redirect('/teacher/login');
+		res.redirect('/admin/login');
 	};
 
 	addClass = async (req, res) => {
 		try {
 			const { name, grade, teacher } = req.body;
-			const oldClass = await Class.findOne({ name: name });
+			const year = await Year.findOne({}).sort({ _id: -1 });
+			const oldClass = await Class.findOne({ name: name, year: year._id });
 			if (oldClass) {
 				return res.status(409).json({ message: "Class already exists" });
 			}
-			const currentDate = new Date();
-			const currentYear = currentDate.getFullYear();
-			const year = await Year.findOne({ startYear: currentYear });
 			const newClass = new Class({ name, grade, teacher, year: year._id, attendance: [] });
 			const savedClass = await newClass.save();
 			res.status(200).send(savedClass);
@@ -116,11 +115,12 @@ class TeacherController {
 			const id = req.query.id;
 			const date = req.query.date;
 			let isAttended = false;
-			const classFind = await Class.findOne({ _id: id }).lean();
+			const classFind = await Class.findById(id).lean();
 			const students = await StudentClass.find({ class: id })
 				.populate('student')
 				.populate('class')
 				.lean();
+			console.log(students);
 			if (date) {
 				if (classFind.attendance.includes(date)) {
 					isAttended = true;
@@ -155,22 +155,34 @@ class TeacherController {
 				birthday,
 				gender,
 				ethnic,
-				address
+				address,
+				nameDad,
+				phoneDad,
+				jobDad,
+				emailDad,
+				nameMom,
+				phoneMom,
+				jobMom,
+				emailMom,
 			} = req.body;
 			const newStudent = new Student({
 				name,
 				birthday,
 				gender,
-				ethnic,
+				ethnicity: ethnic,
 				address
 			});
 			const savedStudent = await newStudent.save();
 			const newStudentClass = new StudentClass({
 				student: newStudent._id,
 				class: id,
-				absentDays: []
 			})
-			const savedStudentClass = await newStudentClass.save();
+			await newStudentClass.save();
+			const dad = new Parent({ name: nameDad, phone: phoneDad, job: jobDad, email: emailDad });
+			const mom = new Parent({ name: nameMom, phone: phoneMom, job: jobMom, email: emailMom });
+			savedStudent.parents.push(dad._id);
+			savedStudent.parents.push(mom._id);
+			savedStudent.save();
 			res.status(200).json(savedStudent);
 		} catch (err) {
 			res.status(404).json({ message: err });
@@ -222,8 +234,22 @@ class TeacherController {
 			// Lấy danh sách các năm học
 			const years = await Year.find().lean().sort({ startYear: 1 });
 			const yearId = years[years.length - 1]._id;
-			const classes = await Class.find({ year: yearId }).sort('name').lean();
+			const classes = await Class.find({ year: yearId }).lean();
+			classes.sort((a, b) => {
+				const regex = /(\d+)([A-Za-z]+)(\d+)/;
+				const [, numA, charA, numA2] = a.name.match(regex);
+				const [, numB, charB, numB2] = b.name.match(regex);
 
+				if (charA.localeCompare(charB) !== 0) {
+					return charA.localeCompare(charB);
+				}
+
+				if (parseInt(numA) !== parseInt(numB)) {
+					return parseInt(numA) - parseInt(numB);
+				}
+
+				return parseInt(numA2) - parseInt(numB2);
+			});
 			// Tạo một object chứa 4 mảng class tương ứng với các grade
 			const gradesData = {
 				6: [],
@@ -232,8 +258,9 @@ class TeacherController {
 				9: [],
 			};
 			classes.forEach(c => {
-				if (c.grade) gradesData[c.grade].push(c);
+				if (c.name) gradesData[parseInt(c.name.charAt(0))].push(c);
 			});
+			console.log(classes);
 			res.render('profileStudents', {
 				layout: 'manager_layout', years: years,
 				classes: classes, grades: gradesData, activeHoso: 'active'
@@ -254,20 +281,32 @@ class TeacherController {
 				classes.map(async classItem => {
 					const numberStudent = await StudentClass.countDocuments({ class: classItem._id });
 					const teacherName = classItem.teacher ? classItem.teacher.name : 'Chưa có giáo viên chủ nhiệm';
-
+					const groupTeacher = classItem.teacher ? classItem.teacher.group : '';
+					const idTeacher = classItem.teacher ? classItem.teacher._id : null;
 					return {
 						...classItem,
 						teacher: teacherName,
+						groupTeacher,
+						idTeacher,
 						numberStudent
 					};
 				})
 			);
 			// sắp xếp dữ liệu theo tên lớp
 			modifiedClasses.sort((a, b) => {
-				const classA = a.name;
-				const classB = b.name;
-				// Sử dụng hàm so sánh chuỗi
-				return classA.localeCompare(classB);
+				const regex = /(\d+)([A-Za-z]+)(\d+)/;
+				const [, numA, charA, numA2] = a.name.match(regex);
+				const [, numB, charB, numB2] = b.name.match(regex);
+
+				if (charA.localeCompare(charB) !== 0) {
+					return charA.localeCompare(charB);
+				}
+
+				if (parseInt(numA) !== parseInt(numB)) {
+					return parseInt(numA) - parseInt(numB);
+				}
+
+				return parseInt(numA2) - parseInt(numB2);
 			});
 
 			const teachers = await Teacher.find().lean();
@@ -282,7 +321,7 @@ class TeacherController {
 	getClassesByGrade = async (req, res) => {
 		try {
 			const grade = req.params.grade;
-			const classes = await Class.find({ grade: grade })
+			const classes = await Class.find({ name: { $regex: new RegExp('^' + grade) } })
 				.populate('teacher')
 				.lean();
 
@@ -300,10 +339,19 @@ class TeacherController {
 			);
 			// sắp xếp dữ liệu theo tên lớp
 			modifiedClasses.sort((a, b) => {
-				const classA = a.name;
-				const classB = b.name;
-				// Sử dụng hàm so sánh chuỗi
-				return classA.localeCompare(classB);
+				const regex = /(\d+)([A-Za-z]+)(\d+)/;
+				const [, numA, charA, numA2] = a.name.match(regex);
+				const [, numB, charB, numB2] = b.name.match(regex);
+
+				if (charA.localeCompare(charB) !== 0) {
+					return charA.localeCompare(charB);
+				}
+
+				if (parseInt(numA) !== parseInt(numB)) {
+					return parseInt(numA) - parseInt(numB);
+				}
+
+				return parseInt(numA2) - parseInt(numB2);
 			});
 			return res.status(200).json({ classes: modifiedClasses });
 		} catch (err) {
@@ -318,8 +366,6 @@ class TeacherController {
 			const idClass = req.params.id;
 			const formTeacher = await Teacher.findOne({ class: idClass }).lean();
 			const noFormTeachers = await Teacher.find({ class: null }).lean();
-			console.log(formTeacher);
-			console.log(noFormTeachers);
 			res.status(200).json({ formTeacher, noFormTeachers });
 		} catch (err) {
 			console.log(err);
@@ -327,13 +373,11 @@ class TeacherController {
 		}
 	};
 
-	addStudentByFile = async (req, res) => {
+	addDataByFile = async (req, res) => {
 		try {
 			const excelFile = req.files.file;
-			const currentYear = new Date().getFullYear();
-			const year = await Year.findOne({ startYear: currentYear });
-			console.log(year);
-			const yearId = year._id;
+			const newestYear = await Year.findOne({}).sort({ _id: -1 });
+			const yearId = newestYear._id;
 			const classIdMap = {};
 			await workbook.xlsx.load(excelFile.data);
 			// Truy cập vào sheet "class"
@@ -345,36 +389,44 @@ class TeacherController {
 				}
 				const className = row.getCell(1).value;
 				console.log(className);
-				// const classPromise = Class.findOneAndUpdate(
-				// 	{ name: className, year: yearId },
-				// 	{ name: className, year: yearId },
-				// 	{ upsert: true }
-				// )
-				// 	.then((classSaved) => {
-				// 		if (classSaved) {
-				// 			classIdMap[className] = classSaved._id;
-				// 		}
-				// 	});
-				// classPromises.push(classPromise);
+				classPromises.push(async () => {
+					const savedClass = await Class.findOneAndUpdate(
+						{ name: className, year: yearId },
+						{ name: className, year: yearId },
+						{ new: true, upsert: true }
+					);
+					classIdMap[className] = savedClass._id;
+				});
+
+
 			});
 
-			await Promise.all(classPromises);
+			// Chạy insert theo thứ tự
+			for (const classPromise of classPromises) {
+				await classPromise();
+			}
+			// Tạo một mảng chứa tất cả các lệnh insert
+			const insertPromises = [];
 
-			const students = [];
-			const parents = [];
-			const classStudents = [];
 			// Truy cập vào sheet "student"
 			const studentSheet = workbook.getWorksheet('Dữ liệu học sinh');
-			studentSheet.eachRow((row, rowNumber) => {
+			studentSheet.eachRow(async (row, rowNumber) => {
 				if (rowNumber === 1) {
 					// Bỏ qua hàng đầu tiên (tiêu đề)
 					return;
 				}
 				// Lấy thông tin sinh viên từ từng cột
 				const name = row.getCell(1).value;
-				const birthday = row.getCell(2).value;
+				var birthday = row.getCell(2).value;
+				console.log(name, birthday);
+				const dateParts = birthday.split('/');
+				// Chuyển đổi sang định dạng MM/DD/YYYY (hoặc DD/MM/YYYY tùy theo nguồn dữ liệu)
+				const formattedDate = `${dateParts[1]}/${dateParts[0]}/${dateParts[2]}`;
+
+				// Tạo đối tượng Date từ chuỗi đã chuyển đổi
+				birthday = new Date(formattedDate);
 				const gender = row.getCell(3).value === 'Nam' ? 1 : 0;
-				const ethnic = row.getCell(4).value;
+				const ethnicity = row.getCell(4).value;
 				const address = row.getCell(5).value;
 				const className = row.getCell(6).value;
 				const dadName = row.getCell(7).value;
@@ -385,22 +437,55 @@ class TeacherController {
 				const momJob = row.getCell(12).value;
 				const momPhone = row.getCell(13).value;
 				const momEmail = row.getCell(14).value;
-				console.log(momName, momJob, momPhone, momEmail);
 				// Lấy id của class từ ánh xạ
 				const classId = classIdMap[className];
-
-				// insert vào student
-				// const student = await(new Student({ name, birthday, gender, ethnic, address })).save();
-				// // insert vào parent
-				// parents.push(new Parent({ name: dadName, job: dadJob, phone: dadPhone, email: dadEmail, student: student._id }));
-				// parents.push(new Parent({ name: momName, job: momJob, phone: momPhone, email: momEmail, student: student._id }));
-				// // insert vào classStudent
-				// classStudents.push(new StudentClass({ student: student._id, class: classId }));
-
+				console.log(classId);
+				// Thêm lệnh insert vào mảng
+				insertPromises.push(async () => {
+					// insert vào student
+					const student = await (new Student({ name, birthday, gender, ethnicity, address, currentClass: classId })).save();
+					// // insert vào parent
+					const savedDad = await (new Parent({ name: dadName, job: dadJob, phone: dadPhone, email: dadEmail, student: student._id })).save();
+					const savedMom = await (new Parent({ name: momName, job: momJob, phone: momPhone, email: momEmail, student: student._id })).save();
+					// // insert vào classStudent
+					const savedStudentClass = await (new StudentClass({ student: student._id, class: classId })).save();
+					student.parents.push(savedDad._id);
+					student.parents.push(savedMom._id);
+					student.studentClasses.push(savedStudentClass._id);
+					await student.save();
+				});
 			});
+			// Chạy insert theo thứ tự
+			for (const insertPromise of insertPromises) {
+				await insertPromise();
+			}
 
-			// Parent.insertMany(parents);
-			// StudentClass.insertMany(classStudents);
+			// Truy cập sheet Giáo viên
+			const teacherSheet = workbook.getWorksheet('Dữ liệu giáo viên');
+			const teacherPromises = [];
+			teacherSheet.eachRow((row, rowNumber) => {
+				if (rowNumber === 1) {
+					// Bỏ qua hàng đầu tiên (tiêu đề)
+					return;
+				}
+				const name = row.getCell(1).value;
+				var birthday = row.getCell(2).value;
+				console.log(birthday);
+				const dateParts = birthday.split('/');
+				// Chuyển đổi sang định dạng MM/DD/YYYY (hoặc DD/MM/YYYY tùy theo nguồn dữ liệu)
+				const formattedDate = `${dateParts[1]}/${dateParts[0]}/${dateParts[2]}`;
+
+				// Tạo đối tượng Date từ chuỗi đã chuyển đổi
+				birthday = new Date(formattedDate);
+				const gender = row.getCell(3).value === 'Nam' ? 1 : 0;
+				const address = row.getCell(4).value;
+				const phone = row.getCell(5).value;
+				const email = row.getCell(6).value;
+				const group = row.getCell(7).value;
+				teacherPromises.push(new Teacher({ name, birthday, gender, address, phone, email, group }).save());
+			});
+			await Promise.all(teacherPromises);
+			return res.status(200).json('success');
 		} catch (err) {
 			console.log(err);
 			res.status(500).json({ message: err });
@@ -428,9 +513,47 @@ class TeacherController {
 			res.status(500).json({ message: err });
 		}
 	}
+	data = (req, res) => {
+		res.render('data', { layout: 'manager_layout' });
+	}
+	setTeacher = async (req, res) => {
+		try {
+			const { classId, teacherCurr, teacherChange } = req.body;
+			console.log('class, curr, change:', classId, teacherCurr, teacherChange);
+
+			const updatedClass = await Class.findOneAndUpdate({ _id: classId }, { teacher: teacherChange }, { new: true });
+			const updatedTeacher = await Teacher.findOneAndUpdate({ _id: teacherChange }, { class: classId });
+			if (teacherCurr) {
+				await Teacher.findOneAndUpdate({ _id: teacherCurr }, { class: null });
+			}
+			return res.status(200).json({ updatedClass, updatedTeacher });
+		} catch (err) {
+			console.log(err);
+			res.status(500).json({ message: err });
+		}
+	}
+	teachers = (req, res) => {
+		res.render('profileTeachers', { layout: 'manager_layout', title: 'Thông tin giáo viên', activeHoso: 'active' });
+	}
+	getTeachersByGroup = async (req, res) => {
+		try {
+			const group = req.body.group;
+			const teachers = await Teacher.find({ group: group });
+			res.status(200).json({ teachers });
+		} catch (err) {
+			res.status(500).json({ message: err });
+		}
+	}
+	getTeachersByClass = async (req, res) => {
+		try {
+			const classId = req.params.classId;
+			const teachers = await Assignment.find({ class: classId }).populate('teacher').lean();
+			res.status(200).json({ teachers });
+		} catch (err) {
+			res.status(500).json({ message: err });
+		}
+	}
 }
-
-
 
 
 module.exports = new TeacherController;

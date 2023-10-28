@@ -14,7 +14,7 @@ var studentSchema = new Schema({
 		type: mongoose.Types.ObjectId,
 		ref: 'Class'
 	},
-	parents: [{ type: Schema.Types.ObjectId, ref: 'Student' }],
+	parents: [{ type: Schema.Types.ObjectId, ref: 'Parent' }],
 	submissions: [{ type: Schema.Types.ObjectId, ref: 'Submission' }],
 	studentClasses: [{ type: Schema.Types.ObjectId, ref: 'StudentClass' }]
 });
@@ -33,12 +33,15 @@ studentSchema.pre('save', async function (next) {
 
 	// Format lại số thứ tự thành 5 số với số 0 ở đầu (VD: 00001, 00002, ...)
 	const paddedNumber = String(lastNumber).padStart(5, '0');
-	this.studentId = `5${year}${paddedNumber}`;
+	if(!this.studentId) {
+		this.studentId = `5${year}${paddedNumber}`;
 
-	// Đặt mật khẩu mặc định là mã số học sinh và mã hóa nó
-	const defaultPassword = this.studentId;
-	const hashedPassword = await bcrypt.hash(defaultPassword, 10);
-	this.password = hashedPassword;
+		// Đặt mật khẩu mặc định là mã số học sinh và mã hóa nó
+		const defaultPassword = this.studentId;
+		const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+		this.password = hashedPassword;
+	}
+	
 
 	next();
 });
