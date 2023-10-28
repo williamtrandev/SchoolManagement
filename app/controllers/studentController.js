@@ -17,8 +17,9 @@ class StudentController {
 	async home(req, res) {
 		try {
 			const student = req.session.student;
-			const subjects = await Subject.find().lean();
 			
+			const subjects = await Subject.find().lean();
+			console.log(student);
 			const assignments = await Assignment.find({class: student.currentClass})
 				.populate('teacher').populate('subject').lean();
 			
@@ -39,7 +40,7 @@ class StudentController {
 	async login(req, res) {
 		try {
 			const { studentId, password } = req.body;
-			const student = await Student.findOne({ studentId: studentId }).lean();
+			const student = await Student.findOne({ studentId: studentId }).populate('currentClass').lean();
 			if (!student) {
 				return res.status(404).json({ error: 'Mã học sinh không tồn tại' });
 			}
