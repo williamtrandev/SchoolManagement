@@ -1,7 +1,7 @@
-const teacherRouter = require('./teacher');
+const adminRouter = require('./admin');
 const studentRouter = require('./student');
 function route(app) {
-	app.use('/teacher', teacherRouter);
+	app.use('/admin', adminRouter);
 	app.use('/student', studentRouter);
 }
 

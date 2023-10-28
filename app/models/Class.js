@@ -7,6 +7,7 @@ var classSchema = new Schema({
 	teacher: {
 		type: Schema.Types.ObjectId,
 		ref: 'Teacher',
+		default: null,
 	},
 	year: {
 		type: Schema.Types.ObjectId,

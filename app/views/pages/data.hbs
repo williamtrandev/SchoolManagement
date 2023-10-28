@@ -1,0 +1,53 @@
+<div class="container text-center" id="">
+	<p>Lưu ý khi tải dữ liệu từ file Excel:</p>
+	<ul>
+		<li>File mẫu được cung cấp cho quý thầy cô là file được định dạng sẵn, thầy cô chỉ thêm dữ liệu, không thêm sheet khác</li>
+		<li>Để tải file, quý thầy cô nhấn vào chữ xanh "tại đây"</li>
+	</ul>
+	<div class="mx-auto" style="width: 500px">
+		<form enctype="multipart/form-data">
+			<input type="file" name="file" id="file-input" class="d-none" accept=".xlsx, .xls">
+			<label for="file-input" style="cursor: pointer;" class="d-block position-relative text-white bg-primary text-center rounded m-auto p-3"><i class="fas fa-upload"></i>&nbsp;Chọn File để thêm</label>
+			<p class="text-primary text-center p-2 mt-3 d-none rounded" style="background: #eff5ff;" id="file-name"></p>
+		</form>
+		<p class="mt-2">Tải tệp mẫu <a href="/file/Sample.xlsx" download>tại đây</a></p>
+		<button class="btn btn-primary btn-save-file">Xác nhận</button>
+	</div>
+</div>
+<script>
+	$(function() {
+		$('#file-input').change(() => {
+			let name = $('#file-input')[0].files[0].name;
+			$('#file-name').text(name);
+			$('#file-name').removeClass('d-none');
+		});
+		$(".btn-save-file").click(() => {
+			const file = $('#file-input')[0].files[0];
+			if(file) {
+				const formData = new FormData();
+				formData.append('file', file);
+				$('#spinner').addClass('show');
+				fetch('/admin/addDataByFile', {
+					method: 'POST',
+					body: formData,
+				})
+				.then(response => {
+					if(!response.ok) {
+						throw new Error('Lỗi');
+					}
+					return response.json();
+				})
+				.then(data => {
+					console.log(data);
+					$('#spinner').removeClass('show');
+					toastr.success('Lưu thành công');
+				})
+				.catch(error => {
+					console.error(error);
+					$('#spinner').removeClass('show');
+					toastr.error('Lỗi hệ thống');
+				});
+			}
+		})
+	})
+</script>

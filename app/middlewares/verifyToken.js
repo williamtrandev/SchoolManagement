@@ -6,13 +6,13 @@ const verifyToken = async (req, res, next) => {
 
 		if (!token) {
 			// return res.status(403).send("Access Denied");
-			return res.redirect('/teacher/login');
+			return res.redirect('/admin/login');
 		}
 		const verified = jwt.verify(token, process.env.JWT_SECRET);
 		req.user = verified;
 		next();
 	} catch (err) {
-		return res.redirect('/teacher/login');
+		return res.redirect('/admin/login');
 	}
 };
 

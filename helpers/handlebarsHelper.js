@@ -26,5 +26,8 @@ module.exports = {
 	ifEqualsYear: function (year) {
 		const currentYear = new Date().getFullYear();
 		return (year == currentYear);
+	},
+	increasement: function (num) {
+		return num + 1;
 	}
 }

@@ -13,25 +13,26 @@
 		<button type="button" class="btn btn-success" data-toggle="modal" data-target="#addClass">Thêm lớp</button>
 	</div>
 	<div class="table-responsive">
-		<table class="table text-center align-middle table-bordered table-hover mb-0" id="attendance-table">
+		<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap" id="attendance-table">
 			<thead>
 				<tr class="text-dark">
 					<th scope="col">STT</th>
 					<th scope="col">Tên lớp</th>
 					<th scope="col">Số học sinh</th>
 					<th scope="col">Giáo viên chủ nhiệm</th>
+					<th scope="col">Chi tiết</th>
 				</tr>
 			</thead>
 			<tbody>
 				{{#each classes}}
 					<tr>
-						<td>{{@index}}</td>
+						<td>{{increasement @index}}</td>
 						<td>{{name}}</td>
 						<td>{{numberStudent}}</td>
 						<td>
 							{{teacher}}
-							<i class="mx-2 fas fa-user-edit editClass text-primary" style="cursor: pointer;" data-id="{{_id}}"></i>
 						</td>
+						<td><i class="mx-2 fas fa-user-edit editClass text-primary" style="cursor: pointer;" data-id="{{_id}}" data-teacher="{{idTeacher}}"></i></td>
 					</tr>
 				{{/each}}
 			</tbody>
@@ -59,7 +60,7 @@
 						<label style="font-weight: bold" class="mb-1" for="teacher">Giáo viên chủ nhiệm</label>
 						<select class="form-select" id="teacher" required>
 							{{#each teachers}}
-								<option value="{{_id}}">{{name}}</option>
+								<option value="{{_id}}">{{name}} - {{group}}</option>
 							{{/each}}
 						</select>
 					</div>
@@ -75,7 +76,7 @@
 
 
 <div class="modal fade" id="addTeacherToClass">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
 		<div class="modal-content p-2">
 			<!-- Modal Header -->
 			<div class="modal-header justify-content-center">
@@ -84,7 +85,7 @@
 			
 			<!-- Modal body -->
 			<div class="modal-body">
-				<p id="currentTeacher"></p>
+				<p>Giáo viên chủ nhiệm hiện tại: <span id="currentTeacher"></span></p>
 				<table class="table text-center align-middle table-bordered table-hover mb-0" id="addTeacher-table">
 					<thead>
 						<tr class="text-dark">
@@ -93,6 +94,7 @@
 							<th scope="col">Ngày sinh</th>
 							<th scope="col">Giới tính</th>
 							<th scope="col">Số điện thoại</th>
+							<th scope="col">Tổ</th>
 							<th scope="col">Thao tác</th>
 						</tr>
 					</thead>
@@ -103,13 +105,66 @@
 			</div>
 			<!-- Modal footer -->
 			<div class="modal-footer">
+				<button type="button" class="btn btn-primary btn-save-teacher">Lưu</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
 			</div>
 		</div>
 	</div>
 </div>
 
 <script>
+	function handleOpenModal(e) {
+		let id = $(e).data('id');	
+		let idTeacher = $(e).data('teacher');
+		tdTeacherName = $(e).closest('tr').find('td').eq(3);
+		$('.btn-save-teacher').data('id', id);
+		$('.btn-save-teacher').data('teacher', idTeacher);
+		fetch(`/admin/getNoFormTeacher/${id}`)
+			.then(res => {
+				if(!res.ok) {
+					throw new Error("Lỗi");
+				} else {
+					return res.json();
+				}
+			})
+			.then(data => {
+				let htmls = ``;
+				$('#addTeacher-table tbody').empty();
+				if(!data.formTeacher) {
+					$('#currentTeacher').text('Chưa có');
+				} else {
+					$('#currentTeacher').text(data.formTeacher.name + " - " + data.formTeacher.group);
+				}
+				console.log(data);
+				data.noFormTeachers.forEach((item, index) => {
+					let gender = item.gender === true ? 'Nam' : 'Nữ';
+					const inputDateStr = item.birthday;
+					const year = inputDateStr.substr(0, 4);    // Trích xuất 4 ký tự đầu là năm
+					const month = inputDateStr.substr(5, 2);   // Trích xuất 2 ký tự sau là tháng
+					const day = inputDateStr.substr(8, 2);     // Trích xuất 2 ký tự sau là ngày
+					// định dạng "DD/MM/YYYY"
+					const birthday = `${day}/${month}/${year}`;
+					htmls += `<tr>
+							<td scope="col">${index + 1}</td>
+							<td scope="col">${item.name}</td>
+							<td scope="col">${birthday}</td>
+							<td scope="col">${gender}</td>
+							<td scope="col">${item.phone}</td>
+							<td scope="col">${item.group}</td>
+							<td scope="col">
+								<input type="radio" class="radio-teacher-checkbox form-check-input" data-id="${item._id}">
+							</td>
+						</tr>`;
+				});
+				$('#addTeacher-table tbody').append(htmls);
+				$('#addTeacherToClass').modal('show');
+			})
+			.catch(err => {
+				console.log(err);
+			});
+	}
 	$(function() {
+		let tdTeacherName = null;
 		$(".btn-save-class-single").click(() => {
 			let nameClass = $("#nameClass").val();
 			let teacherId = $("#teacher").val();
@@ -117,7 +172,7 @@
 			let grade = parseInt(nameClass[0]);
 			const pattern = /^[6-9][A-Z][1-9]+$/;
 			if(pattern.test(nameClass)) {
-				fetch(`/teacher/addClass`, {
+				fetch(`/admin/addClass`, {
 					method: "POST",
 					headers: {
 						'Content-Type': 'application/json',
@@ -157,7 +212,7 @@
 		});
 		$("#grade").change(function(){
 			let grade = $(this).val();
-			fetch(`/teacher/classes/${grade}`)
+			fetch(`/admin/classes/${grade}`)
 			.then(res => res.json())
 			.then(data => {
 				console.log(data);
@@ -170,6 +225,7 @@
 						<td>${item.name}</td>
 						<td>${item.numberStudent}</td>
 						<td>${item.teacher}</td>
+						<td><i class="mx-2 fas fa-user-edit editClass text-primary" style="cursor: pointer;" data-id="${item._id}" data-teacher="${item.idTeacher}" onclick="handleOpenModal(this)"></i></td>
 					</tr>`;
 				});
 				$('tbody').append(tr);
@@ -181,7 +237,11 @@
 		});
 		$('.editClass').click(function() {
 			let id = $(this).data('id');	
-			fetch(`/teacher/getNoFormTeacher/${id}`)
+			let idTeacher = $(this).data('teacher');
+			tdTeacherName = $(this).closest('tr').find('td').eq(3);
+			$('.btn-save-teacher').data('id', id);
+			$('.btn-save-teacher').data('teacher', idTeacher);
+			fetch(`/admin/getNoFormTeacher/${id}`)
 				.then(res => {
 					if(!res.ok) {
 						throw new Error("Lỗi");
@@ -191,26 +251,75 @@
 				})
 				.then(data => {
 					let htmls = ``;
+					$('#addTeacher-table tbody').empty();
 					if(!data.formTeacher) {
-						$('#currentTeacher').text('Chưa có giáo viên chủ nhiệm');
+						$('#currentTeacher').text('Chưa có');
 					} else {
-						$('#currentTeacher').text(data.formTeacher.name);
+						$('#currentTeacher').text(data.formTeacher.name + " - " + data.formTeacher.group);
 					}
 					console.log(data);
-					/*data.noFormTeachers.forEach(item => {
-						htmls += `<td scope="col">${item._id}</td>
+					data.noFormTeachers.forEach((item, index) => {
+						let gender = item.gender === true ? 'Nam' : 'Nữ';
+						const inputDateStr = item.birthday;
+						const year = inputDateStr.substr(0, 4);    // Trích xuất 4 ký tự đầu là năm
+						const month = inputDateStr.substr(5, 2);   // Trích xuất 2 ký tự sau là tháng
+						const day = inputDateStr.substr(8, 2);     // Trích xuất 2 ký tự sau là ngày
+						// định dạng "DD/MM/YYYY"
+						const birthday = `${day}/${month}/${year}`;
+						htmls += `<tr>
+								<td scope="col">${index + 1}</td>
 								<td scope="col">${item.name}</td>
-								<td scope="col">${item.birthday}</td>
-								<td scope="col">${item.gender}</td>
+								<td scope="col">${birthday}</td>
+								<td scope="col">${gender}</td>
 								<td scope="col">${item.phone}</td>
-								<td scope="col"><i class="mx-2 fas fa-user-edit editClass text-primary" style="cursor: pointer;" data-id="${item._id}"></i></td>`;
-					});*/
+								<td scope="col">${item.group}</td>
+								<td scope="col">
+									<input type="radio" class="radio-teacher-checkbox form-check-input" data-id="${item._id}">
+								</td>
+							</tr>`;
+					});
 					$('#addTeacher-table tbody').append(htmls);
 					$('#addTeacherToClass').modal('show');
 				})
 				.catch(err => {
 					console.log(err);
 				});
+		});
+		$('#addTeacher-table').on('change', '.radio-teacher-checkbox', function() {
+			// Tắt tất cả các checkbox trừ checkbox đang được thay đổi
+			$('.radio-teacher-checkbox').not(this).prop('checked', false);
+		});
+		let teacherCurr = $('.btn-save-teacher').data('teacher');
+		$('.btn-save-teacher').click(function() {
+			let classId = $(this).data('id');
+			if(teacherCurr === '') {
+				teacherCurr = null;
+			}
+			let teacherChange = $('.radio-teacher-checkbox:checked').data('id');
+			let nameTeacher = $($('.radio-teacher-checkbox:checked').closest('tr').find('td').eq(1)).text();
+			
+			console.log(teacherCurr, teacherChange)
+			fetch(`/admin/setTeacher`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ classId, teacherCurr, teacherChange }),
+			})
+			.then(res=> {
+				if(!res.ok)
+					throw new Error('Lỗi');
+				return res.json();
+			})
+			.then(data => {
+				console.log(data);
+				toastr.success('Thành công');
+				tdTeacherName.text(nameTeacher);
+				teacherCurr = teacherChange;
+				$('#addTeacherToClass').modal('hide');
+			})
+			.catch(err => {
+				console.log(err);
+				toastr.error('Lỗi hệ thống');
+			})
 		})
 	})
 </script>
