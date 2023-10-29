@@ -29,5 +29,8 @@ module.exports = {
 	},
 	increasement: function (num) {
 		return num + 1;
+	},
+	charAt: function(strInput, index) {
+		return strInput.charAt(index);
 	}
 }

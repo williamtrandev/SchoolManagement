@@ -1,0 +1,260 @@
+<div class="bg-light text-center rounded p-3">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-8">
+				<div class="table-responsive overflow-auto" style="height: 80vh">
+					<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap">
+						<thead>
+							<tr class="text-dark">
+								<th scope="col">Giáo viên</th>
+								<th scope="col">Phân công giảng dạy</th>
+							</tr>
+						</thead>
+						<tbody id="tbody-teacher">
+							{{#each teachers}}
+								<tr data-id="{{teacher._id}}">
+									<td>
+										{{teacher.name}}
+										<p class="mb-0">{{teacher.group}}</p>
+									</td>
+									<td>
+										{{#each oldAssignments}}
+											<p class="mb-0"><span class="subjectOfTeacher saved" data-subject="{{@key}}"><span class="nameSubject">{{@key}}</span>: <span class="teacherClass" data-name="{{@key}}">{{this}}</span></span></p>
+										{{/each}}
+									</td>
+								</tr>
+							{{/each}}
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="col-2">
+				<div class="table-responsive overflow-auto" style="height: 80vh">
+					<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap">
+						<thead>
+							<tr class="text-dark">
+								<th scope="col">Môn học</th>
+							</tr>
+						</thead>
+						<tbody id="tbody-subject">
+							{{#each subjects}}
+								<tr data-id="{{_id}}">
+									<td>{{name}}</td>
+								</tr>
+							{{/each}}
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="col-2">
+				<div class="table-responsive overflow-auto" style="height: 80vh">
+					<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap">
+						<thead>
+							<tr class="text-dark">
+								<th scope="col"></th>
+								<th scope="col">Lớp học</th>
+							</tr>
+						</thead>
+						<tbody id="tbody-class">
+							{{#each classes}}
+								<tr data-id="{{_id}}">
+									<td>
+										<input type="checkbox" class="form-check-input" disabled>
+									</td>
+									<td>{{name}}</td>
+								</tr>
+							{{/each}}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="navbar fixed-bottom navbar-light bg-light d-flex justify-content-end" style="left: 250px">
+	<div class="container-fluid">
+		<button class="btn btn-primary ms-auto me-3 btn-save-assign">Lưu</button>
+	</div>
+</div>
+
+
+<script>
+	$(async function() {
+		let classMap = {};
+		let subjectMap = {};
+		let savedAssign = [];
+		
+		await fetch(`/admin/getAllClass`)
+		.then(res => res.json())
+		.then(data => {
+			data.forEach(item => classMap[item.name] = item._id)
+		})
+		.catch(err => {console.log(err)});
+		await fetch(`/admin/getAllSubject`)
+		.then(res => res.json())
+		.then(data => {
+			data.forEach(item => subjectMap[item.name] = item._id)
+		})
+		.catch(err => {console.log(err)});
+
+		$('#tbody-teacher tr').each(function() {
+			const teacherId = $(this).data('id');
+			$(this).find('.subjectOfTeacher.saved').each(function() {
+				const subjectId = subjectMap[$(this).find('.nameSubject').first().text()];
+				$(this).find('.teacherClass').first().text().split(', ').forEach(className => {
+					const classId = classMap[className];
+					savedAssign.push({teacherId, subjectId, classId});
+				})
+			});
+		});
+		let teacherClicked = null;
+		let dataSubject = ``;
+		let subjectClicked = null;
+		$('#tbody-teacher tr').click(function() {
+			teacherClicked = $(this);
+			dataSubject = $($(this).find('.teacherClass').eq(0)).text();
+			$(this).addClass('active');
+			$('#tbody-teacher tr').not(this).removeClass('active');
+			$('#tbody-class tr input').attr('checked', false);
+			$('#tbody-subject tr').removeClass('active');
+		});
+		$('#tbody-subject tr').click(function() {
+			if(!teacherClicked) {
+				toastr.error('Vui lòng chọn giáo viên cần phân công');
+			} else {
+				$(this).addClass('active');
+				subjectClicked = $(this);
+				$('#tbody-subject tr').not(this).removeClass('active');
+				$('#tbody-class input').attr('checked', false);
+				const subject = $(subjectClicked.find('td').eq(0)).text();
+				const allSubjectsOfTeacher = teacherClicked.find('.nameSubject');
+				const allSubjectsOfTeacherText = [];
+				allSubjectsOfTeacher.each(function() {
+					allSubjectsOfTeacherText.push($(this).text());
+				});
+				if(allSubjectsOfTeacherText.includes(subject)) {
+					const allClassCheck = $(teacherClicked.find(`[data-name="${subject}"]`).eq(0)).text();
+					const arrayClassCheck = allClassCheck.split(", ");
+					arrayClassCheck.forEach(item => {
+						const classId = classMap[item];
+						console.log(classId);
+						$('#tbody-class').find(`[data-id="${classId}"]`).first().find('input').first().attr('checked', true);
+					})
+				}
+			}
+		});
+		function sortClass(a, b) {
+			// Tách số đầu, chữ cái và số cuối của chuỗi
+			const regex = /(\d+)([a-zA-Z]+)(\d+)/;
+			const aMatch = a.match(regex);
+			const bMatch = b.match(regex);
+
+			// Lấy các phần tử đã tách ra
+			const aNum = parseInt(aMatch[1]);
+			const bNum = parseInt(bMatch[1]);
+			const aAlpha = aMatch[2];
+			const bAlpha = bMatch[2];
+			const aEndNum = parseInt(aMatch[3]);
+			const bEndNum = parseInt(bMatch[3]);
+
+			// So sánh số đầu
+			if (aNum !== bNum) {
+				return aNum - bNum;
+			}
+
+			// Nếu số đầu bằng nhau, so sánh chữ cái
+			if (aAlpha !== bAlpha) {
+				return aAlpha.localeCompare(bAlpha);
+			}
+
+			// Nếu số đầu và chữ cái bằng nhau, so sánh số cuối
+			return aEndNum - bEndNum;
+		}
+		$('#tbody-class tr').click(function() {
+			if(!teacherClicked || !subjectClicked) {
+				toastr.error('Vui lòng chọn giáo viên, sau đó chọn môn học rồi chọn lớp');
+			} else {
+				let inputCheck = $($(this).find('input'));
+				if(!inputCheck.attr('checked')) {
+					inputCheck.attr('checked', true);
+					const classClick = $($(this).find('td').eq(1)).text();
+					console.log(classClick);
+					const subject = $(subjectClicked.find('td').eq(0)).text();
+					const allSubjectsOfTeacher = teacherClicked.find('.nameSubject');
+					const allSubjectsOfTeacherText = [];
+					allSubjectsOfTeacher.each(function() {
+						allSubjectsOfTeacherText.push($(this).text());
+					});
+					console.log(allSubjectsOfTeacherText);
+					if(!allSubjectsOfTeacherText.includes(subject)) {
+						const dataInsert = `<p class="mb-0"><span class="subjectOfTeacher" data-subject="${subject}"><span class="nameSubject">${subject}</span>: <span class="teacherClass" data-name="${subject}">${classClick}</span></span></p>`;
+						$(teacherClicked.find('td').eq(1)).append(dataInsert);
+					} else {
+						if(!$(teacherClicked.find(`[data-name="${subject}"]`).eq(0)).text().includes(classClick)) {
+							const arrSub = $(teacherClicked.find(`[data-name="${subject}"]`).eq(0)).text().split(', ');
+							arrSub.push(classClick);
+							arrSub.sort(sortClass);
+							$(teacherClicked.find(`[data-name="${subject}"]`).eq(0)).empty().text(arrSub.join(', '));	
+						}
+					}
+				} else {
+					console.log(inputCheck);
+					inputCheck.attr('checked', false);
+					const subject = $(subjectClicked.find('td').eq(0)).text();
+					const classClick = $($(this).find('td').eq(1)).text();
+					const allClassCheck = $(teacherClicked.find(`[data-name="${subject}"]`).eq(0)).text();
+					const arrayClassCheck = allClassCheck.split(", ");
+					const newArrayClassCheck = arrayClassCheck.filter(item => item !== classClick);
+					if(newArrayClassCheck.length === 0) {
+						$(teacherClicked.find(`[data-name="${subject}"]`).closest('p')).remove();
+						return;
+					}
+					newArrayClassCheck.sort(sortClass);
+					console.log(newArrayClassCheck);
+					$(teacherClicked.find(`[data-name="${subject}"]`).eq(0)).empty()
+					.text(newArrayClassCheck.join(", "));
+				}
+			}
+		});
+		$('.btn-save-assign').click(()=> {
+			let dataBody = [];
+			$('#tbody-teacher tr').each(function() {
+				const teacherId = $(this).data('id');
+				$(this).find('.subjectOfTeacher').each(function() {
+					const subjectId = subjectMap[$(this).find('.nameSubject').first().text()];
+					$(this).find('.teacherClass').first().text().split(', ').forEach(className => {
+						const classId = classMap[className];
+						dataBody.push({teacherId, subjectId, classId});
+					})
+				});
+			})
+			console.log(dataBody);
+			let deleteList = savedAssign.filter(itemA  => {
+				return !dataBody.some(itemB =>
+					itemA.teacherId === itemB.teacherId &&
+					itemA.classId === itemB.classId &&
+					itemA.subjectId === itemB.subjectId
+				);
+			});
+			console.log(deleteList);
+			fetch('/admin/saveAssignments', {
+				method: 'POST',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({ data: dataBody, deleteList }),
+			})
+			.then(res => {
+				if(!res.ok) throw new Error('Lỗi');
+				return res.json();
+			})
+			.then(data => {
+				toastr.success('Lưu thành công');
+				setTimeout(() => window.location.reload(), 2000);
+			})
+			.catch(err => {
+				console.log(err);
+				toastr.error('Lỗi khi lưu');
+			});
+		})
+	})
+</script>

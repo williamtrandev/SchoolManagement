@@ -5,6 +5,7 @@ const StudentClass = require("../models/StudentClass");
 const Parent = require("../models/Parent");
 const Year = require("../models/Year");
 const Assignment = require("../models/Assignment");
+const Subject = require("../models/Subject");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Excel = require('exceljs');
@@ -12,11 +13,28 @@ const { ROLES } = require('../constants');
 
 const workbook = new Excel.Workbook();
 
+sortClass = (a, b) => {
+	const regex = /(\d+)([A-Za-z]+)(\d+)/;
+	const [, numA, charA, numA2] = a.match(regex);
+	const [, numB, charB, numB2] = b.match(regex);
+
+	if (charA.localeCompare(charB) !== 0) {
+		return charA.localeCompare(charB);
+	}
+
+	if (parseInt(numA) !== parseInt(numB)) {
+		return parseInt(numA) - parseInt(numB);
+	}
+
+	return parseInt(numA2) - parseInt(numB2);
+}
+
+
 class AdminController {
 	/* HOME PAGE */
 	home = async (req, res) => {
 		try {
-			res.render('attendance', { layout: 'manager_layout', activeHoctap: 'active' });
+			res.render('attendance', { layout: 'manager_layout', activeHoctap: 'active', title: 'Điểm danh' });
 		} catch (err) {
 			res.status(500).json({ error: err.message });
 		}
@@ -268,7 +286,8 @@ class AdminController {
 			console.log(classes);
 			res.render('profileStudents', {
 				layout: 'manager_layout', years: years,
-				classes: classes, grades: gradesData, activeHoso: 'active'
+				classes: classes, grades: gradesData, activeHoso: 'active',
+				title: 'Hồ sơ học sinh'
 			});
 		} catch (err) {
 			console.log(err);
@@ -316,7 +335,10 @@ class AdminController {
 
 			const teachers = await Teacher.find().lean();
 
-			res.render('profileClasses', { layout: 'manager_layout', classes: modifiedClasses, teachers, activeHoso: 'active' });
+			res.render('profileClasses', {
+				layout: 'manager_layout', classes: modifiedClasses,
+				teachers, activeHoso: 'active', title: 'Hồ sơ lớp'
+			});
 		} catch (err) {
 			console.log(err);
 			res.status(500).json({ message: err });
@@ -538,12 +560,17 @@ class AdminController {
 		}
 	}
 	teachers = (req, res) => {
-		res.render('profileTeachers', { layout: 'manager_layout', title: 'Thông tin giáo viên', activeHoso: 'active' });
+		res.render('profileTeachers', {
+			layout: 'manager_layout', title: 'Thông tin giáo viên',
+			activeHoso: 'active'
+		});
 	}
 	getTeachersByGroup = async (req, res) => {
 		try {
-			const group = req.body.group;
-			const teachers = await Teacher.find({ group: group });
+			const teacher = req.session.teacher;
+			console.log(teacher);
+			const group = req.query.group;
+			const teachers = await Teacher.find({ group: group }).select('-password');
 			res.status(200).json({ teachers });
 		} catch (err) {
 			res.status(500).json({ message: err });
@@ -556,6 +583,142 @@ class AdminController {
 			res.status(200).json({ teachers });
 		} catch (err) {
 			res.status(500).json({ message: err });
+		}
+	}
+	updateTeacher = async (req, res) => {
+		try {
+			const teacherId = req.params.teacherId;
+			const { name, group, email, birthday, gender, phone } = req.body;
+			const updatedTeacher = await Teacher.findByIdAndUpdate(teacherId,
+				{ name: name, group: group, email: email, birthday: birthday, gender: gender, phone: phone },
+				{ new: true });
+			res.status(200).json(updatedTeacher);
+		} catch (err) {
+			res.status(500).json({ message: err });
+		}
+	}
+	assignments = async (req, res) => {
+		const year = await Year.findOne().sort({ _id: -1 });
+		const classes = await Class.find({ year: year._id }).lean();
+		classes.sort((a, b) => {
+			const regex = /(\d+)([A-Za-z]+)(\d+)/;
+			const [, numA, charA, numA2] = a.name.match(regex);
+			const [, numB, charB, numB2] = b.name.match(regex);
+
+			if (charA.localeCompare(charB) !== 0) {
+				return charA.localeCompare(charB);
+			}
+
+			if (parseInt(numA) !== parseInt(numB)) {
+				return parseInt(numA) - parseInt(numB);
+			}
+
+			return parseInt(numA2) - parseInt(numB2);
+		});
+		const teachers = await Teacher.find({ role: ROLES.Teacher })
+			.populate({
+				path: 'assignments',
+				match: { year: year._id },
+				populate: ['class', 'subject']
+			})
+			.lean();
+		console.log(teachers[0]);
+		let assignments = {};
+		teachers.forEach(teacher => {
+			if (!assignments[teacher._id]) {
+				assignments[teacher._id] = {};
+			}
+			teacher.assignments.forEach(assignment => {
+				if (!assignments[teacher._id][assignment.subject.name]) {
+					assignments[teacher._id][assignment.subject.name] = '';
+				}
+
+				const classList = assignments[teacher._id][assignment.subject.name];
+				if (classList) {
+					const arr = assignments[teacher._id][assignment.subject.name].split(', ');
+					console.log(arr);
+					arr.push(assignment.class.name);
+					arr.sort(sortClass);
+					
+					assignments[teacher._id][assignment.subject.name] = arr.join(', ');
+				} else {
+					assignments[teacher._id][assignment.subject.name] = assignment.class.name;
+				}
+			});
+		});
+		console.log(assignments);
+		// oldAssignments là obj chứa các lớp mà giáo viên đang dạy
+		const combinedTeachers = teachers.map((teacher, index) => ({ teacher: teacher, oldAssignments: assignments[teacher._id] }));
+		const subjects = await Subject.find().lean();
+		res.render('assignments', {
+			layout: 'manager_layout', activePhancong: 'active',
+			classes, subjects, teachers: combinedTeachers,
+			title: 'Phân công lịch dạy'
+		})
+	}
+	getAllClass = async (req, res) => {
+		try {
+			const year = await Year.findOne({}).sort({ _id: -1 });
+			const classes = await Class.find({ year: year._id }).lean();
+			return res.status(200).json(classes);
+		} catch (err) {
+			res.status(500).json({ error: err })
+		}
+	}
+	getAllSubject = async (req, res) => {
+		try {
+			const subjects = await Subject.find().lean();
+			return res.status(200).json(subjects);
+		} catch (err) {
+			res.status(500).json({ error: err })
+		}
+	}
+	saveAssignments = async (req, res) => {
+		try {
+			const { data, deleteList } = req.body;
+			const year = await Year.findOne().sort({ _id: -1 }).lean();
+			deleteList.forEach(async item => {
+				const condition = {
+					teacher: item.teacherId,
+					class: item.classId,
+					subject: item.subjectId,
+					year: year._id,
+				};
+				const deletedAssignment = await Assignment.findOneAndRemove(condition);
+				await Teacher.findOneAndUpdate({ _id: item.teacherId },
+					{ $pull: { assignments: deletedAssignment._id } });
+			});
+
+			data.forEach(async assignmentData => {
+				const { teacherId, classId, subjectId } = assignmentData;
+
+				const savedAssignment = await Assignment.findOne({
+					teacher: teacherId,
+					class: classId,
+					subject: subjectId,
+					year: year._id,
+				});
+
+				if (!savedAssignment) {
+					const newAssignment = new Assignment({
+						teacher: teacherId,
+						class: classId,
+						subject: subjectId,
+						year: year._id,
+					});
+
+					await newAssignment.save();
+
+					await Teacher.findOneAndUpdate(
+						{ _id: teacherId },
+						{ $push: { assignments: newAssignment._id } }
+					);
+				}
+			});
+
+			res.status(200).json('Success');
+		} catch (err) {
+			res.status(500).json({ error: err });
 		}
 	}
 }

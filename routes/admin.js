@@ -48,4 +48,13 @@ router.get('/data', adminController.data);
 router.post('/setTeacher', adminController.setTeacher);
 
 router.get('/teachers', adminController.teachers);
+
+router.get('/getTeachersByGroup', adminController.getTeachersByGroup);
+
+router.put('/teacher/:teacherId', adminController.updateTeacher);
+
+router.get('/assignments', adminController.assignments);
+router.get('/getAllClass', adminController.getAllClass);
+router.get('/getAllSubject', adminController.getAllSubject);
+router.post('/saveAssignments', adminController.saveAssignments);
 module.exports = router;

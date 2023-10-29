@@ -1,14 +1,284 @@
 <div class="bg-light text-center rounded p-4">
 	<div class="container-fluid">
 		<div class="row">
-			<div class="col-3">
-				<p><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px"></i>Tổ Toán</p>
+			<div class="col-3 overflow-auto" style="height: 500px;">
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ Toán</button>
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-book-reader d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ Văn</button>
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ Vật lý</button>
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ Hóa học</button>
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ Tiếng Anh</button>
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ Tin</button>
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ GDCD</button>
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ Thể dục</button>
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ Âm nhạc</button>
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ Mỹ thuật</button>
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ Lịch sử</button>
+				<button class="group-teacher-nav btn text-start mt-3"><i class="fas fa-square-root-alt d-inline-flex align-items-center justify-content-center mx-2" style="width: 40px; height: 40px"></i>Tổ Địa lý</button>
 			</div>
 			<div class="col-9">
-
+				<div class="container-fluid list-teachers">
+				</div>
 			</div>
 		</div>
-		<div class="row"></div>
 	</div>
-	<table class="table table-strip table-hover"></table>
 </div>
+
+
+
+
+
+
+<div class="modal fade" id="teacherInfo">
+    <div class="modal-dialog border-0">
+		<div class="modal-content border-0" style="border-radius: 1rem;">
+
+			<div class="text-center card-box">
+				<div class="member-card pt-2 pb-2">
+					<div class="thumb-lg member-thumb mx-auto"><img src="/imgs/background_male_teacher.png" class="rounded-circle img-thumbnail" alt="profile-image"></div>
+
+					{{!-- Form  edit --}}
+					<div class="container form-edit d-none">
+						<div class="row">
+							<div class="col-6">
+								<div class="form-group mb-3">
+									<label class="mb-2" for="nameInput">Tên</label>
+									<input type="text" class="form-control" id="nameInput">
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="form-group mb-3">
+									<label class="mb-2" for="groupSelect">Tổ</label>
+									<select class="form-select" id="groupSelect">
+										<option value="Tổ Toán">Tổ Toán</option>
+										<option value="Tổ Văn">Tổ Văn</option>
+										<option value="Tổ Vật lý">Tổ Vật lý</option>
+										<option value="Tổ Hóa học">Tổ Hóa học</option>
+										<option value="Tổ Tiếng Anh">Tổ Tiếng Anh</option>
+										<option value="Tổ Tin">Tổ Tin</option>
+										<option value="Tổ GDCD">Tổ GDCD</option>
+										<option value="Tổ Thể dục">Tổ Thể dục</option>
+										<option value="Tổ Âm nhạc">Tổ Âm nhạc</option>
+										<option value="Tổ Mỹ thuật">Tổ Mỹ thuật</option>
+										<option value="Tổ Lịch sử">Tổ Lịch sử</option>
+										<option value="Tổ Địa lý">Tổ Địa lý</option>
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-6">
+								<div class="form-group mb-3">
+									<label class="mb-2" for="emailInput">Email</label>
+									<input type="email" class="form-control" id="emailInput">
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="form-group">
+									<label class="mb-2" for="birthdayInput">Ngày sinh</label>
+									<input type="date" class="form-control" id="birthdayInput">
+								</div>
+							</div>
+						</div>
+						
+						<div class="row">
+							<div class="col-6">
+								<div class="form-group mb-3">
+									<label class="mb-2" for="genderSelect">Giới tính</label>
+									<select class="form-select" id="genderSelect">
+										<option value="1">Nam</option>
+										<option value="0">Nữ</option>
+									</select>
+								</div>
+							</div>
+							<div class="col-6">
+								<div class="form-group mb-3">
+									<label class="mb-2" for="phoneInput">Số điện thoại</label>
+									<input type="tel" class="form-control" id="phoneInput">
+								</div>
+							</div>
+						</div>
+						<button class="mt-3 btn btn-success btn-edit-teacher">Lưu <i class="fas fa-check"></i></button>
+					</div>
+
+
+					<div class="form-info">
+						<div>
+							<div class="d-flex justify-content-center align-items-center">
+								<h4 class="mb-0" id="name">Trần Tấn Thành</h4> 
+								<i class="ms-2 fas fa-user-edit d-flex align-items-center edit-icon" style="height: 30px; width: 30px; cursor: pointer"></i>
+							</div>
+							<p class="text-muted">
+								<span id="group">Tổ Vật Lý </span>
+								<span> | </span>
+								<span>
+									<a href="#" class="text-pink" id="email">trantanthanh@gmail.com</a>
+								</span>
+							</p>
+						</div>
+						<div class="mt-4">
+							<div class="row">
+								<div class="col-4">
+									<div class="mt-3">
+										<h4 id="birthday">30/11/2003</h4>
+										<input type="date" class="form-control d-none" id="birthdayInput">
+										<p class="mb-0 text-muted">Ngày sinh</p>
+									</div>
+								</div>
+								<div class="col-4">
+									<div class="mt-3">
+										<h4 id="gender">Nam</h4>
+										<select class="form-select d-none" id="genderSelect">
+											<option value="1">Nam</option>
+											<option value="0">Nữ</option>
+										</select>
+										<p class="mb-0 text-muted">Giới tính</p>
+									</div>
+								</div>
+								<div class="col-4">
+									<div class="mt-3">
+										<h4 id="phone">0907640698</h4>
+										<p class="mb-0 text-muted">Số điện thoại</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="teacherId d-none"></div>
+
+<script>
+	$(function() {
+		let cardTeacherClicked = null;
+		let teacherMap = {};
+		$('.group-teacher-nav').click(function() {
+			$(this).addClass('active');
+			$('.group-teacher-nav').not(this).removeClass('active');
+			const group = $(this).text();
+			fetch(`/admin/getTeachersByGroup?group=${group}`)
+			.then(res => {
+				if(!res.ok) throw new Error("Error fetching");
+				return res.json();
+			})
+			.then(data => {
+				console.log(data);
+				$('.list-teachers').empty();
+				let rows = ``;
+				data.teachers.forEach((teacher, index) => {
+					teacherMap[teacher._id] = teacher;
+					let imgs = ``;
+					if(teacher.gender === true) {
+						imgs = `<img class="me-3" src="/imgs/male_teacher.png" alt="" style="width: 70px; height: 70px">`;
+					} else {
+						imgs = `<img class="me-3" src="/imgs/female_teacher.png" alt="" style="width: 70px; height: 70px">`;
+					}
+					if(index % 2 == 0) {
+						rows += `<div class="row">`;
+					} 
+					rows += `<div class="col-6 mx-2 teacher-card" data-id="${teacher._id}">
+							<div class="bg-white p-3 shadow-sm" style="width: 100%; border-radius: 1rem; cursor: pointer">
+								<div class="d-flex align-items-center">
+									${imgs}
+									<div class="ms-4 text-start">
+										<h5 class="card-title teacher-name-card">${teacher.name}</h5>
+										<h6 class="teacher-email-card" style="font-weight: 500">${teacher.email}</h6>
+										<h6 class="teacher-group-card" style="font-weight: 500">Giáo viên ${teacher.group}</h6>
+									</div>
+								</div>
+							</div>
+						</div>`;
+					if(index % 2 == 1) {
+						rows += `</div>`;
+					}
+				});
+				$('.list-teachers').append(rows);
+			})
+			.catch(err => {
+				console.log(err);
+				toastr.error("Lỗi hệ thống");
+			});
+		});
+		$('.list-teachers').on('click', '.teacher-card', function() {
+			cardTeacherClicked = $(this);
+			const teacherId = $(this).data('id');
+			const teacher = teacherMap[teacherId];
+			const gender = teacher.gender === true ? 'Nam' : 'Nữ';
+			const parts = teacher.birthday.substring(0, 10).split('-');
+			const birthday = `${parts[2]}-${parts[1]}-${parts[0]}`;
+			$('#name').text(teacher.name);
+			$('#email').text(teacher.email);
+			$('#phone').text(teacher.phone);
+			$('#group').text(teacher.group);
+			$('#gender').text(gender);
+			$('#birthday').text(birthday);
+			$('#teacherInfo').modal('show');
+			$('.teacherId').text(teacherId);
+		});
+		
+		$('.edit-icon').click(() => {
+			$('.form-edit').removeClass('d-none');
+			$('.form-info').addClass('d-none');
+			$('#nameInput').val($('#name').text());
+			$('#emailInput').val($('#email').text());
+			$('#phoneInput').val($('#phone').text());
+			$('#groupSelect').val($('#group').text());
+			let gender = $('#gender').text() === 'Nam' ? 1 : 0;
+			$('#genderSelect').val(gender);
+			const parts = $('#birthday').text().split('-');
+			const formattedDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+			$('#birthdayInput').val(formattedDate);
+		});
+		$('#teacherInfo').on('hidden.bs.modal', function () {
+			$('.form-edit').addClass('d-none');
+			$('.form-info').removeClass('d-none');
+		});
+		$('.btn-edit-teacher').click(()=> {
+			const name = $('#nameInput').val();
+			const group = $('#groupSelect').val();
+			const email = $('#emailInput').val();
+			const birthday = $('#birthdayInput').val();
+			const gender = $('#genderSelect').val();
+			const phone = $('#phoneInput').val();
+			const teacherId = $('.teacherId').text();
+			fetch(`/admin/teacher/${teacherId}`, {
+				method: 'PUT',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({ name, group, email, birthday, gender, phone })
+			})
+			.then(res => {
+				if(!res.ok) throw new Error("Error updating");
+				else return res.json();
+			})
+			.then(teacher => {
+				$('#name').text(teacher.name);
+				$('#email').text(teacher.email);
+				$('#phone').text(teacher.phone);
+				$('#group').text(teacher.group);
+				const gender = teacher.gender === true ? 'Nam' : 'Nữ';
+				const parts = teacher.birthday.substring(0, 10).split('-');
+				const birthday = `${parts[2]}-${parts[1]}-${parts[0]}`;
+				$('#gender').text(gender);
+				$('#birthday').text(birthday);
+				toastr.success("Cập nhật thông tin thành công");
+				const nameCard = $(cardTeacherClicked.find('.teacher-name-card').eq(0));
+				const emailCard = $(cardTeacherClicked.find('.teacher-email-card').eq(0));
+				const groupCard = $(cardTeacherClicked.find('.teacher-group-card').eq(0));
+				nameCard.text(teacher.name);
+				emailCard.text(teacher.email);
+				groupCard.text(teacher.group);
+				teacherMap[teacherId] = teacher;
+				$('.form-edit').addClass('d-none');
+				$('.form-info').removeClass('d-none');
+			})	
+			.catch(err => {
+				console.log(err);
+				toastr.error("Cập nhật thông tin không thành công");
+			});
+		});
+	})
+	
+</script>
