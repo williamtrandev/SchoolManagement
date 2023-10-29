@@ -45,7 +45,7 @@ class StudentController {
 				return res.status(404).json({ error: 'Mã học sinh không tồn tại' });
 			}
 
-			const isMatch = bcrypt.compare(password, student.password);
+			const isMatch = await bcrypt.compare(password, student.password);
 			if (!isMatch) {
 				return res.status(401).json({ error: 'Mật khẩu không chính xác' });
 			}
@@ -194,8 +194,8 @@ class StudentController {
 			student: student._id,
 			exercise: id
 		});
-		await newSubmission.save();
-		await Exercise.findByIdAndUpdate(id, { $push: { submissions: newSubmission._id } });
+		const savedSubmission = await newSubmission.save();
+		await Exercise.findByIdAndUpdate(id, { $push: { submissions: savedSubmission._id } });
 		res.status(200).json({ success: 'Files uploaded successfully', images: images });
 	}
 
