@@ -19,7 +19,7 @@
 									</td>
 									<td>
 										{{#each oldAssignments}}
-											<p class="mb-0"><span class="subjectOfTeacher saved" data-subject="{{@key}}"><span class="nameSubject">{{@key}}</span>: <span class="teacherClass" data-name="{{@key}}">{{this}}</span></span></p>
+											<p class="mb-0"><span class="subjectOfTeacher saved" data-subject="{{@key}}"><span class="nameSubject" style="font-weight: 600">{{@key}}</span>: <span class="teacherClass" data-name="{{@key}}">{{this}}</span></span></p>
 										{{/each}}
 									</td>
 								</tr>
@@ -188,7 +188,7 @@
 					});
 					console.log(allSubjectsOfTeacherText);
 					if(!allSubjectsOfTeacherText.includes(subject)) {
-						const dataInsert = `<p class="mb-0"><span class="subjectOfTeacher" data-subject="${subject}"><span class="nameSubject">${subject}</span>: <span class="teacherClass" data-name="${subject}">${classClick}</span></span></p>`;
+						const dataInsert = `<p class="mb-0"><span class="subjectOfTeacher" data-subject="${subject}"><span class="nameSubject" style="font-weight: 600">${subject}</span>: <span class="teacherClass" data-name="${subject}">${classClick}</span></span></p>`;
 						$(teacherClicked.find('td').eq(1)).append(dataInsert);
 					} else {
 						if(!$(teacherClicked.find(`[data-name="${subject}"]`).eq(0)).text().includes(classClick)) {

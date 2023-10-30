@@ -17,6 +17,7 @@
 			</div>
 			<div class="col-9">
 				<div class="container-fluid list-teachers">
+					<img src="/imgs/background_teacher_wait.png" alt="" class="img-fluid">
 				</div>
 			</div>
 		</div>
@@ -156,6 +157,7 @@
 		let cardTeacherClicked = null;
 		let teacherMap = {};
 		$('.group-teacher-nav').click(function() {
+			$('.img-wait').addClass('d-none');
 			$(this).addClass('active');
 			$('.group-teacher-nav').not(this).removeClass('active');
 			const group = $(this).text();

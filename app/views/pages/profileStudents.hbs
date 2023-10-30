@@ -10,7 +10,7 @@
 				{{/if}}
 			{{/each}}
 		</select>
-		<div class="">
+		<div class="button-add d-none">
 			<div class="btn-group">
 				<button class="btn border px-4 btn-primary" data-toggle="modal" data-target="#addStudent">Thêm thủ công</button>
 			</div>
@@ -35,8 +35,9 @@
 			</div>
 		{{/each}}
 	</div>
-	<div class="bg-light text-center rounded p-4 col-10">
-		<div class="table-responsive">
+	<div class="bg-light rounded text-center p-4 col-10">
+		<img src="/imgs/background_info.png" alt="" class="img-fluid img-wait" style="max-width: 80%">
+		<div class="table-responsive d-none">
 			<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap">
 				<thead>
 					<tr class="text-dark">
@@ -327,6 +328,9 @@
 		
 	});
 	$('.grade-li').click(function () {
+		$('.img-wait').addClass('d-none');
+		$('.table-responsive').removeClass('d-none');
+		$('.button-add').removeClass('d-none');
 		$('#spinner').addClass('show');
 		$('#tbody-student').empty();
 		let id = $(this).data("id");
