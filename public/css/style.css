@@ -322,3 +322,62 @@
     background-color: var(--primary);
     height: 1px;
 }
+.group-teacher-nav {
+    width: 100%;
+}
+.group-teacher-nav:hover, .group-teacher-nav.active {
+    transition: 500ms;
+    color: white;
+    background-color: #7cb1f1;
+}
+.group-teacher-nav:hover i, .group-teacher-nav.active i {
+    transition: 500ms;
+    border-radius: 50%;
+    background-color: #009CFF;
+    color: white;
+}
+
+
+.card-box {
+    padding: 20px;
+    border-radius: 1rem;
+    margin-bottom: 30px;
+    background-color: #fff;
+}
+
+
+.thumb-lg {
+    height: 88px;
+    width: 88px;
+}
+
+.img-thumbnail {
+    padding: .25rem;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: .25rem;
+    max-width: 100%;
+    height: auto;
+}
+
+.text-pink {
+    color: #ff679b !important;
+}
+
+.btn-rounded {
+    border-radius: 2em;
+}
+
+.text-muted {
+    color: #98a6ad !important;
+}
+
+.card-box h4 {
+    line-height: 22px;
+    font-size: 18px;
+}
+
+tbody tr.active {
+    background: #009CFF !important;
+    color: white !important;
+}

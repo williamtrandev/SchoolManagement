@@ -3,7 +3,7 @@ const router = express.Router();
 const adminController = require("../app/controllers/adminController");
 const verifyToken = require("../app/middlewares/verifyToken");
 
-router.get('/', verifyToken, adminController.home);
+router.get('/', adminController.home);
 
 router.get('/login', (req, res) => {
 	if(!req.cookies.jwt)
@@ -29,9 +29,9 @@ router.get('/classes/:grade', adminController.getClassesByGrade);
 
 router.get('/class', adminController.getStudentByClass);
 
-router.post('/addStudent/:id', verifyToken, adminController.addIntoClass);
+router.post('/addStudent/:id', adminController.addIntoClass);
 
-router.post('/checkAttendance', verifyToken, adminController.checkAttendance);
+router.post('/checkAttendance', adminController.checkAttendance);
 
 router.get('/students', adminController.profileStudents);
 
@@ -48,4 +48,13 @@ router.get('/data', adminController.data);
 router.post('/setTeacher', adminController.setTeacher);
 
 router.get('/teachers', adminController.teachers);
+
+router.get('/getTeachersByGroup', adminController.getTeachersByGroup);
+
+router.put('/teacher/:teacherId', adminController.updateTeacher);
+
+router.get('/assignments', adminController.assignments);
+router.get('/getAllClass', adminController.getAllClass);
+router.get('/getAllSubject', adminController.getAllSubject);
+router.post('/saveAssignments', adminController.saveAssignments);
 module.exports = router;

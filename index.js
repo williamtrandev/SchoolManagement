@@ -1,5 +1,4 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const multer = require("multer");
@@ -11,6 +10,7 @@ const fileUpload = require('express-fileupload');
 const sessions = require('express-session');
 const flash = require('connect-flash');
 const route = require('./routes');
+const setupDB = require('./app/utils/db');
 
 dotenv.config();
 const app = express();
@@ -37,28 +37,10 @@ app.engine('hbs', exphbs.engine({
 }));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'app/views/pages'));
-// /* FILE STORAGE */
-// const storage = multer.diskStorage({
-// 	destination: function (req, file, cb) {
-// 		cb(null, "public/img");
-// 	},
-// 	filename: function (req, file, cb) {
-// 		cb(null, file.originalname);
-// 	},
-// });
-// const upload = multer({ storage });
 
+setupDB();
 // routes
 route(app);
 
-
 const PORT = process.env.PORT || 6001;
-mongoose
-	.connect(process.env.MONGO_URI, {
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	})
-	.then(() => {
-		app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
-	})
-	.catch((error) => console.log(`${error} did not connect`));
+app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
