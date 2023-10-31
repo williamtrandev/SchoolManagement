@@ -5,7 +5,7 @@
         <h6 class="mb-0 text-light">Môn: {{assignment.subject.name}}</h6>
     </div>
 
-    <div class="announcement bg-light rounded p-4 mb-2">
+    <div class="bg-light rounded p-4 mb-2">
         <button type="button" class="btn btn-primary m-2" id="newAnnouncementBtn" data-toggle="modal" data-target="#newAnnouncementModal">
             <i class="fa-solid fa-plus"></i>
             <i class="fa-solid fa-bell me-2"></i>
@@ -21,61 +21,67 @@
     <div class="classroom-container">
     {{#each combinedData}}
         {{#if message}}
-            <div class="announcement bg-light rounded p-4 mb-2">
+            <div class="announcement bg-light rounded p-4 mb-2" style="position: relative;">
                 <div class="d-flex work mb-4">
                     <i class="fa-solid fa-bell me-4"></i>
-                    <div>
+                    <div style="width: 75%;">
                         <div class="mb-2 fs-5 fw-bold text-dark">{{title}}</div>
-                        <div class="mb-0 text-secondary">{{annoucementDateFormat createdAt}}</div>
+                        <div class="mb-0 text-secondary">{{announcementDateFormat updatedAt}}</div>
                     </div>
                 </div>
-                <div class="line mt-4 mb-4"></div>
-                <div class="d-flex text-secondary">
+                <div class="line mt-4"></div>
+                <div class="d-flex text-secondary" style="white-space: pre-line">
                     {{message}}
+                </div>
+                <div style="position: absolute; top: 1rem; right: 1rem;">
+                    <button type="button" class="btn btn-primary m-2 update-announcement-btn" data-toggle="modal" data-target="#updateAnnouncementModal"
+                        data-id="{{_id}}"
+                        data-title="{{title}}"
+                        data-message="{{message}}"
+                    >
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger m-2 delete-announcement-btn" data-toggle="modal" data-target="#deleteAnnouncementModal"
+                        data-id="{{_id}}"
+                        data-title="{{title}}"
+                    >
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
                 </div>
             </div>
         {{else}}
-            <div class="bg-light rounded p-4 mb-2">
+            <div class="exercise bg-light rounded p-4 mb-2" style="position: relative;">
                 <div class="d-flex work">
                     <i class="fa-solid fa-pen me-4"></i>
                     <div>
                         <div class="mb-2 fs-5 fw-bold text-dark">{{title}}</div>
-                        <div class="mb-2 text-secondary">{{annoucementDateFormat createdAt}}</div>
-                        <div class="text-danger">Hạn nộp: {{annoucementDateFormat deadline}}</div>
+                        <div class="mb-2 text-secondary">{{announcementDateFormat updatedAt}}</div>
+                        <div class="text-danger">Hạn nộp: {{announcementDateFormat deadline}}</div>
                     </div>
                 </div>
-                <div class="line mt-4 mb-4"></div>
+                <div class="line mt-4"></div>
                 <div class="d-flex justify-content-between">
                     <div class="text-break w-75">
-                        <p class="">
+                        <p style="white-space: pre-line">
                             {{description}}
                         </p>
                     </div>
-                    {{!-- <div class="w-25 ms-4">
-                        {{#if submission}}
-                        <div id="exercise{{_id}}" class="mb-2">
-                            {{#each submission.imagePath}}
-                            <div class="btn bg-warning rounded-pill">{{this}}</div>
-                            {{/each}}
-                        </div>
-                        <button type="button" class="unsubmit-btn btn btn-danger w-100" data-toggle="modal" data-target="#unsubmitModal"
-                            data-title="{{title}}"
-                            data-id="{{_id}}"
-                        >
-                            Hủy nộp bài
-                        </button>
-                        {{else}}
-                        <div id="exercise{{_id}}" class="mb-2">
-                            <div>Chưa nộp</div>
-                        </div>
-                        <button type="button" class="submit-btn btn btn-primary w-100" data-toggle="modal" data-target="#submitModal"
-                            data-title="{{title}}"
-                            data-id="{{_id}}"
-                        >
-                            Nộp bài
-                        </button>
-                        {{/if}}
-                    </div> --}}
+                </div>
+                <div style="position: absolute; top: 1rem; right: 1rem;">
+                    <button type="button" class="btn btn-primary m-2 update-exercise-btn" data-toggle="modal" data-target="#updateExerciseModal"
+                        data-id="{{_id}}"
+                        data-title="{{title}}"
+                        data-deadline="{{deadline}}"
+                        data-description="{{description}}"
+                    >
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger m-2 delete-exercise-btn" data-toggle="modal" data-target="#deleteExerciseModal"
+                        data-id="{{_id}}"
+                        data-title="{{title}}"
+                    >
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
                 </div>
             </div>
         {{/if}}
@@ -105,12 +111,39 @@
                         <textarea class="form-control" id="announcementMessage" rows="4"></textarea>
                     </div>
                 </form>
-                
-
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
                 <button type="button" class="btn btn-primary" id="saveNewAnnouncement">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Announcement Modal -->
+<div class="modal fade" id="updateAnnouncementModal" tabindex="-1" aria-labelledby="updateAnnouncementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateAnnouncementModalLabel">chỉnh sửa thông báo</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateAnnouncementForm">
+                    <div class="mb-3">
+                        <label for="announcementTitle" class="form-label">Tiêu đề</label>
+                        <input type="text" class="form-control" id="updateAnnouncementTitle">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="announcementMessage" class="form-label">Nội dung</label>
+                        <textarea class="form-control" id="updateAnnouncementMessage" rows="4"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="saveUpdateAnnouncement">Lưu</button>
             </div>
         </div>
     </div>
@@ -125,21 +158,22 @@
                 <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <form id="newExerciseForm">
+                    <div class="mb-3">
+                        <label for="exerciseTitle" class="form-label">Tiêu đề</label>
+                        <input type="text" class="form-control" id="exerciseTitle">
+                    </div>
 
-                <div class="mb-3">
-                    <label for="exerciseTitle" class="form-label">Tiêu đề</label>
-                    <input type="text" class="form-control" id="exerciseTitle">
-                </div>
-
-                <div class="mb-3">
-                    <label for="exerciseDeadline" class="form-label">Hạn nộp</label>
-                    <input type="datetime-local" class="form-control" id="exerciseDeadline">
-                </div>
-                
-                <div class="mb-3">
-                    <label for="exerciseDescription" class="form-label">Nội dung</label>
-                    <textarea class="form-control" id="exerciseDescription" rows="4"></textarea>
-                </div>
+                    <div class="mb-3">
+                        <label for="exerciseDeadline" class="form-label">Hạn nộp</label>
+                        <input type="datetime-local" class="form-control" id="exerciseDeadline">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="exerciseDescription" class="form-label">Nội dung</label>
+                        <textarea class="form-control" id="exerciseDescription" rows="4"></textarea>
+                    </div>
+                </form>
 
             </div>
             <div class="modal-footer">
@@ -150,8 +184,97 @@
     </div>
 </div>
 
+<!-- Update Exercise Modal -->
+<div class="modal fade" id="updateExerciseModal" tabindex="-1" aria-labelledby="updateExerciseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateExerciseModalLabel">Bài tập mới</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateExerciseForm">
+                    <div class="mb-3">
+                        <label for="exerciseTitle" class="form-label">Tiêu đề</label>
+                        <input type="text" class="form-control" id="updateExerciseTitle">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="exerciseDeadline" class="form-label">Hạn nộp</label>
+                        <input type="datetime-local" class="form-control" id="updateExerciseDeadline">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="exerciseDescription" class="form-label">Nội dung</label>
+                        <textarea class="form-control" id="updateExerciseDescription" rows="4"></textarea>
+                    </div>
+                </form>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="saveUpdateExercise">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Announcement Modal -->
+<div class="modal fade" id="deleteAnnouncementModal" tabindex="-1" aria-labelledby="deleteAnnouncementModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAnnouncementModalLabel">Xóa thông báo</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc muốn xóa <strong id="deleteAnnouncementTitle"></strong>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="deleteAnnouncementBtn">Xóa</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Exercise Modal -->
+<div class="modal fade" id="deleteExerciseModal" tabindex="-1" aria-labelledby="deleteExerciseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteExerciseModalLabel">Xóa Bài tập</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc muốn xóa <strong id="deleteExerciseTitle"></strong>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="deleteExerciseBtn">Xóa</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    $('#saveNewAnnouncement').click(function () {
+    var updateAnnouncementId;
+    var deleteAnnouncementId;
+    var updateExerciseId;
+    var deleteExerciseId;
+
+    $('#newAnnouncementBtn').click(function () {
+        $('#newAnnouncementForm')[0].reset();
+    });
+
+    $('#newExerciseBtn').click(function () {
+        $('#newExerciseForm')[0].reset();
+        let currentDate = new Date();
+        let formattedDate = currentDate.toISOString().slice(0, 16);
+        $('#exerciseDeadline').attr('min', formattedDate);
+    });
+
+    $('#saveNewAnnouncement').click(() => {
         let assignmentId = '{{assignment._id}}';
         let title = $('#announcementTitle').val();
         let message = $('#announcementMessage').val();
@@ -180,25 +303,334 @@
             } else {
                 let newAnnouncement = "";
                 let announcement = data.success;
-                let createdAt = annoucementDateFormat(announcement.createdAt)
+                let updatedAt = announcementDateFormat(announcement.updatedAt)
                 newAnnouncement += `
-                    <div class="announcement bg-light rounded p-4 mb-2">
+                    <div class="announcement bg-light rounded p-4 mb-2" style="position: relative;">
                         <div class="d-flex work mb-4">
                             <i class="fa-solid fa-bell me-4"></i>
-                            <div>
+                            <div style="width: 75%;">
                                 <div class="mb-2 fs-5 fw-bold text-dark">${announcement.title}</div>
-                                <div class="mb-0 text-secondary">${createdAt}</div>
+                                <div class="mb-0 text-secondary">${updatedAt}</div>
                             </div>
                         </div>
-                        <div class="line mt-4 mb-4"></div>
-                        <div class="d-flex text-secondary">
+                        <div class="line mt-4"></div>
+                        <div class="d-flex text-secondary" style="white-space: pre-line">
                             ${announcement.message}
+                        </div>
+                        <div style="position: absolute; top: 1rem; right: 1rem;">
+                            <button type="button" class="btn btn-primary m-2 update-announcement-btn" data-toggle="modal" data-target="#updateAnnouncementModal"
+                                data-id="${announcement._id}"
+                                data-title="${announcement.title}"
+                                data-message="${announcement.message}"
+                            >
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger m-2 delete-announcement-btn" data-toggle="modal" data-target="#deleteAnnouncementModal"
+                                data-id="${announcement._id}"
+                                data-title="${announcement.title}"
+                            >
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                 `;
                 $('.classroom-container').prepend(newAnnouncement);
                 $('#newAnnouncementModal').modal('hide');
-                $('#newAnnouncementForm')[0].reset();
+                
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    });
+
+   $('#saveNewExercise').click(() => {
+        let assignmentId = '{{assignment._id}}';
+        let title = $('#exerciseTitle').val();
+        let description = $('#exerciseDescription').val();
+        let deadline = $('#exerciseDeadline').val();
+        if (title == '') {
+            toastr.error("Tiêu đề không được để trống");
+            return;
+        }
+        if (description == '') {
+            toastr.error("Nội dung không được để trống");
+            return;
+        }
+        if (deadline == '') {
+            toastr.error("Hãy chọn hạn nộp");
+            return;
+        }
+        let data = {
+            title,
+            description,
+            assignmentId,
+            deadline,
+        };
+        fetch('/teacher/exercise/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                toastr.error(data.error);
+            } else {
+                let newExercise = "";
+                let exercise = data.success;
+                let updatedAt = announcementDateFormat(exercise.updatedAt);
+                let deadline = announcementDateFormat(exercise.deadline);
+                newExercise += `
+                    <div class="exercise bg-light rounded p-4 mb-2" style="position: relative;">
+                        <div class="d-flex work">
+                            <i class="fa-solid fa-pen me-4"></i>
+                            <div>
+                                <div class="mb-2 fs-5 fw-bold text-dark">${exercise.title}</div>
+                                <div class="mb-2 text-secondary">${updatedAt}</div>
+                                <div class="text-danger">Hạn nộp: ${deadline}</div>
+                            </div>
+                        </div>
+                        <div class="line mt-4"></div>
+                        <div class="d-flex justify-content-between">
+                            <div class="text-break w-75">
+                                <p style="white-space: pre-line">
+                                    ${exercise.description}
+                                </p>
+                            </div>
+                        </div>
+                        <div style="position: absolute; top: 1rem; right: 1rem;">
+                            <button type="button" class="btn btn-primary m-2 update-exercise-btn" data-toggle="modal" data-target="#updateExerciseModal"
+                                data-id="${exercise._id}"
+                                data-title="${exercise.title}"
+                                data-deadline="${exercise.deadline}"
+                                data-description="${exercise.description}"
+                            >
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger m-2 delete-exercise-btn" data-toggle="modal" data-target="#deleteExerciseModal"
+                                data-id="${exercise._id}"
+                                data-title="${exercise.title}"
+                            >
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                $('.classroom-container').prepend(newExercise);
+                $('#newExerciseModal').modal('hide');
+                
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    });
+
+    $('.classroom-container').on('click', '.delete-announcement-btn', function () {
+        $('#deleteAnnouncementTitle').text($(this).data('title'));
+        deleteAnnouncementId = $(this).data('id');
+    });
+
+    $('#deleteAnnouncementBtn').click(() => {
+        fetch(`/teacher/announcement/${deleteAnnouncementId}`, {
+            method: 'DELETE',
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                toastr.error(data.error);
+            } else {
+                $(`.delete-announcement-btn[data-id="${deleteAnnouncementId}"]`).closest('.announcement').remove();
+                $('#deleteAnnouncementModal').modal('hide');
+                toastr.success(data.success);
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    });
+
+    $('.classroom-container').on('click', '.delete-exercise-btn', function () {
+        $('#deleteExerciseTitle').text($(this).data('title'));
+        deleteExerciseId = $(this).data('id');
+    });
+
+    $('#deleteExerciseBtn').click(() => {
+        fetch(`/teacher/exercise/${deleteExerciseId}`, {
+            method: 'DELETE',
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                toastr.error(data.error);
+            } else {
+                $(`.delete-exercise-btn[data-id="${deleteExerciseId}"]`).closest('.exercise').remove();
+                $('#deleteExerciseModal').modal('hide');
+                toastr.success(data.success);
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    });
+
+    $('.classroom-container').on('click', '.update-announcement-btn', function () {
+        $('#updateAnnouncementTitle').val($(this).data('title'));
+        $('#updateAnnouncementMessage').val($(this).data('message'));
+        updateAnnouncementId = $(this).data('id');
+    });
+
+    $('#saveUpdateAnnouncement').click(() => {
+        let title = $('#updateAnnouncementTitle').val();
+        let message = $('#updateAnnouncementMessage').val();
+        if (title == '') {
+            toastr.error("Tiêu đề không được để trống");
+            return;
+        }
+        if (message == '') {
+            toastr.error("Nội dung không được để trống");
+            return;
+        }
+        let data = {
+            title,
+            message,
+        };
+        fetch(`/teacher/announcement/${updateAnnouncementId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                toastr.error(data.error);
+            } else {
+                let newAnnouncement = "";
+                let announcement = data.success;
+                let updatedAt = announcementDateFormat(announcement.updatedAt)
+                newAnnouncement += `
+                    <div class="announcement bg-light rounded p-4 mb-2" style="position: relative;">
+                        <div class="d-flex work mb-4">
+                            <i class="fa-solid fa-bell me-4"></i>
+                            <div style="width: 75%;">
+                                <div class="mb-2 fs-5 fw-bold text-dark">${announcement.title}</div>
+                                <div class="mb-0 text-secondary">${updatedAt}</div>
+                            </div>
+                        </div>
+                        <div class="line mt-4"></div>
+                        <div class="d-flex text-secondary" style="white-space: pre-line">
+                            ${announcement.message}
+                        </div>
+                        <div style="position: absolute; top: 1rem; right: 1rem;">
+                            <button type="button" class="btn btn-primary m-2 update-announcement-btn" data-toggle="modal" data-target="#updateAnnouncementModal"
+                                data-id="${announcement._id}"
+                                data-title="${announcement.title}"
+                                data-message="${announcement.message}"
+                            >
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger m-2 delete-announcement-btn" data-toggle="modal" data-target="#deleteAnnouncementModal"
+                                data-id="${announcement._id}"
+                                data-title="${announcement.title}"
+                            >
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                $(`.update-announcement-btn[data-id="${updateAnnouncementId}"]`).closest('.announcement').remove();
+                $('.classroom-container').prepend(newAnnouncement);
+                $('#updateAnnouncementModal').modal('hide');
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    });
+
+    $('.classroom-container').on('click', '.update-exercise-btn', function () {
+        let currentDate = new Date();
+        let formattedDate = currentDate.toISOString().slice(0, 16);
+        console.log($(this).data('deadline'));
+        let deadline = localDateTimeString($(this).data('deadline'));
+        $('#updateExerciseDeadline').attr('min', formattedDate);
+        $('#updateExerciseTitle').val($(this).data('title'));
+        $('#updateExerciseDescription').val($(this).data('description'));
+        $('#updateExerciseDeadline').val(deadline);
+        updateExerciseId = $(this).data('id');
+    });
+
+    $('#saveUpdateExercise').click(() => {
+        let title = $('#updateExerciseTitle').val();
+        let description = $('#updateExerciseDescription').val();
+        let deadline = $('#updateExerciseDeadline').val();
+        if (title == '') {
+            toastr.error("Tiêu đề không được để trống");
+            return;
+        }
+        if (description == '') {
+            toastr.error("Nội dung không được để trống");
+            return;
+        }
+        let data = {
+            title,
+            description,
+            deadline
+        };
+        fetch(`/teacher/exercise/${updateExerciseId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                toastr.error(data.error);
+            } else {
+                let newExercise = "";
+                let exercise = data.success;
+                let updatedAt = announcementDateFormat(exercise.updatedAt);
+                let deadline = announcementDateFormat(exercise.deadline);
+                newExercise += `
+                    <div class="exercise bg-light rounded p-4 mb-2" style="position: relative;">
+                        <div class="d-flex work">
+                            <i class="fa-solid fa-pen me-4"></i>
+                            <div>
+                                <div class="mb-2 fs-5 fw-bold text-dark">${exercise.title}</div>
+                                <div class="mb-2 text-secondary">${updatedAt}</div>
+                                <div class="text-danger">Hạn nộp: ${deadline}</div>
+                            </div>
+                        </div>
+                        <div class="line mt-4"></div>
+                        <div class="d-flex justify-content-between">
+                            <div class="text-break w-75">
+                                <p style="white-space: pre-line">
+                                    ${exercise.description}
+                                </p>
+                            </div>
+                        </div>
+                        <div style="position: absolute; top: 1rem; right: 1rem;">
+                            <button type="button" class="btn btn-primary m-2 update-exercise-btn" data-toggle="modal" data-target="#updateExerciseModal"
+                                data-id="${exercise._id}"
+                                data-title="${exercise.title}"
+                                data-deadline="${exercise.deadline}"
+                                data-description="${exercise.description}"
+                            >
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger m-2 delete-exercise-btn" data-toggle="modal" data-target="#deleteExerciseModal"
+                                data-id="${exercise._id}"
+                                data-title="${exercise.title}"
+                            >
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                $(`.update-exercise-btn[data-id="${updateExerciseId}"]`).closest('.exercise').remove();
+                $('.classroom-container').prepend(newExercise);
+                $('#updateExerciseModal').modal('hide');
             }
         })
         .catch(err => {

@@ -19,7 +19,12 @@ router.get('/login', (req, res) => {
 router.post('/login', teacherController.login);
 router.get('/logout', teacherController.logout);
 router.get('/classroom/:id', verifyToken, teacherController.classroomPage);
-router.post('/announcement', teacherController.newAnnouncement);
+router.post('/announcement', verifyToken, teacherController.newAnnouncement);
+router.put('/announcement/:id', verifyToken, teacherController.updateAnnouncement);
+router.delete('/announcement/:id', verifyToken, teacherController.deleteAnnouncement);
+router.post('/exercise', verifyToken, teacherController.newExercise);
+router.put('/exercise/:id', verifyToken, teacherController.updateExercise);
+router.delete('/exercise/:id', verifyToken, teacherController.deleteExercise);
 
 router.post('/insert-assignment', teacherController.insertAssignment);
 

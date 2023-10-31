@@ -7,7 +7,6 @@ const morgan = require("morgan");
 const path = require("path");
 const exphbs = require("express-handlebars");
 const cookieParser = require("cookie-parser");
-const fileUpload = require('express-fileupload');
 const sessions = require('express-session');
 const flash = require('connect-flash');
 const route = require('./routes');
@@ -25,7 +24,7 @@ app.use(sessions({
 app.use(cookieParser());
 app.use(flash());
 app.use(cors());
-app.use(fileUpload());
+
 app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, "public")));
 app.engine('hbs', exphbs.engine({

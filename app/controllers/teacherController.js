@@ -4,6 +4,7 @@ const Year = require('../models/Year');
 const Subject = require('../models/Subject');
 const Class = require('../models/Class');
 const Announcement = require('../models/Announcement');
+const Exercise = require('../models/Exercise');
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -99,7 +100,7 @@ class TeacherController {
 				const exercises = assignment.exercises;
 	
 				combinedData = announcements.concat(exercises);
-				combinedData.sort((a, b) => b.createdAt - a.createdAt);
+				combinedData.sort((a, b) => b.updatedAt - a.updatedAt);
 			}
 			
 			res.render('teacherClassroom', { 
@@ -126,6 +127,63 @@ class TeacherController {
 		} catch (err) {
 			console.log(err);
 			return res.json({ error: 'Lưu thông báo không thành công' });
+		}
+	}
+
+	async updateAnnouncement(req, res) {
+		try {
+			const id = req.params.id;
+			const updatedAnnouncement = await Announcement.findByIdAndUpdate(id, req.body, { new: true });
+			return res.json({ success: updatedAnnouncement });
+		} catch (err) {
+			console.log(err);
+			return res.json({ error: 'Chỉnh sửa thông báo không thành công' });
+		}
+	}
+
+	async deleteAnnouncement(req, res) {
+		try {
+			const id = req.params.id;
+			await Announcement.deleteOne({ _id: id });
+			return res.json({ success: 'Xóa thông báo thành công' });
+		} catch (err) {
+			console.log(err);
+			return res.json({ error: 'Không thể xóa thông báo' });
+		}
+	}
+
+	async newExercise(req, res) {
+		try {
+			const { title, description, assignmentId, deadline } = req.body;
+			const newExercise = new Exercise({ title, description, assignment: assignmentId, deadline, submissions: [] });
+			const savedExercise = await newExercise.save();
+			await Assignment.findByIdAndUpdate(assignmentId, { $push: { exercises: savedExercise._id } });
+			return res.json({ success: savedExercise });
+		} catch (err) {
+			console.log(err);
+			return res.json({ error: 'Lưu bài tập không thành công' });
+		}
+	}
+
+	async updateExercise(req, res) {
+		try {
+			const id = req.params.id;
+			const updatedExercise = await Exercise.findByIdAndUpdate(id, req.body, { new: true });
+			return res.json({ success: updatedExercise });
+		} catch (err) {
+			console.log(err);
+			return res.json({ error: 'Chỉnh sửa bài tập không thành công' });
+		}
+	}
+
+	async deleteExercise(req, res) {
+		try {
+			const id = req.params.id;
+			await Exercise.deleteOne({ _id: id });
+			return res.json({ success: 'Xóa bài tập thành công' });
+		} catch (err) {
+			console.log(err);
+			return res.json({ error: 'Không thể xóa bài tập' });
 		}
 	}
 
