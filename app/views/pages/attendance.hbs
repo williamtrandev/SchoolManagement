@@ -62,6 +62,7 @@
 	let deleteList = [];
 	let savedList = [];
 	let newList = [];
+	let isAttended = false;
 	function handleClickAttendance(e) {
 		let isNew = $(e).closest('tr').hasClass('new');
 		console.log(isNew);
@@ -167,6 +168,7 @@
 				console.log(data);
 				console.log(data.isAttended);
 				let stateAtten = data.isAttended ? 'Đã điểm danh' : 'Chưa điểm danh';
+				isAttended = data.isAttended;
 				$("#attendance").text(stateAtten);	
 				$("#totalStudent").text(data.students.length);
 				
@@ -317,7 +319,7 @@
 			fetch(`/admin/checkAttendance`, {
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify({ data, idClass, updateList }),
+				body: JSON.stringify({ data, idClass, updateList, isAttended }),
 			})
 			.then(res => res.json())
 			.then(data => {

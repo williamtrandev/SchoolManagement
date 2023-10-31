@@ -57,4 +57,5 @@ router.get('/assignments', adminController.assignments);
 router.get('/getAllClass', adminController.getAllClass);
 router.get('/getAllSubject', adminController.getAllSubject);
 router.post('/saveAssignments', adminController.saveAssignments);
+router.get('/timeTable', adminController.timeTable);
 module.exports = router;

@@ -26,8 +26,17 @@
 					<a class="nav-item nav-link" href="/admin"><i class="far fa-check-square"></i>Điểm danh</a>
 				</li>
 			</ul>
-			<a href="/admin/assignments" class="nav-item nav-link {{activePhancong}}"><i class="fas fa-calendar"></i>Phân công lịch
-				dạy</a>
+			<a href="#subassign" class="nav-item nav-link position-relative dropdown-toggle {{activePhancong}}" data-toggle="collapse">
+				<i class="fas fa-calendar"></i>Phân công
+			</a>
+			<ul class="collapse list-unstyled mt-2 flex-column" id="subassign">
+				<li>
+					<a class="nav-item nav-link" href="/admin/assignments"><i class="fas fa-chalkboard-teacher"></i>Giảng dạy</a>
+				</li>
+				<li>
+					<a class="nav-item nav-link" href="/admin/timeTable"><i class="fas fa-table"></i>Thời khóa biểu</a>
+				</li>
+			</ul>
 			<a href="#submenu" class="nav-link position-relative dropdown-toggle {{activeHoso}}" data-toggle="collapse"><i class="fas fa-id-card"></i>Hồ sơ</a>
 			<ul class="collapse list-unstyled mt-2 flex-column" id="submenu">
 				<li>

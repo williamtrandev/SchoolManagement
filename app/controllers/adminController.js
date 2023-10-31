@@ -11,6 +11,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Excel = require('exceljs');
 const { ROLES, TYPE_VIOLATION } = require('../constants');
+const { sendMailToUser } = require('../utils/mail');
 
 const workbook = new Excel.Workbook();
 
@@ -135,7 +136,7 @@ class AdminController {
 			const date = req.query.date;
 			let isAttended = false;
 			const classFind = await Class.findById(id).lean();
-			
+
 			if (date) {
 				const students = await StudentClass.find({ class: id })
 					.populate(['student', 'class', 'violations'])
@@ -160,7 +161,7 @@ class AdminController {
 						class: className
 					}
 				});
-				console.log(returnStudents);
+				//console.log(returnStudents);
 				return res.status(200).json({ students: returnStudents });
 			}
 
@@ -216,14 +217,15 @@ class AdminController {
 
 	checkAttendance = async (req, res) => {
 		try {
-			const { data, idClass, updateList } = req.body;
+			const { data, idClass, updateList, isAttended } = req.body;
 			const currentDate = new Date();
 			const day = currentDate.getDate(); // Lấy ngày (1-31)
 			const month = currentDate.getMonth() + 1; // Lấy tháng (0-11) và cộng thêm 1 để đổi về (1-12)
 			const year = currentDate.getFullYear();
 			const date = `${year}-${month}-${day}`;
 			// Đánh dấu hôm nay đã điểm danh
-			await Class.findOneAndUpdate({ _id: idClass }, { $push: { attendance: date } });
+			await Class.findOneAndUpdate({ _id: idClass }, { $addToSet: { attendance: date } });
+			const absentStudentMap = {};
 			for (const item of data) {
 				// Bản ghi mới
 				const studentClass = await StudentClass.findOne({ student: item.student, class: item.class });
@@ -250,10 +252,37 @@ class AdminController {
 						date: date,
 						studentClass: studentClass._id
 					});
-
 					const savedViolation = await newViolation.save();
 					studentClass.violations.push(savedViolation._id);
+					// Mapping các id của student vắng
+					absentStudentMap[item.student._id] = studentClass;
+
+					if (violationType === 'ABSENT') {
+						const user = await StudentClass.findOne({
+							student: item.student, class: item.class
+						}).populate({
+							path: 'student',
+							populate: {
+								path: 'parents'
+							}
+						});
+						console.log('users new', user);
+						const parents = [];
+						user.student.parents.forEach(parent => {
+							parents.push({
+								name: user.student.name,
+								state: 'vắng',
+								emailParent: parent.email,
+							});
+						});
+						console.log(parents);
+						if (parents.length > 0) {
+							sendMailToUser(parents, 'attendance');
+						}
+					}
 				}
+
+
 				await studentClass.save();
 			}
 
@@ -261,10 +290,10 @@ class AdminController {
 				const studentClass = await StudentClass.findOne({
 					student: updateItem.student, class: updateItem.class
 				});
-				for(const violation of updateItem.violations) {
+				for (const violation of updateItem.violations) {
 					let violationType;
-					console.log(violation);
-					switch(violation.type) {
+					//console.log(violation);
+					switch (violation.type) {
 						case 'ABSENT':
 							violationType = 'ABSENT';
 							break;
@@ -274,23 +303,77 @@ class AdminController {
 						case 'GROOVE':
 							violationType = 'GROOVE';
 							break;
-						default: 
+						default:
 							violationType = 'UNKNOWN';
 					}
-					if(violation.action === 'delete') {
+					if (violation.action === 'delete') {
 						const findViolation = await Violation.findOne({
 							type: violationType,
 							date: date,
 							studentClass: studentClass._id
 						});
-						console.log(findViolation);
+						//console.log(findViolation);
 						studentClass.violations.pull(findViolation._id);
-						console.log(studentClass.violations);
+						//console.log(studentClass.violations);
 						await findViolation.deleteOne();
+						// absent xóa tức là sửa lại là có mặt -> gửi mail lại là có mặt
+						if (violationType === 'ABSENT') {
+							const user = await StudentClass.findOne({
+								student: updateItem.student, class: updateItem.class
+							}).populate({
+								path: 'student',
+								populate: {
+									path: 'parents'
+								}
+							});
+							console.log('users update', user);
+							const parents = [];
+							user.student.parents.forEach(parent => {
+								parents.push({
+									name: user.student.name,
+									state: 'có mặt',
+									emailParent: parent.email,
+								});
+							});
+							console.log(parents);
+							if (parents.length > 0) {
+								sendMailToUser(parents, 'attendance');
+							}
+						}
 					}
-					
+
 				}
 				await studentClass.save();
+			};
+
+			// Lần đầu điểm danh thì gửi mail hàng loạt
+			if (!isAttended) {
+				const students = await StudentClass.find({ class: idClass })
+					.populate({
+						path: 'student',
+						populate: {
+							path: 'parents'
+						}
+					}).lean();
+				const users = [];
+				students.forEach(user => {
+					// Tồn tại trong danh sách vắng thì state = 'vắng'
+					let state = 'có mặt';
+					if (absentStudentMap[user._id]) {
+						state = 'vắng';
+					}
+					user.student.parents.forEach(parent => {
+						users.push({
+							name: user.student.name,
+							state: state,
+							emailParent: parent.email,
+						})
+					})
+				});
+				console.log('users first', users)
+				if (users.length > 0) {
+					sendMailToUser(users, 'attendance');
+				}
 			}
 			res.status(200).json({ message: "Update successfully" });
 		} catch (err) {
@@ -767,6 +850,9 @@ class AdminController {
 		} catch (err) {
 			res.status(500).json({ error: err });
 		}
+	}
+	timeTable = (req, res) => {
+		res.render('timeTable', { layout: 'manager_layout', title: 'Thời khóa biểu' });
 	}
 }
 
