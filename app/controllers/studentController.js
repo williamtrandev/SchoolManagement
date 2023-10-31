@@ -45,7 +45,7 @@ class StudentController {
 				return res.status(404).json({ error: 'Mã học sinh không tồn tại' });
 			}
 
-			const isMatch = await bcrypt.compare(password, student.password);
+			const isMatch = bcrypt.compare(password, student.password);
 			if (!isMatch) {
 				return res.status(401).json({ error: 'Mật khẩu không chính xác' });
 			}

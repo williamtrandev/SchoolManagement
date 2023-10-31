@@ -1,6 +1,6 @@
-<div class="bg-light text-center rounded p-4">
-	<div class="d-flex align-items-center justify-content-between mb-4">
-		<h5 class="mb-0">Trạng thái: <span id="attendance"></span></h5>
+<div class="bg-light text-center rounded p-4" style="min-height: 80vh; margin-bottom: 100px">
+	<div class="group-attendance d-flex align-items-center justify-content-center mb-4">
+		<h5 class="mb-0 d-none attendance-state">Trạng thái: <span id="attendance"></span></h5>
 		<div class="d-flex align-items-center">
 			<label for="grade">Khối</label>
 			<select class="form-select mx-3" id="grade" style="width: auto">
@@ -14,22 +14,27 @@
 			<select class="form-select mx-3" id="class" style="width: auto">
 			</select>
 		</div>
-		<div class="d-flex justify-content-between align-items-center">
+		<div class="d-flex justify-content-between align-items-center attendance-info d-none">
 			<div class="p-2 rounded-1 bg-success text-white me-3">Tất cả: <span id="totalStudent"></span></div>
 			<div class="p-2 rounded-1 bg-info text-white me-3">Có mặt: <span id="presentStudent">0</span></div>
 			<div class="p-2 rounded-1 bg-warning text-white me-3">Vắng: <span id="absentStudent">0</span></div>
 		</div>
 	</div>
-	<div class="table-responsive">
+	<img src="/imgs/background_wait.png" alt="" srcset="" class="img-fluid attendance-wait" style="max-width: 80%">
+	<div class="table-responsive d-none">
 		<table class="table text-center align-middle table-bordered table-hover mb-0" id="attendance-table">
 			<thead>
 				<tr class="text-dark">
-					<th scope="col">STT</th>
-					<th scope="col">Họ tên</th>
-					<th scope="col">Ngày sinh</th>
-					<th scope="col">Có mặt</th>
-					<th scope="col">Vắng</th>
-					<th scope="col">Vi phạm</th>
+					<th scope="col" class="align-middle" rowspan="2">STT</th>
+					<th scope="col" class="align-middle" rowspan="2">Họ tên</th>
+					<th scope="col" class="align-middle" rowspan="2">Ngày sinh</th>
+					<th scope="col" class="align-middle" rowspan="2">Có mặt</th>
+					<th scope="col" class="align-middle" rowspan="2">Vắng</th>
+					<th scope="col" colspan="2">Vi phạm</th>
+				</tr>
+				<tr class="text-dark">
+					<th scope="col">Đạo đức</th>
+					<th scope="col">Nề nếp</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -37,33 +42,105 @@
 			</tbody>
 		</table>
 	</div>
-	<button class="btn btn-info text-white my-3 btn-save">Lưu</button>
+	<div class="navbar fixed-bottom navbar-light bg-light d-flex justify-content-end d-none" style="left: 250px; height: 80px">
+		<div class="container-fluid">
+			<button class="btn btn-info text-white my-3 btn-save ms-auto me-3">Lưu</button>
+		</div>
+	</div>
 </div>
 
 
 <script>
+	const currentDate = new Date();
+	const day = currentDate.getDate(); // Lấy ngày (1-31)
+	const month = currentDate.getMonth() + 1; // Lấy tháng (0-11) và cộng thêm 1 để đổi về (1-12)
+	const year = currentDate.getFullYear(); 
+	const date = `${year}-${month}-${day}`;
+	let studentClassMap = {};
+	let updateListMap = {};
+	let newListMap = {};
+	let deleteList = [];
+	let savedList = [];
+	let newList = [];
 	function handleClickAttendance(e) {
-		
+		let isNew = $(e).closest('tr').hasClass('new');
+		console.log(isNew);
 		// Lấy hàng (row) chứa phần tử đang được click
 		let row = $(e).closest('tr');
 		// Lấy tất cả các checkbox và select box trong hàng
-		let checkboxesAndSelect = $('input[type="checkbox"]', row);
+		$('.present', row).prop('checked', false);
+		$('.absent', row).prop('checked', false);
+		let studentId = $(e).data('student');
+		let classId = $(e).data('class');
 		// Đặt trạng thái của tất cả các phần tử trong hàng bằng với checkbox đang được click
-		checkboxesAndSelect.prop('checked', false);
+		
 		$(e).prop('checked', true); 
+		const item = isNew ? newListMap[studentId + "_" + classId] 
+							: updateListMap[studentId + "_" + classId];
+		const indexItem = item.violations.findIndex(vio => {
+			return vio.type === 'ABSENT' && vio.date === date;
+		})
 		if($(e).hasClass('absent')) {
 			row.data('absent', 1);
-		} else if(row.data('restore') == 1) {
-			row.data('update', 1);
+			
+			// Trỏ đến obj trong list sẽ được thêm mới
+			if(isNew) {
+				if(indexItem === -1) {
+					const isExisting = item.violations.some(violation => {
+						return violation.type === 'ABSENT' && violation.date === date;
+					});
+					// Nếu trong mảng đã có thì không thêm nữa, xử lý trong TH 
+					// người dùng nhấn vào nhiều lần
+					if(!isExisting) {
+						item.violations.push({
+							type: 'ABSENT',
+							date: date,
+						});
+					}
+				} 
+			} else {
+				// Chưa có vắng thì thêm vào để cập nhật thêm
+				const isExisting = item.violations.some(violation => {
+					return violation.type === 'ABSENT' && violation.date === date;
+				});
+				// Nếu trong mảng đã có thì không thêm nữa, xử lý trong TH 
+				// người dùng nhấn vào nhiều lần
+				if(!isExisting) {
+					item.violations.push({
+						type: 'ABSENT',
+						date: date,
+						action: 'add',
+					});
+				} else {
+					item.violations[indexItem] = {
+						...item.violations[indexItem],
+						action: item.violations[indexItem].action !== 'none' ? 'none' : 'delete',
+					};
+				}
+			}
+		} else {
+			console.log(item.violations[indexItem])
+			item.violations[indexItem] = {
+				...item.violations[indexItem],
+				action: item.violations[indexItem].action !== 'none' ? 'none' : 'delete',
+			};
 		}
+
 		let numPresent = $("input.present:checked").length;
 		let numAbsent1 = $("input.absent:checked").length;
 		$("#presentStudent").text(numPresent);
 		$("#absentStudent").text(numAbsent1);
+		
 	}
 	$(function() {
-		
 		$("#grade").change(function() {
+			$('.attendance-wait').addClass('d-none');
+			$('.attendance-info').removeClass('d-none');
+			$('.attendance-state').removeClass('d-none');
+			$('.group-attendance').removeClass('justify-content-center')
+			.addClass('justify-content-between');
+			$('.table-responsive').removeClass('d-none');
+			$('.navbar').removeClass('d-none');
 			let grade = $(this).val();
 			fetch(`/admin/classes/${grade}`)
 			.then(res => res.json())
@@ -78,14 +155,12 @@
 			})
 			.catch(err => { console.log(err) });
 		});
-
+		
 		$("#class").change(function() {
+			savedList = [];
+			newList = [];
 			const id = $(this).val();
-			const currentDate = new Date();
-			const day = currentDate.getDate(); // Lấy ngày (1-31)
-			const month = currentDate.getMonth() + 1; // Lấy tháng (0-11) và cộng thêm 1 để đổi về (1-12)
-			const year = currentDate.getFullYear(); 
-			const date = `${year}-${month}-${day}`;
+			
 			fetch(`/admin/class?id=${id}&date=${date}`)
 			.then(res => res.json())
 			.then(data => {
@@ -100,71 +175,149 @@
 				let newTbody = '';
 				
 				data.students.forEach(item => {
+					const studentId = item.student._id;
+					const classId = item.class._id;
+					
 					let parts = item.student.birthday.substring(0, 10).split("-");
 					let birthday = `${parts[2]}-${parts[1]}-${parts[0]}`;
 					let checkedAbsent = '';
+					let checkedConduct = '';
+					let checkedGroove = '';
 					let checkedPresent = 'checked';
-					let restore = 0;
-					let absent = 0;
-					console.log("absentdays: " + item.absentDays + ", date: " + date)
-					if(item.absentDays && item.absentDays.includes(date)) {
-						checkedAbsent = 'checked';
-						checkedPresent = '';
-						restore = 1;
-						absent = 1;
+					let className = '';
+					restore = 1;
+					absent = 1;
+					if(item.violations.length > 0) {
+						console.log('old');
+						className = 'old';
+						const objAdd = {
+							student: item.student._id,
+							class: item.class._id,
+							violations: item.violations.map(vio => {
+								return {
+									_id: vio._id,
+									type: vio.type,
+									date: date,	
+									student: item.student._id,
+									class: item.class._id,
+									action: 'none',
+								}
+								
+							}),
+						}
+						savedList.push(objAdd);
+						updateListMap[studentId + "_" + classId] = objAdd;
+
+						item.violations.forEach(vio => {
+							if(vio.type === 'ABSENT') {
+								checkedAbsent = 'checked';
+								checkedPresent = '';
+							} 
+							if(vio.type === 'CONDUCT') {
+								checkedConduct = 'checked';
+							}
+							if(vio.type === 'GROOVE') {
+								checkedGroove = 'checked';
+							}
+						});
+					} else {
+						className = 'new';
+						const newObjAdd = {
+							student: item.student._id,
+							class: item.class._id,
+							violations: [],
+						};
+						newList.push(newObjAdd);
+						newListMap[studentId + "_" + classId] = newObjAdd;
 					}
 					newTbody += 
-					`<tr data-id=${item.student._id} data-class=${id} data-absent=${absent} data-restore=${restore}>
+					`<tr class="${className}" data-id=${item.student._id} data-class=${id} data-absent=${absent} data-restore=${restore}>
 						<td>${i++}</td>
 						<td>${item.student.name}</td>
 						<td>${birthday}</td>
 						<td><input type="checkbox" class="form-check-input present" ${checkedPresent} 
-							onclick='handleClickAttendance(this)'></td>
+							onclick='handleClickAttendance(this)'
+							data-student="${item.student._id}" data-class="${item.class._id}"></td>
 						<td><input type="checkbox" class="form-check-input absent" ${checkedAbsent} 
-							onclick='handleClickAttendance(this)'></td>
+							onclick='handleClickAttendance(this)'
+							data-student="${item.student._id}" data-class="${item.class._id}"></td>
 						<td>
-							<select class="form-select" aria-label="Vi Phạm">
-								<option value="no" selected>Không Vi Phạm</option>
-								<option value="tacphong">Tác Phong</option>
-								<option value="daoduc">Đạo Đức</option>
-							</select>
+							<input type="checkbox" class="form-check-input conduct" ${checkedConduct}
+								data-student="${item.student._id}" data-class="${item.class._id}">
+						</td>
+						<td>
+							<input type="checkbox" class="form-check-input groove" ${checkedGroove}
+								data-student="${item.student._id}" data-class="${item.class._id}">
 						</td>
 					</tr>`;
 				});
 				$("#attendance-table tbody").append(newTbody);
 				let numAbsent = $("input.absent:checked").length;
 				$("#absentStudent").text(numAbsent);
+				console.log(savedList);
 			})
 			.catch(err => {
 				console.log(err);
 			});
 		})
 
-		$(".btn-save").click(async function() {
-			let data = [];
-			let idClass = "";
-			await $("#attendance-table tbody tr").each(function() {
-				const dataID = $(this).data("id");
-				const dataClass = $(this).data("class");
-				idClass = dataClass;
-				const dataUpdate = $(this).data('update');
-				const dataAbsent = $(this).data('absent');
-				// Tạo đối tượng từ giá trị data
-				const dataObject = {
-					student: dataID,
-					class: dataClass,
-					absent: dataAbsent == 1,
-					restore: dataUpdate !== undefined 
+		
+
+		function handleViolationClick(e, type) {
+			const $element = $(e);
+			const isCheck = $element.is(':checked');
+			console.log(isCheck);
+			const studentId = $element.data('student');
+			const classId = $element.data('class');
+			const isNew = $element.closest('tr').hasClass('new');
+			const item = isNew ? newListMap[`${studentId}_${classId}`] : updateListMap[`${studentId}_${classId}`];
+			const currentDate = new Date();
+			const day = currentDate.getDate();
+			const month = currentDate.getMonth() + 1;
+			const year = currentDate.getFullYear();
+			const date = `${year}-${month}-${day}`;
+			console.log(item.violations);
+			const indexItem = item.violations.findIndex(vio => vio.type === type && vio.date === date);
+			console.log(indexItem);
+			if (isNew) {
+				if (indexItem === -1) {
+					item.violations.push({ type, date });
+				} else {
+					item.violations.splice(indexItem, 1);
+				}
+			} else {
+				if (indexItem === -1) {
+					return;
+				}
+				item.violations[indexItem] = {
+					...item.violations[indexItem],
+					action: isCheck ? 'none' : 'delete',
 				};
-				
-				// Thêm đối tượng vào mảng dataObjects
-				data.push(dataObject);
-			});
-			console.log(data)
+			}
+
+			console.log(item);
+		}
+
+		$('tbody').on('click', '.conduct', function () {
+			handleViolationClick(this, 'CONDUCT');
+		});
+
+		$('tbody').on('click', '.groove', function () {
+			handleViolationClick(this, 'GROOVE');
+		});
+
+		$(".btn-save").click(function() {
+			let idClass = $('#class').val();
+			
+			const objVals = Object.values(newListMap);
+			const data = objVals.filter(item => item.violations.length > 0);
+			const updateList = Object.values(updateListMap);
+			console.log(data);
+			console.log(updateList);
 			fetch(`/admin/checkAttendance`, {
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify({ data, idClass }),
+				body: JSON.stringify({ data, idClass, updateList }),
 			})
 			.then(res => res.json())
 			.then(data => {

@@ -29,6 +29,9 @@
 
     <!-- Template Stylesheet -->
     <link href="/css/style.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 </head>
 
 <body>
@@ -46,7 +49,7 @@
         <div class="container-fluid">
             <div class="row h-100 align-items-center justify-content-center" style="min-height: 100vh;">
                 <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
-                    <form method="post" action="login" class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
+                    <form method="post" class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <a href="/" class="">
                                 <h3 class="text-primary">ESchool</h3>
@@ -83,6 +86,45 @@
 
     <!-- Template Javascript -->
     <script src="/js/main.js"></script>
+
+    <script>
+        $(function() {
+            $('.btn-submit').click(() => {
+                let email = $('input[name="email"]').val();
+                let password = $('input[name="password"]').val();
+                console.log(email, password);
+                fetch(`/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                })
+                .then(res => {
+                    if(res.status === 400) {
+                        toastr.error('Email hoặc mật khẩu không đúng');
+                        return null;
+                    } else if(res.status === 500) {
+                        toastr.error('Lỗi hệ thống');
+                        return null;
+                    } else {
+                        return res.json();
+                    }
+                })
+                .then(data => {
+                    if(data) {
+                        if(data.teacher.role === 'ROLE ADMIN') {
+                            window.location.href = '/admin';
+                        } else if(teacher.role === 'ROLE TEACHER') {
+                            window.location.href = '/teacher/';
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    toastr.error('Lỗi server');
+                });
+            })
+        })
+    </script>
 </body>
 
 </html>
