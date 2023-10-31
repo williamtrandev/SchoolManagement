@@ -87,19 +87,6 @@ class StudentController {
 			const slug = req.params.slug;
 			const subject = await Subject.findOne({slug});
 			const subjects = await Subject.find().lean();
-			// const assignment = await Assignment.findOne({subject, class: currentClass})
-			// 	.populate('subject')
-			// 	.populate('teacher');
-			// const announcements = await Announcement.find({assignment}).sort({createdAt: 'desc'});
-			// const announcementsObj = multipleMongooseToObject(announcements);
-			// const exercises = await Exercise.find({assignment}).sort({createdAt: 'desc'});
-			// const exercisesObj = multipleMongooseToObject(exercises);
-			// for (let i = 0; i < exercisesObj.length; i++) {
-			// 	let submission = await Submission.findOne({ student: student._id, exercise: exercisesObj[i] });
-			// 	if (submission) {
-			// 		exercisesObj[i].submission = mongooseToObject(submission);
-			// 	}
-			// }
 			let combinedData = [];
 			const assignment = await Assignment.findOne({subject, class: currentClass})
 				.populate('subject')
@@ -118,9 +105,8 @@ class StudentController {
 				const exercises = assignment.exercises;
 	
 				combinedData = announcements.concat(exercises);
-				combinedData.sort((a, b) => b.createdAt - a.createdAt);
+				combinedData.sort((a, b) => b.updatedAt - a.updatedAt);
 			}
-			console.log(combinedData);
 			res.render('studentLearning', {
 				layout: 'student_layout', 
 				title: `Học tập: ${subject.name}`, 
@@ -188,14 +174,14 @@ class StudentController {
 		}
 		console.log(req.files);
 		const images = req.files.map(file => file.originalname);
-		const newSubmission = new Submission({
-			imagePath: images,
-			score: null,
-			student: student._id,
-			exercise: id
-		});
-		await newSubmission.save();
-		await Exercise.findByIdAndUpdate(id, { $push: { submissions: newSubmission._id } });
+		// const newSubmission = new Submission({
+		// 	imagePath: images,
+		// 	score: null,
+		// 	student: student._id,
+		// 	exercise: id
+		// });
+		// const savedSubmission = await newSubmission.save();
+		// await Exercise.findByIdAndUpdate(id, { $push: { submissions: savedSubmission._id } });
 		res.status(200).json({ success: 'Files uploaded successfully', images: images });
 	}
 

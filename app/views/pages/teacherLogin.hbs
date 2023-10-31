@@ -29,7 +29,8 @@
 
     <!-- Template Stylesheet -->
     <link href="/css/style.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 </head>
@@ -49,7 +50,7 @@
         <div class="container-fluid">
             <div class="row h-100 align-items-center justify-content-center" style="min-height: 100vh;">
                 <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
-                    <form method="post" class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
+                    <form class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <a href="/" class="">
                                 <h3 class="text-primary">ESchool</h3>
@@ -57,14 +58,14 @@
                             <h3>Đăng nhập</h3>
                         </div>
                         <div class="form-floating mb-3">
-                            <input type="email" name="email" class="form-control" id="floatingInput" placeholder="name@example.com" required>
-                            <label for="floatingInput">Email</label>
+                            <input type="email" name="email" class="form-control" id="email" placeholder="name@example.com" required>
+                            <label for="email">Email</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Password" required>
-                            <label for="floatingPassword">Mật khẩu</label>
+                            <input type="password" name="password" class="form-control" id="password" placeholder="Password" required>
+                            <label for="password">Mật khẩu</label>
                         </div>
-                        <button type="submit" class="btn btn-primary py-2 w-100 mb-4">Đăng nhập</button>
+                        <button id="submitBtn" type="button" class="btn btn-primary py-2 w-100 mb-4">Đăng nhập</button>
                         {{!-- <p class="text-center mb-0">Chưa có tài khoản? <a href="./register">Đăng ký</a></p> --}}
                     </form>
                 </div>
@@ -74,7 +75,6 @@
     </div>
 
     <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/lib/chart/chart.min.js"></script>
     <script src="/lib/easing/easing.min.js"></script>
@@ -86,44 +86,39 @@
 
     <!-- Template Javascript -->
     <script src="/js/main.js"></script>
-
     <script>
-        $(function() {
-            $('.btn-submit').click(() => {
-                let email = $('input[name="email"]').val();
-                let password = $('input[name="password"]').val();
-                console.log(email, password);
-                fetch(`/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                })
-                .then(res => {
-                    if(res.status === 400) {
-                        toastr.error('Email hoặc mật khẩu không đúng');
-                        return null;
-                    } else if(res.status === 500) {
-                        toastr.error('Lỗi hệ thống');
-                        return null;
-                    } else {
-                        return res.json();
-                    }
-                })
-                .then(data => {
-                    if(data) {
-                        if(data.teacher.role === 'ROLE ADMIN') {
-                            window.location.href = '/admin';
-                        } else if(teacher.role === 'ROLE TEACHER') {
-                            window.location.href = '/teacher/';
-                        }
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
-                    toastr.error('Lỗi server');
-                });
+        $('#submitBtn').click(function() {
+            let email = $('#email').val();
+            let password = $('#password').val();
+            if (email == '') {
+                toastr.error("Email không được để trống");
+                return;
+            }
+            if (password == '') {
+                toastr.error("Mật khẩu không được để trống");
+                return;
+            }
+            let data = {
+                email,
+                password,
+            };
+            fetch('/teacher/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             })
-        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    toastr.error(data.error);
+                } else {
+                    window.location.href = '/teacher';
+                }
+            })
+            .catch(err => {
+                console.log(err);
+            });
+        });
     </script>
 </body>
 

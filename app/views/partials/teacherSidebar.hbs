@@ -1,0 +1,29 @@
+<!-- Sidebar Start -->
+<div class="sidebar pe-4 pb-3">
+    <nav class="navbar bg-light navbar-light">
+        <a href="/teacher/" class="navbar-brand mx-4 mb-3">
+            <h3 class="text-primary">Giáo viên</h3>
+        </a>
+        
+        <div class="navbar-nav w-100">
+            <a href="/teacher/" class="nav-item nav-link {{activeHome}}"><i class="fa-solid fa-house me-2"></i>Trang chủ</a>
+            
+            <div class="nav-item dropdown">
+                <a href="#collapseSubject" class="nav-link dropdown-toggle {{activeClassroom}}" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseSubject">
+                    <i class="fa-solid fa-chalkboard-user me-2"></i>Lớp học
+                </a>
+            </div>
+            
+            <div class="collapse" id="collapseSubject">
+                {{#each assignments}}
+                <a href="/teacher/classroom/{{{_id}}}" class="ps-5 dropdown-item"><i class="fa-solid fa-book me-2"></i>Lớp {{class.name}} - {{subject.name}}</a>
+                {{/each}}
+            </div>
+
+            <a href="/teacher/exercises" class="nav-item nav-link {{activeExercises}}"><i class="fa-solid fa-list-check me-2"></i>Bài tập</a>
+            <a href="/teacher/learning-result" class="nav-item nav-link {{activeResult}}"><i class="fa-solid fa-graduation-cap me-2"></i>Kết quả học tập</a>
+            <a href="/teacher/discipline" class="nav-item nav-link {{activeDiscipline}}"><i class="fa-solid fa-clipboard-user me-2"></i>Nề nếp</a>
+        </div>
+    </nav>
+</div>
+<!-- Sidebar End -->
