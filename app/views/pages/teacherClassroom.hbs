@@ -26,7 +26,7 @@
                     <i class="fa-solid fa-bell me-4"></i>
                     <div style="width: 75%;">
                         <div class="mb-2 fs-5 fw-bold text-dark">{{title}}</div>
-                        <div class="mb-0 text-secondary">{{announcementDateFormat updatedAt}}</div>
+                        <div class="mb-0 text-secondary">{{announcementDateFormat createdAt}}</div>
                     </div>
                 </div>
                 <div class="line mt-4"></div>
@@ -55,7 +55,7 @@
                     <i class="fa-solid fa-pen me-4"></i>
                     <div>
                         <div class="mb-2 fs-5 fw-bold text-dark">{{title}}</div>
-                        <div class="mb-2 text-secondary">{{announcementDateFormat updatedAt}}</div>
+                        <div class="mb-2 text-secondary">{{announcementDateFormat createdAt}}</div>
                         <div class="text-danger">Hạn nộp: {{announcementDateFormat deadline}}</div>
                     </div>
                 </div>
@@ -303,14 +303,14 @@
             } else {
                 let newAnnouncement = "";
                 let announcement = data.success;
-                let updatedAt = announcementDateFormat(announcement.updatedAt)
+                let createdAt = announcementDateFormat(announcement.createdAt)
                 newAnnouncement += `
                     <div class="announcement bg-light rounded p-4 mb-2" style="position: relative;">
                         <div class="d-flex work mb-4">
                             <i class="fa-solid fa-bell me-4"></i>
                             <div style="width: 75%;">
                                 <div class="mb-2 fs-5 fw-bold text-dark">${announcement.title}</div>
-                                <div class="mb-0 text-secondary">${updatedAt}</div>
+                                <div class="mb-0 text-secondary">${createdAt}</div>
                             </div>
                         </div>
                         <div class="line mt-4"></div>
@@ -379,7 +379,7 @@
             } else {
                 let newExercise = "";
                 let exercise = data.success;
-                let updatedAt = announcementDateFormat(exercise.updatedAt);
+                let createdAt = announcementDateFormat(exercise.createdAt);
                 let deadline = announcementDateFormat(exercise.deadline);
                 newExercise += `
                     <div class="exercise bg-light rounded p-4 mb-2" style="position: relative;">
@@ -387,7 +387,7 @@
                             <i class="fa-solid fa-pen me-4"></i>
                             <div>
                                 <div class="mb-2 fs-5 fw-bold text-dark">${exercise.title}</div>
-                                <div class="mb-2 text-secondary">${updatedAt}</div>
+                                <div class="mb-2 text-secondary">${createdAt}</div>
                                 <div class="text-danger">Hạn nộp: ${deadline}</div>
                             </div>
                         </div>
@@ -508,14 +508,14 @@
             } else {
                 let newAnnouncement = "";
                 let announcement = data.success;
-                let updatedAt = announcementDateFormat(announcement.updatedAt)
+                let createdAt = announcementDateFormat(announcement.createdAt)
                 newAnnouncement += `
                     <div class="announcement bg-light rounded p-4 mb-2" style="position: relative;">
                         <div class="d-flex work mb-4">
                             <i class="fa-solid fa-bell me-4"></i>
                             <div style="width: 75%;">
                                 <div class="mb-2 fs-5 fw-bold text-dark">${announcement.title}</div>
-                                <div class="mb-0 text-secondary">${updatedAt}</div>
+                                <div class="mb-0 text-secondary">${createdAt}</div>
                             </div>
                         </div>
                         <div class="line mt-4"></div>
@@ -590,7 +590,7 @@
             } else {
                 let newExercise = "";
                 let exercise = data.success;
-                let updatedAt = announcementDateFormat(exercise.updatedAt);
+                let createdAt = announcementDateFormat(exercise.createdAt);
                 let deadline = announcementDateFormat(exercise.deadline);
                 newExercise += `
                     <div class="exercise bg-light rounded p-4 mb-2" style="position: relative;">
@@ -598,7 +598,7 @@
                             <i class="fa-solid fa-pen me-4"></i>
                             <div>
                                 <div class="mb-2 fs-5 fw-bold text-dark">${exercise.title}</div>
-                                <div class="mb-2 text-secondary">${updatedAt}</div>
+                                <div class="mb-2 text-secondary">${createdAt}</div>
                                 <div class="text-danger">Hạn nộp: ${deadline}</div>
                             </div>
                         </div>

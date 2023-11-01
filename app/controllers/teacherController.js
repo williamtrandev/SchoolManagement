@@ -100,7 +100,7 @@ class TeacherController {
 				const exercises = assignment.exercises;
 	
 				combinedData = announcements.concat(exercises);
-				combinedData.sort((a, b) => b.updatedAt - a.updatedAt);
+				combinedData.sort((a, b) => b.createdAt - a.createdAt);
 			}
 			
 			res.render('teacherClassroom', { 
