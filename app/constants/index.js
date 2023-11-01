@@ -7,3 +7,8 @@ exports.TYPE_VIOLATION = {
 	Conduct: 'CONDUCT',
 	Groove: 'GROOVE',
 }
+exports.POINT_VIOLATION = {
+	Absent: 10,
+	Conduct: 5,
+	Groove: 5,
+}

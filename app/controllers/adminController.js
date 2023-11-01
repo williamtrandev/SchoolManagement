@@ -7,10 +7,11 @@ const Year = require("../models/Year");
 const Assignment = require("../models/Assignment");
 const Subject = require("../models/Subject");
 const Violation = require("../models/Violation");
+const Schedule = require("../models/Schedule");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Excel = require('exceljs');
-const { ROLES, TYPE_VIOLATION } = require('../constants');
+const { ROLES, TYPE_VIOLATION, POINT_VIOLATION } = require('../constants');
 const { sendMailToUser } = require('../utils/mail');
 
 const workbook = new Excel.Workbook();
@@ -33,8 +34,11 @@ sortClass = (a, b) => {
 
 
 class AdminController {
-	/* HOME PAGE */
 	home = async (req, res) => {
+		res.render('home', { layout: 'manager_layout' })
+	}
+	/* HOME PAGE */
+	attendance = async (req, res) => {
 		try {
 			res.render('attendance', { layout: 'manager_layout', activeHoctap: 'active', title: 'Điểm danh' });
 		} catch (err) {
@@ -153,6 +157,13 @@ class AdminController {
 				const students = await StudentClass.find({ class: id })
 					.populate(['student', 'class', 'violations'])
 					.lean();
+				students.sort((a, b) => {
+					const studentIdA = a.student.studentId;
+					const studentIdB = b.student.studentId;
+
+					return studentIdA.localeCompare(studentIdB);
+				});
+				console.log(students);
 				const returnStudents = students.map(student => {
 					const studentInfo = student.student;
 					const className = student.class.name;
@@ -206,10 +217,60 @@ class AdminController {
 			await newStudentClass.save();
 			const dad = new Parent({ name: nameDad, phone: phoneDad, job: jobDad, email: emailDad });
 			const mom = new Parent({ name: nameMom, phone: phoneMom, job: jobMom, email: emailMom });
-			savedStudent.parents.push(dad._id);
-			savedStudent.parents.push(mom._id);
+			const savedDad = await dad.save();
+			const savedMom = await mom.save();
+			savedStudent.parents.push(savedDad._id);
+			savedStudent.parents.push(savedMom._id);
 			savedStudent.save();
 			res.status(200).json(savedStudent);
+		} catch (err) {
+			res.status(404).json({ message: err });
+		}
+	}
+
+	editStudent = async (req, res) => {
+		try {
+			const mssv = req.params.mssv;
+			const {
+				name,
+				birthday,
+				gender,
+				ethnic,
+				address,
+				nameDad,
+				phoneDad,
+				jobDad,
+				emailDad,
+				nameMom,
+				phoneMom,
+				jobMom,
+				emailMom,
+				idClass,
+			} = req.body;
+			const savedStudent = await Student.findOne({ studentId: mssv });
+			// set lại current Class
+			const currentClass = savedStudent.currentClass;
+
+			const updatedStudent = await Student.findByIdAndUpdate(savedStudent._id, {
+				name, birthday, gender, ethnicity: ethnic, address, currentClass: idClass
+			}, { new: true });
+
+			// Xóa studentClass
+			const removedStudentClass = await StudentClass.findOneAndRemove({ student: savedStudent._id, class: currentClass });
+			// Thêm mới studentClass
+			const newStudentClass = new StudentClass({
+				student: savedStudent._id,
+				class: idClass,
+			})
+			await newStudentClass.save();
+			const parents = savedStudent.parents;
+			const updatedDad = await Parent.findByIdAndUpdate(parents[0], {
+				name: nameDad, phone: phoneDad, job: jobDad, email: emailDad
+			});
+			const updateMom = await Parent.findByIdAndUpdate(parents[1], {
+				name: nameMom, phone: phoneMom, job: jobMom, email: emailMom
+			});
+			res.status(200).json(updatedStudent);
 		} catch (err) {
 			res.status(404).json({ message: err });
 		}
@@ -427,46 +488,11 @@ class AdminController {
 
 	profileClasses = async (req, res) => {
 		try {
-			const classes = await Class.find()
-				.populate('teacher')
-				.lean();
-
-			const modifiedClasses = await Promise.all(
-				classes.map(async classItem => {
-					const numberStudent = await StudentClass.countDocuments({ class: classItem._id });
-					const teacherName = classItem.teacher ? classItem.teacher.name : 'Chưa có giáo viên chủ nhiệm';
-					const groupTeacher = classItem.teacher ? classItem.teacher.group : '';
-					const idTeacher = classItem.teacher ? classItem.teacher._id : null;
-					return {
-						...classItem,
-						teacher: teacherName,
-						groupTeacher,
-						idTeacher,
-						numberStudent
-					};
-				})
-			);
-			// sắp xếp dữ liệu theo tên lớp
-			modifiedClasses.sort((a, b) => {
-				const regex = /(\d+)([A-Za-z]+)(\d+)/;
-				const [, numA, charA, numA2] = a.name.match(regex);
-				const [, numB, charB, numB2] = b.name.match(regex);
-
-				if (charA.localeCompare(charB) !== 0) {
-					return charA.localeCompare(charB);
-				}
-
-				if (parseInt(numA) !== parseInt(numB)) {
-					return parseInt(numA) - parseInt(numB);
-				}
-
-				return parseInt(numA2) - parseInt(numB2);
-			});
 
 			const teachers = await Teacher.find().lean();
 
 			res.render('profileClasses', {
-				layout: 'manager_layout', classes: modifiedClasses,
+				layout: 'manager_layout',
 				teachers, activeHoso: 'active', title: 'Hồ sơ lớp'
 			});
 		} catch (err) {
@@ -851,8 +877,141 @@ class AdminController {
 			res.status(500).json({ error: err });
 		}
 	}
-	timeTable = (req, res) => {
-		res.render('timeTable', { layout: 'manager_layout', title: 'Thời khóa biểu' });
+	timeTable = async (req, res) => {
+		const year = await Year.findOne().sort({ _id: -1 });
+		const classes = await Class.find({ year: year._id }).lean();
+		res.render('timeTable', { layout: 'manager_layout', title: 'Thời khóa biểu', classes, activePhancong: 'active' });
+	}
+	getScheduleByClass = async (req, res) => {
+		try {
+			const classId = req.params.classId;
+			const schedules = await Schedule.find({ class: classId })
+				.populate('assignment')
+				.lean();
+			res.status(200).json(schedules);
+		} catch (err) {
+			console.log(err);
+			res.status(500).json({ error: err });
+		}
+	}
+	getAssignmentsByClass = async (req, res) => {
+		try {
+			const classId = req.params.classId;
+			const assignments = await Assignment.find({ class: classId })
+				.populate(['subject', 'teacher'])
+				.lean();
+			console.log(assignments);
+			res.status(200).json(assignments);
+		} catch (err) {
+			console.log(err);
+			res.status(500).json({ err: err });
+		}
+	}
+	student = async (req, res) => {
+		try {
+			const mssv = req.params.mssv;
+			const findStudent = await Student.findOne({ studentId: mssv })
+				.populate(['parents', 'currentClass']).lean();
+			res.status(200).json(findStudent);
+		} catch (err) {
+			res.status(500).json({ err: err });
+		}
+	}
+	rank = async (req, res) => {
+		res.render('ranking', { 
+			layout: 'manager_layout', activeHoctap: 'active', 
+			title: 'Thi đua tuần', 
+		});
+	}
+	getRanking = async(req, res) => {
+		try {
+			// Tạo một đối tượng Date hiện tại
+			const currentDate = new Date();
+
+			// Lấy ngày hiện tại trong tuần (0: Chủ Nhật, 1: Thứ Hai, 2: Thứ Ba, ..., 6: Thứ Bảy)
+			const currentDayOfWeek = currentDate.getDay();
+
+			// Lấy ngày đầu tiên của tuần (Chủ Nhật)
+			const firstDayOfWeek = new Date(currentDate);
+			firstDayOfWeek.setDate(currentDate.getDate() - currentDayOfWeek);
+
+			// Tạo một mảng chứa các ngày trong tuần dưới dạng "year/month/day"
+			const daysInWeek = [];
+			for (let i = 1; i < 7; i++) {
+				const day = new Date(firstDayOfWeek);
+				day.setDate(firstDayOfWeek.getDate() + i);
+				const year = day.getFullYear();
+				const month = String(day.getMonth() + 1).padStart(2, '0'); // Thêm 0 phía trước nếu cần
+				const dayOfMonth = String(day.getDate()).padStart(2, '0'); // Thêm 0 phía trước nếu cần
+				const formattedDate = `${year}-${month}-${dayOfMonth}`;
+				daysInWeek.push(formattedDate);
+			}
+
+			const findViolations = await Violation.find({ date: { $in: daysInWeek } })
+				.populate({
+					path: 'studentClass',
+					populate: {
+						path: 'student'
+					}
+				})
+				.populate({
+					path: 'studentClass',
+					populate: {
+						path: 'class',
+					}
+				});;
+
+			// Tạo một đối tượng để gộp vi phạm theo lớp
+			const violationsByClass = {};
+			const year = await Year.findOne().sort({ _id: -1 }).lean();
+			const classes = await Class.find({ year: year._id }).lean();
+			classes.forEach(classItem => {
+				violationsByClass[classItem.name] = [];
+			})
+			// Lặp qua danh sách vi phạm và gộp chúng theo lớp
+			findViolations.forEach((violation) => {
+				if (violation.studentClass) {
+					const className = violation.studentClass.class.name;
+					violationsByClass[className].push(violation);
+				}
+			});
+			const returnClasses = [];
+			Object.keys(violationsByClass).forEach((key) => {
+				let point = 100;
+				violationsByClass[key].forEach(item => {
+					if (item.type === 'ABSENT') {
+						point -= POINT_VIOLATION.Absent;
+					} else if (item.type === 'CONDUCT'
+							|| item.type === 'GROOVE') {
+						point -= POINT_VIOLATION.Conduct;
+					} 
+				});
+				returnClasses.push({
+					name: key,
+					point: point,
+					violations: violationsByClass[key],
+					rank: null,
+				})
+			});
+			returnClasses.sort((a, b) => {
+				return b.point - a.point;
+			});
+			let currentRank = 1; // Bắt đầu với hạng 1
+			let numClass = 0;
+			for (let i = 0; i < returnClasses.length; i++) {
+				numClass++;
+				if (i > 0 && returnClasses[i].point !== returnClasses[i - 1].point) {
+					// Nếu điểm khác với điểm trước đó, tăng hạng lên
+					currentRank++;
+					returnClasses[i].rank = numClass;
+				} else {
+					returnClasses[i].rank = currentRank; // Gán hạng cho lớp
+				}
+			}
+			res.status(200).json(returnClasses);
+		} catch (err) {
+			res.status(500).json({ err: err });
+		}
 	}
 }
 

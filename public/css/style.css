@@ -330,7 +330,7 @@
     color: white;
     background-color: #7cb1f1;
 }
-.group-teacher-nav:hover i, .group-teacher-nav.active i {
+.group-teacher-nav:hover img, .group-teacher-nav.active img {
     transition: 500ms;
     border-radius: 50%;
     background-color: #009CFF;
@@ -380,4 +380,8 @@
 tbody tr.active {
     background: #009CFF !important;
     color: white !important;
+}
+
+.sweet-width {
+    min-width: 400px !important;
 }

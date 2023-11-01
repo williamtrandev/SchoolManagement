@@ -4,7 +4,7 @@
 		<div class="d-flex align-items-center">
 			<label for="grade">Khối</label>
 			<select class="form-select mx-3" id="grade" style="width: auto">
-				<option value="no" selected>Chọn khối</option>
+				<option value="no" selected disabled>Chọn khối</option>
 				<option value="6">6</option>
 				<option value="7">7</option>
 				<option value="8">8</option>
@@ -83,7 +83,6 @@
 		})
 		if($(e).hasClass('absent')) {
 			row.data('absent', 1);
-			
 			// Trỏ đến obj trong list sẽ được thêm mới
 			if(isNew) {
 				if(indexItem === -1) {

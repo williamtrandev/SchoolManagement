@@ -4,11 +4,12 @@ const adminController = require("../app/controllers/adminController");
 const verifyToken = require("../app/middlewares/verifyToken");
 
 router.get('/', adminController.home);
+router.get('/attendance', adminController.attendance);
 
 router.get('/login', (req, res) => {
-	if(!req.cookies.jwt)
+	if (!req.cookies.jwt)
 		res.render('login');
-	else 
+	else
 		res.redirect('/admin');
 });
 
@@ -58,4 +59,10 @@ router.get('/getAllClass', adminController.getAllClass);
 router.get('/getAllSubject', adminController.getAllSubject);
 router.post('/saveAssignments', adminController.saveAssignments);
 router.get('/timeTable', adminController.timeTable);
+router.get('/getSchedules/:classId', adminController.getScheduleByClass);
+router.get('/getAssignments/:classId', adminController.getAssignmentsByClass);
+router.get('/student/:mssv', adminController.student);
+router.post('/editStudent/:mssv', adminController.editStudent);
+router.get('/rank', adminController.rank);
+router.get('/getRanking', adminController.getRanking);
 module.exports = router;

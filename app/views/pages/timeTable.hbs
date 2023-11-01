@@ -2,70 +2,153 @@
 	<div class="d-flex justify-content-start">
 		<button class="btn btn-primary me-3">Buổi sáng</button>
 		<button class="btn btn-primary me-3">Buổi chiều</button>
-		<select name="" id="" class="form-select w-auto">
+		<select name="" id="class" class="form-select w-auto">
+			<option value="none" disabled selected>Chọn lớp</option>
 			{{#each classes}}
 				<option value="{{_id}}">{{name}}</option>
 			{{/each}}
 		</select>
 	</div>
-	<table class="table text-center align-middle table-bordered table-hover mb-0 mt-3">
-			<thead>
-				<tr class="text-dark">
-					<th scope="col">Tiết</th>
-					<th scope="col">Thứ hai</th>
-					<th scope="col">Thứ ba</th>
-					<th scope="col">Thứ tư</th>
-					<th scope="col">Thứ năm</th>
-					<th scope="col">Thứ sáu</th>
-					<th scope="col">Thứ bảy</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>1</td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-				</tr>
-				<tr>
-					<td>2</td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-				</tr>
-				<tr>
-					<td>3</td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-				</tr>
-				<tr>
-					<td>4</td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-				</tr>
-				<tr>
-					<td>5</td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td></td>
-				</tr>
-			</tbody>
-		</table>
+	<img src="/imgs/background_timetable.png" alt="" class="img-fluid">
+	<table class="table text-center align-middle table-bordered mb-0 mt-3 d-none">
+		<thead>
+			<tr class="text-dark">
+				<th scope="col">Tiết</th>
+				<th scope="col">Thứ hai</th>
+				<th scope="col">Thứ ba</th>
+				<th scope="col">Thứ tư</th>
+				<th scope="col">Thứ năm</th>
+				<th scope="col">Thứ sáu</th>
+				<th scope="col">Thứ bảy</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>1</td>
+				<td>Chào cờ</td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+			</tr>
+			<tr>
+				<td>2</td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+			</tr>
+			<tr>
+				<td>3</td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+			</tr>
+			<tr>
+				<td>4</td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+			</tr>
+			<tr>
+				<td>5</td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td class="select-subject"></td>
+				<td>SHCN</td>
+			</tr>
+		</tbody>
+	</table>
 </div>
+
+<div class="modal" id="warning">
+	<div class="modal-dialog">
+		<div class="modal-content">
+
+			<!-- Modal Header -->
+			<div class="modal-header">
+			<h4 class="modal-title">Modal Heading</h4>
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+
+			<!-- Modal body -->
+			<div class="modal-body">
+			Modal body..
+			</div>
+
+			<!-- Modal footer -->
+			<div class="modal-footer">
+			<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+
+<script>
+	$(function() {
+		
+		$('#class').change(async function() {
+			$('.img-fluid').addClass('d-none');
+			$('.table').removeClass('d-none');
+			const classId = $(this).val();
+			console.log(classId);
+			let options = '';
+			await fetch(`/admin/getAssignments/${classId}`)
+			.then(res => res.json())
+			.then(data => {
+				if(data.length < 13) {
+					Swal.fire({
+						title: 'Cảnh báo!',
+						text: 'Lớp học chưa được phân công hết các môn. Vui lòng quay lại phân công',
+						icon: 'warning',
+						confirmButtonText: 'Xác nhận'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							window.location.href='/admin/assignments';
+						}
+					})
+				}
+				console.log(data);
+				data.forEach(item => {
+					options += `<option value="${item._id}">${item.subject.name}</option>`
+				})
+			})
+			.catch(err => {
+				console.log(err);
+			});
+			$('.select-subject').each(function() {
+				$(this).empty();
+				const fullSelect = `<select class="form-select">${options}</select>`
+				$(this).append(fullSelect);
+			});
+			fetch(`/admin/getSchedules/${classId}`)
+			.then(res => {
+				if(!res.ok) throw new Error('Lỗi');
+				return res.json();
+			})
+			.then(data => {
+				console.log(data)
+			})
+			.catch(err => {
+				console.log(err);
+				toastr.error("Lỗi hệ thống");
+			});
+		});
+		/*$('.select-subject').click(function() {
+			$(this).find('select').first().removeClass('d-none')
+		})*/
+	})
+</script>
