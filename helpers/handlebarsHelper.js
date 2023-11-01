@@ -32,5 +32,8 @@ module.exports = {
 	},
 	charAt: function(strInput, index) {
 		return strInput.charAt(index);
+	},
+	json: function (arr) {
+		return JSON.stringify(arr);
 	}
 }

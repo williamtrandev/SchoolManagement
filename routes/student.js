@@ -17,15 +17,11 @@ router.get('/login', (req, res) => {
 });
 
 router.post('/login', studentController.login);
-
 router.get('/logout', studentController.logout);
-
 router.get('/learning/:slug', verifyToken, studentController.learningPage);
-
 router.get('/exercises', verifyToken, studentController.exercisesPage);
-
-router.post('/exercise-submit/:id', upload.array('files', 10), studentController.exerciseSubmit);
-
+router.post('/submission/:id', upload.array('files', 10), studentController.exerciseSubmit);
+router.delete('/submission/:id', studentController.exerciseUnsubmit);
 router.get('/learning-result', verifyToken, studentController.learningResultPage);
 
 router.get('/register', (req, res) => {
