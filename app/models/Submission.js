@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var submissionSchema = new Schema({
-	imagePath: [String],
+	imagePath: [Object],
 	score: Number,
 	student: {
 		type: Schema.Types.ObjectId,

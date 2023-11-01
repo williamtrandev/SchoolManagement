@@ -1,0 +1,31 @@
+const express = require('express');
+const router = express.Router();
+const verifyToken = require("../app/middlewares/verifyTokenTeacher");
+
+const adminController = require('../app/controllers/adminController');
+const teacherController = require('../app/controllers/teacherController');
+
+router.get('/', verifyToken, teacherController.home);
+
+router.get('/login', (req, res) => {
+	let token = req.cookies.jwt;
+	if (token) {
+		res.redirect('/teacher');
+	} else {
+		res.render('teacherLogin');
+	}
+});
+
+router.post('/login', teacherController.login);
+router.get('/logout', teacherController.logout);
+router.get('/classroom/:id', verifyToken, teacherController.classroomPage);
+router.post('/announcement', verifyToken, teacherController.newAnnouncement);
+router.put('/announcement/:id', verifyToken, teacherController.updateAnnouncement);
+router.delete('/announcement/:id', verifyToken, teacherController.deleteAnnouncement);
+router.post('/exercise', verifyToken, teacherController.newExercise);
+router.put('/exercise/:id', verifyToken, teacherController.updateExercise);
+router.delete('/exercise/:id', verifyToken, teacherController.deleteExercise);
+
+router.post('/insert-assignment', teacherController.insertAssignment);
+
+module.exports = router;
