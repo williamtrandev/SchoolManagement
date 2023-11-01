@@ -51,17 +51,7 @@
 					</tr>
 				</thead>
 				<tbody id="tbody-student">
-					{{#each students}}
-						<tr>
-							<td>{{studentId}}</td>
-							<td>{{name}}</td>
-							<td>{{birthday}}</td>
-							<td>{{class}}</td>
-							<td>{{gender}}</td>
-							<td>{{ethnic}}</td>
-							<td>{{address}}</td>
-						</tr>
-					{{/each}}
+					
 				</tbody>
 			</table>
 		</div>
@@ -204,6 +194,141 @@
 </div>
 
 
+<div class="modal fade" id="editStudent">
+    <div class="modal-dialog modal-lg">
+		<div class="modal-content p-2">
+			<!-- Modal Header -->
+			<div class="modal-header justify-content-center">
+				<h4 class="modal-title">Thay đổi thông tin học sinh</h4>
+			</div>
+			
+			<!-- Modal body -->
+			<div class="modal-body">
+				<div class="container-fluid">
+					<div class="row">
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="nameEdit">Họ tên</label>
+								<input type="text" class="form-control" id="nameEdit" required>
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="birthdayEdit">Ngày sinh</label>
+								<input type="date" class="form-control" id="birthdayEdit" required>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="classStudentEdit">Lớp</label>
+								<select class="form-select" id="classStudentEdit" required>
+									{{#each classes}}
+										<option value="{{_id}}">{{name}}</option>
+									{{/each}}
+								</select>
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="genderEdit">Giới tính</label>
+								<select class="form-select" id="genderEdit" required>
+									<option value="1">Nam</option>
+									<option value="0">Nữ</option>
+								</select>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="ethnicEdit">Dân tộc</label>
+								<input type="text" class="form-control" id="ethnicEdit" required>
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="addressEdit">Chỗ ở hiện tại</label>
+								<input type="text" class="form-control" id="addressEdit" required>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="nameDadEdit">Họ tên cha</label>
+								<input type="text" class="form-control" id="nameDadEdit" required>
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="jobDadEdit">Nghề nghiệp cha</label>
+								<input type="text" class="form-control" id="jobDadEdit" required>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="phoneDadEdit">Số điện thoại cha</label>
+								<input type="text" class="form-control" id="phoneDadEdit" required>
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="emailDadEdit">Email cha</label>
+								<input type="text" class="form-control" id="emailDadEdit" required>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="nameMomEdit">Họ tên mẹ</label>
+								<input type="text" class="form-control" id="nameMomEdit" required>
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="jobMomEdit">Nghề nghiệp mẹ</label>
+								<input type="text" class="form-control" id="jobMomEdit" required>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="phoneMomEdit">Số điện thoại mẹ</label>
+								<input type="text" class="form-control" id="phoneMomEdit" required>
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="form-group mb-3">
+								<label style="font-weight: bold" class="mb-1" for="emailMomEdit">Email mẹ</label>
+								<input type="text" class="form-control" id="emailMomEdit" required>
+							</div>
+						</div>
+					</div>
+
+				</div>
+				<button type="button" class="w-100 text-center btn btn-primary btn-edit-student-single">Thay đổi</button>
+			</div>
+			
+			<!-- Modal footer -->
+			<div class="modal-footer">
+			</div>
+			
+		</div>
+	</div>
+</div>
+
 
 <script>
 	$(function() {
@@ -325,43 +450,143 @@
 			}
 			
 		});
-		
-	});
-	$('.grade-li').click(function () {
-		$('.img-wait').addClass('d-none');
-		$('.table-responsive').removeClass('d-none');
-		$('.button-add').removeClass('d-none');
-		$('#spinner').addClass('show');
-		$('#tbody-student').empty();
-		let id = $(this).data("id");
-		fetch(`/admin/class?id=${id}`)
-		.then(res => res.json())
-		.then(data => {
-			console.log(data);
-			if(data.students) {
-				let tr = ``;
-				data.students.forEach(student => {
-					const gender = student.gender === true ? 'Nam' : 'Nữ';
-					const parts = student.birthday.substring(0, 10).split('-');
-					const birthday = `${parts[2]}-${parts[1]}-${parts[0]}`;
-					tr += `<tr>
-							<td>${student.studentId}</td>
-							<td>${student.name}</td>
-							<td>${birthday}</td>
-							<td>${student.class}</td>
-							<td>${gender}</td>
-							<td>${student.ethnicity}</td>
-							<td>${student.address}</td>
-						</tr>`;
-				});
-				$('#tbody-student').append(tr);
+		$('.grade-li').click(function () {
+			$('.img-wait').addClass('d-none');
+			$('.table-responsive').removeClass('d-none');
+			$('.button-add').removeClass('d-none');
+			$('#spinner').addClass('show');
+			$('#tbody-student').empty();
+			let id = $(this).data("id");
+			fetch(`/admin/class?id=${id}`)
+			.then(res => res.json())
+			.then(data => {
+				console.log(data);
+				if(data.students) {
+					let tr = ``;
+					data.students.forEach(student => {
+						const gender = student.gender === true ? 'Nam' : 'Nữ';
+						const parts = student.birthday.substring(0, 10).split('-');
+						const birthday = `${parts[2]}-${parts[1]}-${parts[0]}`;
+						tr += `<tr data-id="${student.studentId}">
+								<td>${student.studentId}</td>
+								<td>${student.name}</td>
+								<td>${birthday}</td>
+								<td>${student.class}</td>
+								<td>${gender}</td>
+								<td>${student.ethnicity}</td>
+								<td>${student.address}</td>
+							</tr>`;
+					});
+					$('#tbody-student').append(tr);
+					$('#spinner').removeClass('show');
+				}
+			})
+			.catch(error => { 
+				console.log(error);
 				$('#spinner').removeClass('show');
-			}
-		})
-		.catch(error => { 
-			console.log(error);
-			$('#spinner').removeClass('show');
-			toastr.error("Lỗi hệ thống");
+				toastr.error("Lỗi hệ thống");
+			});
 		});
-	})
+		let mssv = null;
+		let clickedTr = null;
+		$('#tbody-student').on('click', 'tr', function() {
+			clickedTr = $(this);
+			let id = $(this).data('id');
+			mssv = id;
+			fetch(`/admin/student/${id}`)
+			.then(res => {
+				if(!res.ok) throw new Error('Lỗi');
+				return res.json();
+			})
+			.then(data => {
+				$('#nameEdit').val(data.name);
+				$('#birthdayEdit').val(data.birthday.substring(0, 10));
+				$('#classStudentEdit').val(data.currentClass._id);
+				$('#genderEdit').val(data.gender === true ? 1 : 0);
+				$('#ethnicEdit').val(data.ethnicity);
+				$('#addressEdit').val(data.address);
+				$('#nameDadEdit').val(data.parents[0].name);
+				$('#jobDadEdit').val(data.parents[0].job);
+				$('#phoneDadEdit').val(data.parents[0].phone);
+				$('#emailDadEdit').val(data.parents[0].email);
+				$('#nameMomEdit').val(data.parents[1].name);
+				$('#jobMomEdit').val(data.parents[1].job);
+				$('#phoneMomEdit').val(data.parents[1].phone);
+				$('#emailMomEdit').val(data.parents[1].email);
+				$('#editStudent').modal('show');
+			})
+			.catch(error => {
+				console.log(error);
+				toastr.error('Lỗi hệ thống khi lấy thông tin học sinh');
+			})
+		});
+
+		$(".btn-edit-student-single").click(() => {
+			let idClass = $('#classStudentEdit').val();
+			let name = $('#nameEdit').val();
+			let birthday = $('#birthdayEdit').val();
+			let gender = $('#genderEdit').val();
+			let ethnic = $('#ethnicEdit').val();
+			let address = $('#addressEdit').val();
+			let classText = $('#classStudentEdit :selected').text();
+			let nameDad = $('#nameDadEdit').val(),
+				phoneDad = $('#phoneDadEdit').val(),
+				jobDad = $('#jobDadEdit').val(),
+				emailDad = $('#emailDadEdit').val(),
+				nameMom = $('#nameMomEdit').val(),
+				phoneMom = $('#phoneMomEdit').val(),
+				jobMom = $('#jobMomEdit').val(),
+				emailMom = $('#emailMomEdit').val();
+			if (name === '' || birthday === '' || ethnic === '' || address === '' 
+				|| nameDad === '' || jobDad === '' || phoneDad === '' || emailDad === ''
+				|| nameMom === '' || phoneMom === '' || jobMom === '' || emailMom === '') {
+				toastr.error("Vui lòng nhập đầy đủ thông tin");
+			} else {
+				fetch(`/admin/editStudent/${mssv}`, {
+					method: "POST",
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+											name, birthday, gender, ethnic, address,
+											nameDad, phoneDad, jobDad, emailDad,
+											nameMom, phoneMom, jobMom, emailMom, idClass
+										})
+				})
+				.then((res) => {
+					if (!res.ok) {
+						throw new Error(`Mã lỗi HTTP: ${res.status}`);
+					}
+					return res.json();
+				})
+				.then(data => {
+					const inputDateStr = data.birthday;
+					console.log(data)
+					const year = inputDateStr.substr(0, 4);    // Trích xuất 4 ký tự đầu là năm
+					const month = inputDateStr.substr(5, 2);   // Trích xuất 2 ký tự sau là tháng
+					const day = inputDateStr.substr(8, 2);     // Trích xuất 2 ký tự sau là ngày
+					const gender = data.gender ? 'Nam' : 'Nữ';
+					// định dạng "DD/MM/YYYY"
+					const birthday = `${day}/${month}/${year}`;
+					$(clickedTr.find('td').eq(0)).text(data.studentId);
+					$(clickedTr.find('td').eq(1)).text(data.name);
+					$(clickedTr.find('td').eq(2)).text(birthday);
+					$(clickedTr.find('td').eq(3)).text(classText);
+					$(clickedTr.find('td').eq(4)).text(gender);
+					$(clickedTr.find('td').eq(5)).text(data.ethnicity);
+					$(clickedTr.find('td').eq(6)).text(data.address);
+					toastr.success("Thay đổi thành công");
+					console.log($(clickedTr.find('td').eq(0)).text());
+					$("#editStudent").modal("hide");
+
+				})
+				.catch(err => {
+					console.log(err);
+					toastr.error("Thay đổi không thành công");
+				});
+			}
+			
+		});
+	});
+	
 </script>

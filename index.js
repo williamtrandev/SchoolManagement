@@ -24,7 +24,6 @@ app.use(sessions({
 app.use(cookieParser());
 app.use(flash());
 app.use(cors());
-
 app.use(morgan('dev'));
 app.use(express.static(path.join(__dirname, "public")));
 app.engine('hbs', exphbs.engine({

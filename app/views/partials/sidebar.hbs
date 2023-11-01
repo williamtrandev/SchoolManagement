@@ -1,7 +1,7 @@
 <!-- Sidebar Start -->
 <div class="sidebar pe-4 pb-3">
 	<nav class="navbar bg-light navbar-light">
-		<a href="index.html" class="navbar-brand mx-4 mb-3">
+		<a href="/admin/" class="navbar-brand mx-4 mb-3">
 			<h3 class="text-primary">Quản lý</h3>
 		</a>
 		<div class="d-flex align-items-center ms-4 mb-4">
@@ -23,11 +23,23 @@
 			</a>
 			<ul class="collapse list-unstyled mt-2 flex-column" id="substudy">
 				<li>
-					<a class="nav-item nav-link" href="/admin"><i class="far fa-check-square"></i>Điểm danh</a>
+					<a class="nav-item nav-link" href="/admin/attendance"><i class="far fa-check-square"></i>Điểm danh</a>
+				</li>
+				<li>
+					<a class="nav-item nav-link" href="/admin/rank"><i class="fas fa-trophy"></i>Thi đua tuần</a>
 				</li>
 			</ul>
-			<a href="/admin/assignments" class="nav-item nav-link {{activePhancong}}"><i class="fas fa-calendar"></i>Phân công lịch
-				dạy</a>
+			<a href="#subassign" class="nav-item nav-link position-relative dropdown-toggle {{activePhancong}}" data-toggle="collapse">
+				<i class="fas fa-calendar"></i>Phân công
+			</a>
+			<ul class="collapse list-unstyled mt-2 flex-column" id="subassign">
+				<li>
+					<a class="nav-item nav-link" href="/admin/assignments"><i class="fas fa-chalkboard-teacher"></i>Giảng dạy</a>
+				</li>
+				<li>
+					<a class="nav-item nav-link" href="/admin/timeTable"><i class="fas fa-table"></i>Thời khóa biểu</a>
+				</li>
+			</ul>
 			<a href="#submenu" class="nav-link position-relative dropdown-toggle {{activeHoso}}" data-toggle="collapse"><i class="fas fa-id-card"></i>Hồ sơ</a>
 			<ul class="collapse list-unstyled mt-2 flex-column" id="submenu">
 				<li>
@@ -50,3 +62,14 @@
 	</nav>
 </div>
 <!-- Sidebar End -->
+
+
+<script>
+$(function() {
+	$('.nav-link.dropdown-toggle').on('click', function(e) {
+		e.preventDefault();
+		$(this).next('.collapse').collapse('toggle');
+		$('.collapse').not($(this).next('.collapse')).collapse('hide');
+	});
+});
+</script>
