@@ -5,9 +5,12 @@ const Subject = require('../models/Subject');
 const Class = require('../models/Class');
 const Announcement = require('../models/Announcement');
 const Exercise = require('../models/Exercise');
+const StudentClass = require('../models/StudentClass');
+const Submission = require('../models/Submission');
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+
 
 class TeacherController {
     async home(req, res) {
@@ -91,13 +94,29 @@ class TeacherController {
 				.populate('subject')
 				.populate('class')
 				.populate('announcements')
-				.populate('exercises')
-				.lean();
+				.populate({
+					path: 'exercises',
+					populate: {
+						path: 'submissions',
+						model: 'Submission',
+					}
+				}).lean();
 
+			const number = await StudentClass.countDocuments({ class: assignment.class._id });
+			
 			let combinedData = [];
 			if (assignment.announcements && assignment.exercises ) {
 				const announcements = assignment.announcements;
-				const exercises = assignment.exercises;
+				const exercises = assignment.exercises.map(exercise => {
+					const submissions = exercise.submissions;
+					let count = 0;
+					for (let i = 0; i < submissions.length; i++) {
+						if (submissions[i].score == null) {
+							count++;
+						}
+					}
+					return { ...exercise, notGradedCount: count };
+				});
 	
 				combinedData = announcements.concat(exercises);
 				combinedData.sort((a, b) => b.createdAt - a.createdAt);
@@ -111,6 +130,7 @@ class TeacherController {
 				assignment,
 				assignments,
 				combinedData,
+				number,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
@@ -187,28 +207,115 @@ class TeacherController {
 		}
 	}
 
-	async insertAssignment(req, res) {
-		const {
-			subjectName,
-			className,
-		} = req.body;
-		const subject = await Subject.findOne({name: subjectName});
-		const schoolClass = await Class.findOne({name: className});
-		const currentYear = await Year.findOne({}).sort({ _id: -1 });
+	async gradingPage(req, res) {
+		try {
+			const teacher = req.session.teacher;
+			const currentYear = await Year.findOne({}).sort({ _id: -1 });
+			const assignments = await Assignment.find({ teacher: teacher._id, year: currentYear })
+				.populate('subject')
+				.populate('class')
+				.lean();
 
-		const newAssignment = new Assignment({
-			teacher: '653bc90e0f1874418cb11993', 
-			subject, 
-			class: schoolClass, 
-			year: currentYear, 
-			announcements: [],
-			exercises: [],
-			schedules: [],
-			scoreTables: [],
-		});
-		const savedAssignment = await newAssignment.save();
-		res.json(savedAssignment);
+			const assignmentId = req.params.assignmentId;
+			const exerciseId = req.params.exerciseId;
+
+			const assignment = await Assignment.findById(assignmentId)
+				.populate('subject')
+				.populate('class')
+				.lean();
+				
+			const studentClass = await StudentClass.find({ class: assignment.class._id })
+				.populate({
+					path: 'student',
+					populate: {
+						path: 'submissions',
+						match: { exercise: exerciseId },
+					}
+				})
+				.lean();
+
+			const students = studentClass.map(sc => sc.student);
+			const submittedStudents = [];
+			const notsubmittedStudents = [];
+			students.forEach(student => {
+				if (student.submissions[0]) {
+					submittedStudents.push(student);
+				} else {
+					notsubmittedStudents.push(student);
+				}
+			});
+
+			const exercise = await Exercise.findById(exerciseId)
+				.populate('submissions')
+				.lean();
+
+			const submissions = exercise.submissions;
+
+			let countNotGraded = 0;
+			submissions.forEach(submission => {
+				if (submission.score == null) {
+					countNotGraded++;
+				}
+			});
+
+			console.log(exercise);
+
+			res.render('teacherGrading', { 
+				layout: 'teacher_layout', 
+				title: "Chấm điểm", 
+				activeClassroom: "active",
+				teacher,
+				assignment, 
+				exercise,
+				assignments,
+				students,
+				submittedStudents,
+				notsubmittedStudents,
+				countNotGraded,
+				countSubmitted: submissions.length,
+				displayBackToTop: 'd-none',
+			});
+		} catch(err) {
+			console.log(err);
+		}
 	}
+
+	async completeGrading(req, res) {
+		try {
+			const exerciseId = req.params.id;
+			const table = req.body;
+			table.forEach(async line => {
+				await Submission.findOneAndUpdate({ exercise: exerciseId, student: line.studentId }, { score: line.score});
+			});
+			return res.json({ success: 'Lưu điểm thành công' });
+		} catch (err) {
+			console.log(err);
+			return res.json({ error: 'Đã có lỗi xảy ra' });
+		}
+	}
+
+	// async insertAssignment(req, res) {
+	// 	const {
+	// 		subjectName,
+	// 		className,
+	// 	} = req.body;
+	// 	const subject = await Subject.findOne({name: subjectName});
+	// 	const schoolClass = await Class.findOne({name: className});
+	// 	const currentYear = await Year.findOne({}).sort({ _id: -1 });
+
+	// 	const newAssignment = new Assignment({
+	// 		teacher: '653bc90e0f1874418cb11993', 
+	// 		subject, 
+	// 		class: schoolClass, 
+	// 		year: currentYear, 
+	// 		announcements: [],
+	// 		exercises: [],
+	// 		schedules: [],
+	// 		scoreTables: [],
+	// 	});
+	// 	const savedAssignment = await newAssignment.save();
+	// 	res.json(savedAssignment);
+	// }
 
 }
 

@@ -25,7 +25,8 @@ router.delete('/announcement/:id', verifyToken, teacherController.deleteAnnounce
 router.post('/exercise', verifyToken, teacherController.newExercise);
 router.put('/exercise/:id', verifyToken, teacherController.updateExercise);
 router.delete('/exercise/:id', verifyToken, teacherController.deleteExercise);
-
-router.post('/insert-assignment', teacherController.insertAssignment);
+router.get('/classroom/:assignmentId/grading/:exerciseId', verifyToken, teacherController.gradingPage);
+router.post('/grading/:id', verifyToken, teacherController.completeGrading);
+// router.post('/insert-assignment', teacherController.insertAssignment);
 
 module.exports = router;

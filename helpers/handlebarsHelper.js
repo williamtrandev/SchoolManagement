@@ -35,5 +35,14 @@ module.exports = {
 	},
 	json: function (arr) {
 		return JSON.stringify(arr);
-	}
+	},
+	length: function (arr) {
+		return arr.length;
+	},
+	ifArray: function (a, arr) {
+		if (a) {
+			return JSON.stringify(arr);
+		}
+		return '';
+	},
 }
