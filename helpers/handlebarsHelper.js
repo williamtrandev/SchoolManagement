@@ -33,6 +33,11 @@ module.exports = {
 	charAt: function(strInput, index) {
 		return strInput.charAt(index);
 	},
+
+	lengthArray: function(arr) {
+		return arr.length;
+	},
+
 	json: function (arr) {
 		return JSON.stringify(arr);
 	}

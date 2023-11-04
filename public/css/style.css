@@ -385,3 +385,13 @@ tbody tr.active {
 .sweet-width {
     min-width: 400px !important;
 }
+
+.timetableDiv {
+    background: #7cb1f1;
+    cursor: pointer;
+    padding: 1rem;
+    font-size: 1.2rem;
+    border-radius: 0.5rem;
+    color: #F3F6F9;
+    margin-bottom: 20px;
+} 
