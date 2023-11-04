@@ -84,15 +84,16 @@ class AdminController {
 	login = async (req, res) => {
 		try {
 			const { email, password } = req.body;
-			const teacher = await Teacher.findOne({ email: email });
+			const teacher = await Teacher.findOne({ email: email }).lean();
 			if (!teacher) return res.status(400).json({ msg: "Teacher does not exist. " });
 
 			const isMatch = await bcrypt.compare(password, teacher.password);
 			if (!isMatch) return res.status(400).json({ msg: "Invalid credentials. " });
-
-			const token = jwt.sign({ id: teacher._id }, process.env.JWT_SECRET);
+			
 			delete teacher.password;
-			res.cookie('jwt', token, { maxAge: 60 * 60 * 24, httpOnly: true });
+			const token = jwt.sign({ teacher: teacher }, process.env.JWT_SECRET);
+			
+			res.cookie('jwt', token, { maxAge: 60 * 60 * 1000, httpOnly: true });
 			req.session.teacher = teacher;
 			res.status(200).json({ token, teacher });
 		} catch (err) {

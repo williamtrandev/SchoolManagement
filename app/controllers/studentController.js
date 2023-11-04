@@ -10,24 +10,26 @@ const Submission = require("../models/Submission");
 const Year = require("../models/Year");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { multipleMongooseToObject, mongooseToObject } = require("../utils/mongoose");
+const fs = require('fs');
 
 class StudentController {
 /* HOME PAGE */
 	async home(req, res) {
 		try {
 			const student = req.session.student;
-			const subjects = await Subject.find();
+			
+			const subjects = await Subject.find().lean();
 			
 			const assignments = await Assignment.find({class: student.currentClass})
-				.populate('teacher').populate('subject');
+				.populate('teacher').populate('subject').lean();
 			
 			res.render('studentHome', { 
 				layout: 'student_layout', 
 				title: "Trang chủ", 
+				activeHome: "active",
 				student, 
-				subjects: multipleMongooseToObject(subjects), 
-				assignments: multipleMongooseToObject(assignments),
+				subjects,
+				assignments,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
@@ -38,27 +40,22 @@ class StudentController {
 	async login(req, res) {
 		try {
 			const { studentId, password } = req.body;
-			const student = await Student.findOne({ studentId: studentId });
+			const student = await Student.findOne({ studentId: studentId }).populate('currentClass').lean();
 			if (!student) {
-				req.flash('error', 'Mã học sinh không tồn tại');
-				res.redirect('/student/login');
-				return;
+				return res.status(404).json({ error: 'Mã học sinh không tồn tại' });
 			}
 
-			const isMatch = await bcrypt.compare(password, student.password);
+			const isMatch = bcrypt.compare(password, student.password);
 			if (!isMatch) {
-				req.flash('error', 'Mật khẩu không chính xác');
-				res.redirect('/student/login');
-				return;
+				return res.status(401).json({ error: 'Mật khẩu không chính xác' });
 			}
 
-			const studentObj = student.toObject();
-			delete studentObj.password;
-			const token = jwt.sign({ student: studentObj }, process.env.JWT_SECRET);
+			delete student.password;
+			const token = jwt.sign({ student: student }, process.env.JWT_SECRET);
 			res.cookie('jwt', token, { maxAge: 60 * 60 * 1000, httpOnly: true });
 			// req.session.student = student;
 			// res.status(200).json({ token, teacher });
-			res.redirect('/student');
+			return res.status(200).json({ success: 'Đăng nhập thành công' });
 		} catch (err) {
 			console.log(err)
 			res.redirect('/login');
@@ -72,7 +69,13 @@ class StudentController {
 			}
 		});
 		// Xóa cookie
-		res.clearCookie('jwt');
+		// Lấy danh sách tất cả các cookie trong request
+		const cookies = Object.keys(req.cookies);
+
+		// Lặp qua danh sách cookie và xóa chúng
+		cookies.forEach(cookieName => {
+			res.clearCookie(cookieName);
+		});
 		// Chuyển về login
 		res.redirect('/student/login');
 	};
@@ -83,30 +86,35 @@ class StudentController {
 			const currentClass = student.currentClass;
 			const slug = req.params.slug;
 			const subject = await Subject.findOne({slug});
-			const subjects = await Subject.find();
+			const subjects = await Subject.find().lean();
+			let combinedData = [];
 			const assignment = await Assignment.findOne({subject, class: currentClass})
 				.populate('subject')
-				.populate('teacher');
-			const announcements = await Announcement.find({assignment}).sort({createdAt: 'desc'});
-			const announcementsObj = multipleMongooseToObject(announcements);
-			const exercises = await Exercise.find({assignment}).sort({createdAt: 'desc'});
-			const exercisesObj = multipleMongooseToObject(exercises);
-			for (let i = 0; i < exercisesObj.length; i++) {
-				let submission = await Submission.findOne({ student: student._id, exercise: exercisesObj[i] });
-				if (submission) {
-					exercisesObj[i].submission = mongooseToObject(submission);
-				}
+				.populate('teacher')
+				.populate('announcements')
+				.populate({
+					path: 'exercises',
+					populate: {
+						path: 'submissions',
+						model: 'Submission',
+						match: { student: student._id }
+					}
+				}).lean();
+			if (assignment && assignment.announcements && assignment.exercises ) {
+				const announcements = assignment.announcements;
+				const exercises = assignment.exercises;
+	
+				combinedData = announcements.concat(exercises);
+				combinedData.sort((a, b) => b.createdAt - a.createdAt);
 			}
-
-			const combinedData = announcementsObj.concat(exercisesObj);
-			combinedData.sort((a, b) => b.createdAt - a.createdAt);
-			console.log(combinedData);
+			
 			res.render('studentLearning', {
 				layout: 'student_layout', 
 				title: `Học tập: ${subject.name}`, 
+				activeLearning: "active",
 				student,
-				subjects: multipleMongooseToObject(subjects),
-				assignment: mongooseToObject(assignment),
+				subjects,
+				assignment,
 				combinedData,
 			});
 		} catch (err) {
@@ -118,27 +126,41 @@ class StudentController {
 		try {
 			const student = req.session.student;
 			const currentClass = student.currentClass;
-			const subjects = await Subject.find();
+			const subjects = await Subject.find().lean();
 
-			const assignment = await Assignment.findOne({class: currentClass})
-				.populate('subject');
-
-			const exercises = await Exercise.find({assignment})
-				.sort({createdAt: 'desc'})
+			const assignments = await Assignment.find({class: currentClass})
+				.populate('subject')
 				.populate({
-					path: 'assignment',
+					path: 'exercises',
+					populate: {
+						path: 'submissions',
+						match: { student: student._id }
+					}
+				})
+				.populate({
+					path: 'exercises',
 					populate: {
 						path: 'subject',
-						model: 'Subject'
 					}
-				});
+				}).lean();
+
+			// const exercises = await Exercise.find({assignment})
+			// 	.sort({createdAt: 'desc'})
+			// 	.populate({
+			// 		path: 'assignment',
+			// 		populate: {
+			// 			path: 'subject',
+			// 			model: 'Subject'
+			// 		}
+			// 	});
 
 			res.render('studentExercises', {
 				layout: 'student_layout', 
-				title: 'Bài tập', 
+				title: 'Bài tập',
+				activeExercises: "active", 
 				student,
-				subjects: multipleMongooseToObject(subjects),
-				exercises: multipleMongooseToObject(exercises),
+				subjects,
+				assignments,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
@@ -146,27 +168,53 @@ class StudentController {
 	}
 
 	async exerciseSubmit(req, res, next) {
-		const student = req.session.student;
-		const id = req.params.id;
-		if (!req.files) {
-			return res.status(400).json({ error: 'No file uploaded' });
+		try {
+			const student = req.session.student;
+			const id = req.params.id;
+			if (!req.files || req.files.length == 0) {
+				return res.json({ error: 'Không có tệp được nộp' });
+			}
+			
+			const newSubmission = new Submission({
+				imagePath: req.files,
+				score: null,
+				student: student._id,
+				exercise: id
+			});
+			const savedSubmission = await newSubmission.save();
+			const exercise = await Exercise.findByIdAndUpdate(id, { $push: { submissions: savedSubmission._id } });
+			res.json({ success: 'Nộp bài thành công', submission: savedSubmission, exerciseTitle: exercise.title });
+		} catch (err) {
+			console.log(err);
+			res.json({ err: 'Không thể nộp bài' });
 		}
-		console.log(req.files);
-		const images = req.files.map(file => file.originalname);
-		const newSubmission = new Submission({
-			imagePath: images,
-			score: null,
-			student: student._id,
-			exercise: id
-		});
-		const savedSubmission = await newSubmission.save();
-		res.status(200).json({ success: 'Files uploaded successfully', images: images });
+	}
+
+	async exerciseUnsubmit(req, res, next) {
+		try {
+			const submissionId = req.params.id;
+
+			const deletedSubmission = await Submission.findByIdAndRemove(submissionId);
+			const files = deletedSubmission.imagePath;
+			files.forEach(file => {
+				fs.unlink(file.path, () => {
+					console.log('Deleted file');
+				});
+			});
+			const exerciseId = deletedSubmission.exercise;
+			const exercise = await Exercise.findByIdAndUpdate(exerciseId, { $pull: { submissions: deletedSubmission._id } });
+
+    		res.json({ success: 'Hủy nộp bài thành công', exercise: exercise });
+		} catch (err) {
+			console.log(err);
+			res.json({ err: 'Không thể hủy nộp bài' });
+		}
 	}
 
 	async learningResultPage(req, res, next) {
 		try {
 			const student = req.session.student;
-			const subjects = await Subject.find();
+			const subjects = await Subject.find().lean();
 			const studentClass = await StudentClass.find({ student: student._id })
 				.populate({
 					path: 'class',
@@ -174,7 +222,7 @@ class StudentController {
 						path: 'year',
 						model: 'Year',
 					}
-				});
+				}).lean();
 
 			console.log(studentClass);
 			
@@ -185,151 +233,15 @@ class StudentController {
 			res.render('studentLearningResult', {
 				layout: 'student_layout', 
 				title: 'Kết quả học tập', 
+				activeResult: 'active', 
 				student,
-				subjects: multipleMongooseToObject(subjects),
-				years: multipleMongooseToObject(years),
+				subjects,
+				years,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
 		}
 	}
-
-	// /* REGISTER USER */
-	// const register = async (req, res) => {
-	// 	try {
-	// 		const {
-	// 			studentId,
-	// 			name,
-	// 			birthday,
-	// 			gender,
-	// 			ethnic,
-	// 			address,
-	// 			password,
-	// 		} = req.body;
-
-	// 		const salt = await bcrypt.genSalt();
-	// 		const passwordHash = await bcrypt.hash(password, salt);
-
-	// 		const newStudent = new Student({
-	// 			studentId,
-	// 			name,
-	// 			birthday,
-	// 			gender,
-	// 			ethnic,
-	// 			address,
-	// 			password: passwordHash,
-	// 		});
-	// 		const savedStudent = await newStudent.save();
-	// 		// res.status(201).json(savedTeacher);
-	// 		res.redirect('/student/login');
-	// 	} catch (err) {
-	// 		res.status(500).json({ error: err.message });
-	// 	}
-	// };
-
-	// const insertSubject = async (req, res, next) => {
-	// 	const newSubject = new Subject(req.body);
-	// 	const savedSubject = await newSubject.save();
-	// 	res.json(savedSubject);
-	// }
-
-	// const insertAssignment = async (req, res, next) => {
-	// 	const {
-	// 		teacherName,
-	// 		subjectName,
-	// 		className,
-	// 		startYear,
-	// 		endYear,
-	// 	} = req.body;
-	// 	const teacher = await Teacher.findOne({name: teacherName});
-	// 	const subject = await Subject.findOne({name: subjectName});
-	// 	const schoolClass = await Class.findOne({name: className});
-	// 	const year = await Year.findOne({startYear: startYear, endYear: endYear});
-
-	// 	const newAssignment = new Assignment({teacher, subject, class: schoolClass, year});
-	// 	const savedAssignment = await newAssignment.save();
-	// 	res.json(savedAssignment);
-	// }
-
-	// const insertAnnouncement = async (req, res, next) => {
-	// 	const {
-	// 		title,
-	// 		message,
-	// 		assignmentId,
-	// 	} = req.body;
-
-	// 	const assignment = await Assignment.findById(assignmentId);
-
-	// 	const newAnnouncement = new Announcement({title, message, assignment});
-	// 	const savedAnnouncement = await newAnnouncement.save();
-	// 	res.json(savedAnnouncement);
-	// }
-
-	// const insertExercise = async (req, res, next) => {
-	// 	const {
-	// 		title,
-	// 		description,
-	// 		assignmentId,
-	// 	} = req.body;
-
-	// 	const assignment = await Assignment.findById(assignmentId);
-
-	// 	const newExercise = new Exercise({title, description, assignment});
-	// 	const savedExercise = await newExercise.save();
-	// 	res.json(savedExercise);
-	// }
-
-	// const insertYear = async (req, res, next) => {
-	// 	const newYear = new Year(req.body);
-	// 	const savedYear = await newYear.save();
-	// 	res.json(savedYear);
-	// }
-
-	// const insertStudentClass = async (req, res, next) => {
-	// 	const {
-	// 		studentId,
-	// 		classId,
-	// 	} = req.body;
-
-	// 	const student = await Student.findById(studentId);
-	// 	const schoolClass = await Class.findById(classId);
-	// 	const newStudentClass = new StudentClass({student, class: schoolClass});
-	// 	const savedStudentClass = await newStudentClass.save();
-	// 	res.json(savedStudentClass);
-	// }
-
-	// const insertClass = async (req, res, next) => {
-	// 	const {
-	// 		name,
-	// 		grade,
-	// 		teacherId,
-	// 		yearId,
-	// 	} = req.body;
-
-	// 	const teacher = await Teacher.findById(teacherId);
-	// 	const year = await Year.findById(yearId)
-
-	// 	const newClass = new Class({ name, grade, teacher, year, attendance: [] });
-	// 	const savedClass = await newClass.save();
-	// 	res.json(savedClass);
-	// }
-
-	// const changeCurrentClass = async (req, res, next) => {
-	// 	const {studentId, classId} = req.body;
-	// 	const currentClass = await Class.findById(classId);
-	// 	const student = await Student.findOneAndUpdate({studentId}, {currentClass});
-	// 	res.json(student);
-	// }
-
-	// const changeExerciseDeadline = async (req, res, next) => {
-	// 	const {
-	// 		exerciseId,
-	// 		date,
-	// 	} = req.body;
-
-	// 	const exercise = await Exercise.findByIdAndUpdate(exerciseId, {deadline: date});
-	// 	res.json(exercise);
-	// }
 }
 
 module.exports = new StudentController;

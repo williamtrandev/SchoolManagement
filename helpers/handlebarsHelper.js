@@ -2,7 +2,7 @@ module.exports = {
 	ifEquals: function (arg1, arg2, options) {
 		return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
 	},
-	annoucementDateFormat: function (dateStr) {
+	announcementDateFormat: function (dateStr) {
 		const date = new Date(dateStr);
 		const year = date.getFullYear();
 		let month = date.getMonth() + 1;
@@ -33,7 +33,12 @@ module.exports = {
 	charAt: function(strInput, index) {
 		return strInput.charAt(index);
 	},
+
 	lengthArray: function(arr) {
 		return arr.length;
+	},
+
+	json: function (arr) {
+		return JSON.stringify(arr);
 	}
 }
