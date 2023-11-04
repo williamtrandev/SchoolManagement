@@ -3,16 +3,17 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var scoreSchema = new Schema({
-	assessmentScore: Double,
 	score15Minute: Double,
 	score45Minute: Double,
+	scoreMidTerm: Double,
+	scoreFinalTerm: Double,
 	assignment: {
 		type: Schema.Types.ObjectId,
 		ref: 'Assignment'
 	},
-	yearResult: {
+	termResult: {
 		type: Schema.Types.ObjectId,
-		ref: 'YearResult'
+		ref: 'TermResult'
 	}
 })
 

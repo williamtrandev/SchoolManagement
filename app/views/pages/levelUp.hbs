@@ -1,0 +1,43 @@
+<div class="container text-center wrapper-start" id="">
+	<img src="/imgs/background_levelUp.png" alt="" class="img-fluid" style="max-height: 70vh">
+	<p><button class="btn btn-primary start-levelUp">Bắt đầu xét lên lớp</button></p>
+</div>
+<div class="bg-light text-center rounded p-4 d-none wrapper-levelUp">
+	<div class="table-responsive">
+		<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap" id="levelUp-table">
+			<thead>
+				<tr class="text-dark">
+					<th scope="col">Mã học sinh</th>
+					<th scope="col">Tên học sinh</th>
+					<th scope="col">Điểm trung bình cả năm</th>
+					<th scope="col">Học lực</th>
+					<th scope="col">Hạnh kiểm</th>
+					<th scope="col">Số ngày nghỉ</th>
+					<th scope="col">Xét lên lớp, lưu ban</th>
+				</tr>
+			</thead>
+			<tbody>
+				{{#each students}}
+					<tr>
+						<td>{{studentId}}</td>
+						<td>{{name}}</td>
+						<td>{{avgPoint}}</td>
+						<td>{{academicPerformance}}</td>
+						<td>{{conduct}}</td>
+						<td>{{numAbsent}}</td>
+						<td>{{result}}</td>
+					</tr>
+
+				{{/each}}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+
+<script>
+	$('.start-levelUp').click(() => {
+		$('.wrapper-start').addClass('d-none');
+		$('.wrapper-levelUp').removeClass('d-none');
+	})
+</script>

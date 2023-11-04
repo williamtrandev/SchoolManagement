@@ -231,7 +231,7 @@
 				toastr.error("Đã có lỗi xảy ra");
 			});
 		});
-		$('.editClass').click(function() {
+		$('tbody').on('click', '.editClass', function() {
 			let id = $(this).data('id');	
 			let idTeacher = $(this).data('teacher');
 			tdTeacherName = $(this).closest('tr').find('td').eq(3);

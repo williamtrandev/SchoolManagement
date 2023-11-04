@@ -8,6 +8,7 @@ const Assignment = require("../models/Assignment");
 const Subject = require("../models/Subject");
 const Violation = require("../models/Violation");
 const Schedule = require("../models/Schedule");
+const TermResult = require("../models/TermResult");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Excel = require('exceljs');
@@ -35,7 +36,7 @@ sortClass = (a, b) => {
 
 class AdminController {
 	home = async (req, res) => {
-		res.render('home', { layout: 'manager_layout' })
+		res.render('home', { layout: 'manager_layout', title: 'Trang chủ' })
 	}
 	/* HOME PAGE */
 	attendance = async (req, res) => {
@@ -721,6 +722,15 @@ class AdminController {
 			activeHoso: 'active'
 		});
 	}
+	addTeacher = async (req, res) => {
+		try {
+			const { name, birthday, gender, address, phone, email, group } = req.body;
+			const newTeacher = await new Teacher({ name, birthday, gender, address, phone, email, group }).save();
+			res.status(200).json(newTeacher);
+		} catch (err) {
+			res.status(500).json({ message: err });
+		}
+	}
 	getTeachersByGroup = async (req, res) => {
 		try {
 			const teacher = req.session.teacher;
@@ -815,7 +825,25 @@ class AdminController {
 	getAllClass = async (req, res) => {
 		try {
 			const year = await Year.findOne({}).sort({ _id: -1 });
-			const classes = await Class.find({ year: year._id }).lean();
+			const classes = await Class.find({ year: year._id })
+				.populate({
+					path: 'assignments',
+					populate: [
+						{ path: 'teacher' },
+						{ path: 'subject' }
+					]
+				})
+				.lean();
+			console.log(classes);
+			return res.status(200).json(classes);
+		} catch (err) {
+			res.status(500).json({ error: err })
+		}
+	}
+	getAllClassByYear = async (req, res) => {
+		try {
+			const year = req.params.year;
+			const classes = await Class.find({ year: year }).lean();
 			return res.status(200).json(classes);
 		} catch (err) {
 			res.status(500).json({ error: err })
@@ -843,6 +871,7 @@ class AdminController {
 				const deletedAssignment = await Assignment.findOneAndRemove(condition);
 				await Teacher.findOneAndUpdate({ _id: item.teacherId },
 					{ $pull: { assignments: deletedAssignment._id } });
+				await Class.findByIdAndUpdate(item.classId, { $pull: { assignments: deletedAssignment._id } })
 			});
 
 			data.forEach(async assignmentData => {
@@ -869,6 +898,7 @@ class AdminController {
 						{ _id: teacherId },
 						{ $push: { assignments: newAssignment._id } }
 					);
+					await Class.findByIdAndUpdate(classId, { $push: { assignments: newAssignment._id } });
 				}
 			});
 
@@ -880,7 +910,17 @@ class AdminController {
 	timeTable = async (req, res) => {
 		const year = await Year.findOne().sort({ _id: -1 });
 		const classes = await Class.find({ year: year._id }).lean();
-		res.render('timeTable', { layout: 'manager_layout', title: 'Thời khóa biểu', classes, activePhancong: 'active' });
+		const schedules = await Schedule.find()
+			.populate({
+				path: 'assignments',
+				match: { year: year._id }, // Sử dụng match để tìm theo year của assignment
+			})
+			.lean();
+		console.log(schedules);
+		res.render('timeTable', {
+			layout: 'manager_layout', title: 'Thời khóa biểu',
+			classes, schedules, activePhancong: 'active'
+		});
 	}
 	getScheduleByClass = async (req, res) => {
 		try {
@@ -918,12 +958,12 @@ class AdminController {
 		}
 	}
 	rank = async (req, res) => {
-		res.render('ranking', { 
-			layout: 'manager_layout', activeHoctap: 'active', 
-			title: 'Thi đua tuần', 
+		res.render('ranking', {
+			layout: 'manager_layout', activeHoctap: 'active',
+			title: 'Thi đua tuần',
 		});
 	}
-	getRanking = async(req, res) => {
+	getRanking = async (req, res) => {
 		try {
 			// Tạo một đối tượng Date hiện tại
 			const currentDate = new Date();
@@ -982,9 +1022,9 @@ class AdminController {
 					if (item.type === 'ABSENT') {
 						point -= POINT_VIOLATION.Absent;
 					} else if (item.type === 'CONDUCT'
-							|| item.type === 'GROOVE') {
+						|| item.type === 'GROOVE') {
 						point -= POINT_VIOLATION.Conduct;
-					} 
+					}
 				});
 				returnClasses.push({
 					name: key,
@@ -1012,6 +1052,44 @@ class AdminController {
 		} catch (err) {
 			res.status(500).json({ err: err });
 		}
+	}
+	newYearPage = (req, res) => {
+		res.render('newYear', { layout: 'manager_layout', title: 'Năm học mới', activeCaidat: 'active' });
+	}
+	startNewYear = async (req, res) => {
+		try {
+			const currentDate = new Date();
+			const year = currentDate.getFullYear();
+			const newYear = await new Year({ startYear: year, endYear: year + 1 }).save();
+			res.status(200).json(newYear);
+		} catch (err) {
+			res.status(500).json({ err: err });
+		}
+	}
+	levelUpPage = (req, res) => {
+		res.render('levelUp', { layout: 'manager_layout', title: 'Xét lên lớp', activeCaidat: 'active' });
+	}
+	levelUp = async (req, res) => {
+		try {
+			const year = await Year.findOne().sort({ _id: -1 });
+			const students = await Student.find()
+				.populate({
+					path: 'termResults',
+					match: { year: year._id }
+				}).lean();
+			console.log(students);
+		} catch (err) {
+			res.status(500).json({ err: err });
+		}
+	}
+	studyResult = async (req, res) => {
+		const subjects = await Subject.find().lean();
+		const years = await Year.find().sort().lean();
+		res.render('studyResult', { 
+			layout: 'manager_layout', title: 'Xem điểm', 
+			years, 
+			subjects, activeHoctap: 'active' 
+		});
 	}
 }
 

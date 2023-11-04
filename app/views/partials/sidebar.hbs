@@ -28,6 +28,9 @@
 				<li>
 					<a class="nav-item nav-link" href="/admin/rank"><i class="fas fa-trophy"></i>Thi đua tuần</a>
 				</li>
+				<li>
+					<a class="nav-item nav-link" href="/admin/studyResult"><i class="fas fa-book"></i>Xem điểm</a>
+				</li>
 			</ul>
 			<a href="#subassign" class="nav-item nav-link position-relative dropdown-toggle {{activePhancong}}" data-toggle="collapse">
 				<i class="fas fa-calendar"></i>Phân công
@@ -55,8 +58,15 @@
 					<a class="nav-item nav-link" href="/admin/data"><i class="fas fa-database"></i>Thêm dữ liệu</a>
 				</li>
 			</ul>
-			<a href="danhmuc.html" class="nav-item nav-link"><i class="fas fa-tasks"></i>Danh mục</a>
-			<a href="table.html" class="nav-item nav-link"><i class="fa fa-table"></i>Xuất thống kê</a>
+			<a href="#subsettings" class="nav-link position-relative dropdown-toggle {{activeCaidat}}" data-toggle="collapse"><i class="fas fa-tasks"></i>Cài đặt</a>
+			<ul class="collapse list-unstyled mt-2 flex-column" id="subsettings">
+				<li>
+					<a class="nav-item nav-link" href="/admin/newYear"><i class="fas fa-plus"></i>Năm học mới</a>
+				</li>
+				<li>
+					<a class="nav-item nav-link" href="/admin/levelUp"><i class="fas fa-angle-double-up"></i>Xét lên lớp</a>
+				</li>	
+			</ul>
 			<a href="/admin/logout" class="nav-item nav-link"><i class="fas fa-sign-out-alt"></i>Đăng xuất</a>
 		</div>
 	</nav>
