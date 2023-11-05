@@ -27,6 +27,9 @@ router.put('/exercise/:id', verifyToken, teacherController.updateExercise);
 router.delete('/exercise/:id', verifyToken, teacherController.deleteExercise);
 router.get('/classroom/:assignmentId/grading/:exerciseId', verifyToken, teacherController.gradingPage);
 router.post('/grading/:id', verifyToken, teacherController.completeGrading);
+router.get('/classroom/:id/scores', verifyToken, teacherController.scorePage);
+router.post('/export-to-excel', teacherController.exportToExcel);
+router.post('/updateStudent', teacherController.updateStudent);
 // router.post('/insert-assignment', teacherController.insertAssignment);
 
 module.exports = router;

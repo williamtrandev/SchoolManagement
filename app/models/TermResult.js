@@ -6,7 +6,9 @@ var termResultSchema = new Schema({
 	academicPerformance: String,
 	conduct: String,
 	is1stSemester: Boolean,
-	scoreTables: [{ type: Schema.Types.ObjectId, ref: 'ScoreTable' }]
+	scoreTables: [{ type: Schema.Types.ObjectId, ref: 'ScoreTable' }],
+	student: { type: Schema.Types.ObjectId, ref: 'Student' },
+	year: { type: Schema.Types.ObjectId, ref: 'Year' }
 })
 
 module.exports = mongoose.model('TermResult', termResultSchema);

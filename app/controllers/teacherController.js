@@ -7,10 +7,13 @@ const Announcement = require('../models/Announcement');
 const Exercise = require('../models/Exercise');
 const StudentClass = require('../models/StudentClass');
 const Submission = require('../models/Submission');
+const ScoreTable = require('../models/ScoreTable');
+const Student = require('../models/Student');
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-
+const exceljs = require('exceljs');
+const fs = require('fs');
 
 class TeacherController {
     async home(req, res) {
@@ -292,6 +295,109 @@ class TeacherController {
 			console.log(err);
 			return res.json({ error: 'Đã có lỗi xảy ra' });
 		}
+	}
+
+	async scorePage(req, res) {
+		try {
+			const teacher = req.session.teacher;
+			const currentYear = await Year.findOne({}).sort({ _id: -1 });
+			const assignments = await Assignment.find({ teacher: teacher._id, year: currentYear })
+				.populate('subject')
+				.populate('class')
+				.lean();
+
+			const id = req.params.id;
+			const assignment = await Assignment.findById(id)
+				.populate('subject')
+				.populate('class')
+				.populate('year')
+				.lean();
+			
+			const studentClass = await StudentClass.find({ class: assignment.class._id })
+				.populate({
+					path: 'student',
+					model: 'Student',
+					populate: {
+						path: 'scoreTables',
+						match: { assignment: id },
+						model: 'ScoreTable'
+					}
+				})
+				.lean();
+			
+			const students = studentClass.map(sc => sc.student);
+
+			res.render('teacherScores', {
+				layout: 'teacher_layout', 
+				title: "Bảng điểm", 
+				activeClassroom: "active",
+				teacher,
+				assignments,
+				assignment,
+				students, 
+			});
+
+		} catch (err) {
+			console.log(err);
+			res.json(err);
+		}
+	}
+
+	exportToExcel(req, res) {
+		// Nhận dữ liệu bảng từ yêu cầu POST
+		const tableData = req.body.tableData;
+
+		// Sử dụng exceljs để tạo một workbook và worksheet
+		const workbook = new exceljs.Workbook();
+		const worksheet = workbook.addWorksheet('Sheet 1');
+	
+		// Thêm dữ liệu từ bảng vào worksheet
+		for (const row of tableData) {
+			worksheet.addRow(row);
+		}
+
+		// Tạo công thức Excel trong cột cuối cùng
+		for (let row = 2; row <= tableData.length; row++) {
+			worksheet.getCell(`F${row}`).value = {
+				formula: `(C${row}*1 + D${row}*2 + E${row}*3)/5`,
+				result: (tableData[row - 1][2] + tableData[row - 1][3]*2 + tableData[row - 1][4]*3)/5,
+			};
+		}
+	
+		// Tạo một tệp Excel tạm thời
+		const tempFilePath = 'public/file/temp.xlsx';
+		workbook.xlsx.writeFile(tempFilePath)
+			.then(() => {
+				// Gửi tệp Excel cho người dùng tải về
+				res.setHeader('Content-Disposition', 'attachment; filename=data.xlsx');
+				res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+				fs.createReadStream(tempFilePath).pipe(res);
+
+				// Xóa tệp sau khi gửi xong
+				res.on('finish', () => {
+					fs.unlink(tempFilePath, () => {
+						console.log('Deleted temp file');
+					});
+				});
+			})
+			.catch(error => {
+				console.error(error);
+				res.status(500).send('Internal Server Error');
+			});
+		fs.unlink(tempFilePath, () => { console.log('Deleted temp file') });
+	}
+
+	async importExcel(req, res) {
+		
+		const workbook = new exceljs.Workbook();
+		const worksheet = await workbook.xlsx.readFile(filepath);
+		const worksheetData = worksheet.getWorksheet(1); // Lấy trang tính toán đầu tiên
+		
+	}
+
+	async updateStudent(req, res) {
+		await Student.updateMany({ scoreTables: [], termResults: [] });
+		res.json('success');
 	}
 
 	// async insertAssignment(req, res) {

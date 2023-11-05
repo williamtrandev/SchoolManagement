@@ -16,7 +16,9 @@ var studentSchema = new Schema({
 	},
 	parents: [{ type: Schema.Types.ObjectId, ref: 'Parent' }],
 	submissions: [{ type: Schema.Types.ObjectId, ref: 'Submission' }],
-	studentClasses: [{ type: Schema.Types.ObjectId, ref: 'StudentClass' }]
+	studentClasses: [{ type: Schema.Types.ObjectId, ref: 'StudentClass' }],
+	scoreTables: [{ type: Schema.Types.ObjectId, ref: 'ScoreTable' }],
+	termResults: [{ type: Schema.Types.ObjectId, ref: 'TermResult' }]
 });
 
 studentSchema.pre('save', async function (next) {
