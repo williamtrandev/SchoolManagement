@@ -36,10 +36,10 @@
                     <tr>
                         <td>{{studentId}}</td>
                         <td>{{name}}</td>
-                        <td>{{scoreTable.[0].scoreFrequent}}</td>
-                        <td>{{scoreTable.[0].scoreMidTerm}}</td>
-                        <td>{{scoreTable.[0].scoreFinalTerm}}</td>
-                        <td></td>
+                        <td>{{scoreTables.[0].scoreFrequent}}</td>
+                        <td>{{scoreTables.[0].scoreMidTerm}}</td>
+                        <td>{{scoreTables.[0].scoreFinalTerm}}</td>
+                        <td>{{avgScore scoreTables.[0]}}</td>
                     </tr>
                     {{/each}}
                 </tbody>
@@ -57,11 +57,11 @@
                 <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <input type="file" name="file" id="file" class="form-control">
+                <input type="file" name="file" id="file-input" class="form-control">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary">Tải lên</button>
+                <button type="button" class="btn btn-primary" id="saveImportBtn">Tải lên</button>
             </div>
         </div>
     </div>
@@ -101,7 +101,33 @@
         }
     });
 
-    $('#importBtn').click(function() {
-        
+    $('#saveImportBtn').click(function() {
+        const assignmentId = '{{assignment._id}}';
+        const file = $('#file-input')[0].files[0];
+        if(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            //$('#spinner').addClass('show');
+            fetch(`/teacher/classroom/${assignmentId}/import-score-excel`, {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => {
+                if(!response.ok) {
+                    throw new Error('Lỗi');
+                }
+                return response.json();
+            })
+            .then(data => {
+                //$('#spinner').removeClass('show');
+                toastr.success('Lưu thành công');
+                window.location.href = window.location.href;
+            })
+            .catch(error => {
+                console.error(error);
+                //$('#spinner').removeClass('show');
+                toastr.error('Lỗi hệ thống');
+            });
+        }
     });
 </script>

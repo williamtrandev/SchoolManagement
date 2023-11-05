@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const verifyToken = require("../app/middlewares/verifyTokenTeacher");
-
+const fileUpload = require('../app/middlewares/fileUpload');
 const adminController = require('../app/controllers/adminController');
 const teacherController = require('../app/controllers/teacherController');
 
@@ -29,6 +29,7 @@ router.get('/classroom/:assignmentId/grading/:exerciseId', verifyToken, teacherC
 router.post('/grading/:id', verifyToken, teacherController.completeGrading);
 router.get('/classroom/:id/scores', verifyToken, teacherController.scorePage);
 router.post('/export-to-excel', teacherController.exportToExcel);
+router.post('/classroom/:id/import-score-excel', fileUpload(), teacherController.importExcel);
 router.post('/updateStudent', teacherController.updateStudent);
 // router.post('/insert-assignment', teacherController.insertAssignment);
 

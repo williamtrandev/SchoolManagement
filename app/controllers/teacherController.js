@@ -14,6 +14,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const exceljs = require('exceljs');
 const fs = require('fs');
+const TermResult = require('../models/TermResult');
 
 class TeacherController {
     async home(req, res) {
@@ -388,10 +389,44 @@ class TeacherController {
 	}
 
 	async importExcel(req, res) {
-		
-		const workbook = new exceljs.Workbook();
-		const worksheet = await workbook.xlsx.readFile(filepath);
-		const worksheetData = worksheet.getWorksheet(1); // Lấy trang tính toán đầu tiên
+		try {
+			const assignmentId = req.params.id;
+			const newestYear = await Year.findOne({}).sort({ _id: -1 });
+			const excelFile = req.files.file;
+			const workbook = new exceljs.Workbook();
+			await workbook.xlsx.load(excelFile.data);
+			const worksheetData = workbook.getWorksheet(1); // Lấy trang tính toán đầu tiên
+			worksheetData.eachRow(async (row, rowNumber) => {
+				if (rowNumber != 1) {
+					const studentId = row.getCell(1).value;
+					const student = await Student.findOne({ studentId: studentId });
+					const termResult = await TermResult.findOne({ student: student._id, year: newestYear })
+					const scoreTable = await ScoreTable.findOneAndUpdate(
+						{ assignment: assignmentId, student: student._id },
+						{ 
+							scoreFrequent: row.getCell(3).value,
+							scoreMidTerm: row.getCell(4).value,
+							scoreFinalTerm: row.getCell(5).value,
+							assignment: assignmentId,
+							student: student._id, 
+							termResult: termResult._id },
+						{ new: true, upsert: true }
+					);
+					if (!student.scoreTables.includes(scoreTable._id)) {
+						student.scoreTables.push(scoreTable._id);
+						await student.save();
+					}
+					if (!termResult.scoreTables.includes(scoreTable._id)) {
+						termResult.scoreTables.push(scoreTable._id);
+						await termResult.save();
+					}
+				}
+			});
+			return res.json('Success');
+		} catch (err) {
+			console.log(err);
+			return res.status(500).send('Internal Server Error');
+		}
 		
 	}
 
