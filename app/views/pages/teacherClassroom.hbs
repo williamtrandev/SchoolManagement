@@ -16,6 +16,10 @@
             <i class="fa-solid fa-pen me-2"></i>
             Bài tập mới
         </button>
+        <a href="/teacher/classroom/{{assignment._id}}/scores/" class="btn btn-primary m-2">
+            <i class="fa-solid fa-table-list"></i>
+            Nhập điểm
+        </a>
     </div>
 
     <div class="classroom-container">
@@ -61,10 +65,23 @@
                 </div>
                 <div class="line mt-4"></div>
                 <div class="d-flex justify-content-between">
-                    <div class="text-break w-75">
+                    <div class="text-break" style="width: 70%;">
                         <p style="white-space: pre-line">
                             {{description}}
                         </p>
+                    </div>
+                    <div class="ms-4" style="width: 30%;">
+                        <div class="d-flex mb-2">
+                            <div style="width: 60%;">
+                                <div class="fw-bold text-dark" style="font-size: xx-large;">{{length submissions}}/{{../number}}</div>
+                                <div class="text-dark">Đã nộp</div>
+                            </div>
+                            <div style="width: 40%;">
+                                <div class="fw-bold text-danger" style="font-size: xx-large;">{{notGradedCount}}</div>
+                                <div class="text-danger">Chưa chấm</div>
+                            </div>
+                        </div>
+                        <a href="/teacher/classroom/{{../assignment._id}}/grading/{{_id}}" class="btn btn-primary w-100">Chấm điểm</a>
                     </div>
                 </div>
                 <div style="position: absolute; top: 1rem; right: 1rem;">

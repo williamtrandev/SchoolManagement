@@ -1,0 +1,107 @@
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-light rounded p-4">
+        <div class="mb-4 d-flex">
+            <div class="me-5">
+                <div class="text-dark fs-5 fw-bold">Lớp {{assignment.class.name}}</div>
+                <div>Năm học {{assignment.year.startYear}} - {{assignment.year.endYear}}</div>
+                <div>Môn {{assignment.subject.name}}</div>
+                
+            </div>
+            <div>
+                <button id="importBtn" class="btn btn-primary me-2" data-toggle="modal" data-target="#importModal">
+                    <i class="fa-solid fa-file-import me-2"></i>
+                    Nhập file
+                </button>
+                <button id="exportBtn" class="btn btn-primary">
+                    <i class="fa-solid fa-file-export me-2"></i>
+                    Xuất file
+                </button>
+            </div>
+            {{!-- <div>Thầy cô tải file mẫu ở đây</div> --}}
+        </div>
+        <div>
+            <table class="table text-start align-middle table-bordered mb-0">
+                <thead>
+                    <tr class="text-dark">
+                        <th>Mã học sinh</th>
+                        <th>Họ và tên</th>
+                        <th>Điểm thường xuyên</th>
+                        <th>Điểm giữa kỳ</th>
+                        <th>Điểm cuối kỳ</th>
+                        <th>Điểm trung bình</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each students}}
+                    <tr>
+                        <td>{{studentId}}</td>
+                        <td>{{name}}</td>
+                        <td>{{scoreTable.[0].scoreFrequent}}</td>
+                        <td>{{scoreTable.[0].scoreMidTerm}}</td>
+                        <td>{{scoreTable.[0].scoreFinalTerm}}</td>
+                        <td></td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Nhập file</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="file" name="file" id="file" class="form-control">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary">Tải lên</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#exportBtn').click(async () => {
+        const tableData = [];
+        $('table tr').each((rowIndex, row) => {
+            const rowData = [];
+            $(row).find('th, td').each((colIndex, cell) => {
+                rowData.push($(cell).text());
+            });
+            tableData.push(rowData);
+        });
+
+        console.log(tableData);
+
+        const response = await fetch('/teacher/export-to-excel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ tableData }),
+        });
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'score_{{assignment.class.name}}_{{assignment.year.startYear}}{{assignment.year.endYear}}.xlsx';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } else {
+            console.error('Export to Excel failed.');
+        }
+    });
+
+    $('#importBtn').click(function() {
+        
+    });
+</script>

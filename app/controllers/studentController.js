@@ -183,6 +183,7 @@ class StudentController {
 			});
 			const savedSubmission = await newSubmission.save();
 			const exercise = await Exercise.findByIdAndUpdate(id, { $push: { submissions: savedSubmission._id } });
+			await Student.findByIdAndUpdate(student._id, { $push: { submissions: savedSubmission._id } });
 			res.json({ success: 'Nộp bài thành công', submission: savedSubmission, exerciseTitle: exercise.title });
 		} catch (err) {
 			console.log(err);
@@ -192,6 +193,7 @@ class StudentController {
 
 	async exerciseUnsubmit(req, res, next) {
 		try {
+			const student = req.session.student;
 			const submissionId = req.params.id;
 
 			const deletedSubmission = await Submission.findByIdAndRemove(submissionId);
@@ -203,7 +205,7 @@ class StudentController {
 			});
 			const exerciseId = deletedSubmission.exercise;
 			const exercise = await Exercise.findByIdAndUpdate(exerciseId, { $pull: { submissions: deletedSubmission._id } });
-
+			await Student.findByIdAndUpdate(student._id, { $pull: { submissions: deletedSubmission._id } });
     		res.json({ success: 'Hủy nộp bài thành công', exercise: exercise });
 		} catch (err) {
 			console.log(err);
