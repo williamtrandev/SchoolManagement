@@ -1,7 +1,7 @@
 <!-- Sidebar Start -->
 <div class="sidebar pe-4 pb-3">
 	<nav class="navbar bg-light navbar-light">
-		<a href="index.html" class="navbar-brand mx-4 mb-3">
+		<a href="/admin/" class="navbar-brand mx-4 mb-3">
 			<h3 class="text-primary">Quản lý</h3>
 		</a>
 		<div class="d-flex align-items-center ms-4 mb-4">
@@ -23,11 +23,26 @@
 			</a>
 			<ul class="collapse list-unstyled mt-2 flex-column" id="substudy">
 				<li>
-					<a class="nav-item nav-link" href="/admin"><i class="far fa-check-square"></i>Điểm danh</a>
+					<a class="nav-item nav-link" href="/admin/attendance"><i class="far fa-check-square"></i>Điểm danh</a>
+				</li>
+				<li>
+					<a class="nav-item nav-link" href="/admin/rank"><i class="fas fa-trophy"></i>Thi đua tuần</a>
+				</li>
+				<li>
+					<a class="nav-item nav-link" href="/admin/studyResult"><i class="fas fa-book"></i>Xem điểm</a>
 				</li>
 			</ul>
-			<a href="/admin/assignments" class="nav-item nav-link {{activePhancong}}"><i class="fas fa-calendar"></i>Phân công lịch
-				dạy</a>
+			<a href="#subassign" class="nav-item nav-link position-relative dropdown-toggle {{activePhancong}}" data-toggle="collapse">
+				<i class="fas fa-calendar"></i>Phân công
+			</a>
+			<ul class="collapse list-unstyled mt-2 flex-column" id="subassign">
+				<li>
+					<a class="nav-item nav-link" href="/admin/assignments"><i class="fas fa-chalkboard-teacher"></i>Giảng dạy</a>
+				</li>
+				<li>
+					<a class="nav-item nav-link" href="/admin/timeTable"><i class="fas fa-table"></i>Thời khóa biểu</a>
+				</li>
+			</ul>
 			<a href="#submenu" class="nav-link position-relative dropdown-toggle {{activeHoso}}" data-toggle="collapse"><i class="fas fa-id-card"></i>Hồ sơ</a>
 			<ul class="collapse list-unstyled mt-2 flex-column" id="submenu">
 				<li>
@@ -43,10 +58,28 @@
 					<a class="nav-item nav-link" href="/admin/data"><i class="fas fa-database"></i>Thêm dữ liệu</a>
 				</li>
 			</ul>
-			<a href="danhmuc.html" class="nav-item nav-link"><i class="fas fa-tasks"></i>Danh mục</a>
-			<a href="table.html" class="nav-item nav-link"><i class="fa fa-table"></i>Xuất thống kê</a>
+			<a href="#subsettings" class="nav-link position-relative dropdown-toggle {{activeCaidat}}" data-toggle="collapse"><i class="fas fa-tasks"></i>Cài đặt</a>
+			<ul class="collapse list-unstyled mt-2 flex-column" id="subsettings">
+				<li>
+					<a class="nav-item nav-link" href="/admin/newYear"><i class="fas fa-plus"></i>Năm học mới</a>
+				</li>
+				<li>
+					<a class="nav-item nav-link" href="/admin/levelUp"><i class="fas fa-angle-double-up"></i>Xét lên lớp</a>
+				</li>	
+			</ul>
 			<a href="/admin/logout" class="nav-item nav-link"><i class="fas fa-sign-out-alt"></i>Đăng xuất</a>
 		</div>
 	</nav>
 </div>
 <!-- Sidebar End -->
+
+
+<script>
+$(function() {
+	$('.nav-link.dropdown-toggle').on('click', function(e) {
+		e.preventDefault();
+		$(this).next('.collapse').collapse('toggle');
+		$('.collapse').not($(this).next('.collapse')).collapse('hide');
+	});
+});
+</script>

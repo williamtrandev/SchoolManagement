@@ -1,0 +1,691 @@
+
+<div class="bg-light text-center rounded p-3 container-timetable" style="min-height: 80vh;">
+	
+	{{!-- <table class="table text-center align-middle table-bordered mb-0 mt-3 d-none">
+		<thead>
+			<tr class="text-dark">
+				<th scope="col">Tiết</th>
+				<th scope="col">Thứ hai</th>
+				<th scope="col">Thứ ba</th>
+				<th scope="col">Thứ tư</th>
+				<th scope="col">Thứ năm</th>
+				<th scope="col">Thứ sáu</th>
+				<th scope="col">Thứ bảy</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>1</td>
+				<td>Chào cờ</td>
+				<td class="select-subject" data-period="1" data-date="3"></td>
+				<td class="select-subject" data-period="1" data-date="4"></td>
+				<td class="select-subject" data-period="1" data-date="5"></td>
+				<td class="select-subject" data-period="1" data-date="6"></td>
+				<td class="select-subject" data-period="1" data-date="7"></td>
+			</tr>
+			<tr>
+				<td>2</td>
+				<td class="select-subject" data-period="2" data-date="2"></td>
+				<td class="select-subject" data-period="2" data-date="3"></td>
+				<td class="select-subject" data-period="2" data-date="4"></td>
+				<td class="select-subject" data-period="2" data-date="5"></td>
+				<td class="select-subject" data-period="2" data-date="6"></td>
+				<td class="select-subject" data-period="2" data-date="7"></td>
+			</tr>
+			<tr>
+				<td>3</td>
+				<td class="select-subject" data-period="3" data-date="2"></td>
+				<td class="select-subject" data-period="3" data-date="3"></td>
+				<td class="select-subject" data-period="3" data-date="4"></td>
+				<td class="select-subject" data-period="3" data-date="5"></td>
+				<td class="select-subject" data-period="3" data-date="6"></td>
+				<td class="select-subject" data-period="3" data-date="7"></td>
+			</tr>
+			<tr>
+				<td>4</td>
+				<td class="select-subject" data-period="4" data-date="2"></td>
+				<td class="select-subject" data-period="4" data-date="3"></td>
+				<td class="select-subject" data-period="4" data-date="4"></td>
+				<td class="select-subject" data-period="4" data-date="5"></td>
+				<td class="select-subject" data-period="4" data-date="6"></td>
+				<td class="select-subject" data-period="4" data-date="7"></td>
+			</tr>
+			<tr>
+				<td>5</td>
+				<td class="select-subject" data-period="5" data-date="2"></td>
+				<td class="select-subject" data-period="5" data-date="3"></td>
+				<td class="select-subject" data-period="5" data-date="4"></td>
+				<td class="select-subject" data-period="5" data-date="5"></td>
+				<td class="select-subject" data-period="5" data-date="6"></td>
+				<td>SHCN</td>
+			</tr>
+		</tbody>
+	</table> --}}
+	{{#ifEquals (lengthArray schedules) 0}}
+	{{!-- 1 --}}
+		<div class="info-notime">
+			<img src="/imgs/background_timetable.png" alt="" class="img-fluid">
+			<h5 style="font-weight: normal;">Chưa có thời khóa biểu nào</h5>
+			<button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
+		</div>
+	{{else}} 
+		
+	{{/ifEquals}}
+	<div class="wrapper-tableItem d-none"></div>
+	<div class="wrapper-choose d-none">
+		<h5>Chọn 2 khối học buổi sáng, 2 khối còn lại sẽ học buổi chiều</h5>
+		<button class="btn btn-primary">Khối 6</button>
+		<button class="btn btn-primary">Khối 7</button>
+		<button class="btn btn-primary">Khối 8</button>
+		<button class="btn btn-primary">Khối 9</button>
+	</div>
+	{{!-- thêm d-none --}}
+	<div class="buttons d-none">
+		<button class="btn border-0 border-bottom border-primary me-4 btn-morning">Buổi sáng</button>
+		<button class="btn border-0 border-bottom btn-afternoon">Buổi chiều</button>
+	</div>
+	<div class="table-responsive table-morning d-none mon">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-morning">
+				<th scope="col" rowspan="6" style="width: 50px">T2</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+	<div class="table-responsive table-morning d-none tues">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-morning">
+				<th scope="col" rowspan="6" style="width: 50px">T3</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+	<div class="table-responsive table-morning d-none wed">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-morning">
+				<th scope="col" rowspan="6" style="width: 50px">T4</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+	<div class="table-responsive table-morning d-none thurs">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-morning">
+				<th scope="col" rowspan="6" style="width: 50px">T5</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+	<div class="table-responsive table-morning d-none fri">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-morning">
+				<th scope="col" rowspan="6" style="width: 50px">T6</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+	<div class="table-responsive table-morning d-none satur">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-morning">
+				<th scope="col" rowspan="6" style="width: 50px">T7</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+	
+
+
+	{{!-- Afternoon --}}
+	<div class="table-responsive table-afternoon d-none mon">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-afternoon">
+				<th scope="col" rowspan="6" style="width: 50px">T2</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+	<div class="table-responsive table-afternoon d-none tues">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-afternoon">
+				<th scope="col" rowspan="6" style="width: 50px">T3</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+	<div class="table-responsive table-afternoon d-none wed">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-afternoon">
+				<th scope="col" rowspan="6" style="width: 50px">T4</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+	<div class="table-responsive table-afternoon d-none thurs">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-afternoon">
+				<th scope="col" rowspan="6" style="width: 50px">T5</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+	<div class="table-responsive table-afternoon d-none fri">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-afternoon">
+				<th scope="col" rowspan="6" style="width: 50px">T6</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+	<div class="table-responsive table-afternoon d-none satur">
+		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+			<tr class="text-dark thead-afternoon">
+				<th scope="col" rowspan="6" style="width: 50px">T7</th>
+				<th scope="col">Tiết</th>
+			</tr>
+			<tr>
+				<td scope="col">1</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">2</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">3</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">4</td>
+				
+			</tr>
+			<tr>
+				<td scope="col">5</td>
+				
+			</tr>
+		</table>
+	</div>
+</div>
+
+
+<div class="navbar fixed-bottom navbar-light bg-light d-flex justify-content-end d-none" style="left: 250px">
+	<div class="container-fluid">
+		<button class="btn btn-primary ms-auto me-3 btn-save-timetable">Lưu</button>
+	</div>
+</div>
+
+
+<div class="modal" id="warning">
+	<div class="modal-dialog">
+		<div class="modal-content">
+
+			<!-- Modal Header -->
+			<div class="modal-header">
+			<h4 class="modal-title">Modal Heading</h4>
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+
+			<!-- Modal body -->
+			<div class="modal-body">
+			Modal body..
+			</div>
+
+			<!-- Modal footer -->
+			<div class="modal-footer">
+			<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="addTimetable">
+    <div class="modal-dialog">
+		<div class="modal-content p-2">
+			<!-- Modal Header -->
+			<div class="modal-header justify-content-center">
+				<h4 class="modal-title">Tạo đợt áp dụng mới</h4>
+			</div>
+			
+			<!-- Modal body -->
+			<div class="modal-body">
+				<form>
+					<div class="form-group mb-3">
+						<label style="font-weight: bold" class="mb-1" for="nameTimetable">Tên thời khóa biểu</label>
+						<input type="text" class="form-control" id="nameTimetable" required>
+					</div>
+					
+					
+				</form>
+			</div>
+			<!-- Modal footer -->
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary btn-save-timetable">Đồng ý</button>
+				<button type="button" class="btn border" data-dismiss="modal">Hủy</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<script>
+	$(async function() {
+		let classes = [];
+		let grade6 = [];
+		let grade7 = [];
+		let grade8 = [];
+		let grade9 = [];
+		await fetch('/admin/getAllClass')
+		.then(res => res.json())
+		.then(data => classes = data)
+		.catch(err => {
+			console.log(err);
+		});
+		classes.forEach(item => {
+			if(item.name.charAt(0) == 6) {
+				grade6.push(item);
+			} else if(item.name.charAt(0) == 7) {
+				grade7.push(item);
+			} else if(item.name.charAt(0) == 8) {
+				grade8.push(item);
+			} else if(item.name.charAt(0) == 9) {
+				grade9.push(item);
+			}
+		});
+		let gradeMap = {
+			'Khối 6': grade6,
+			'Khối 7': grade7,
+			'Khối 8': grade8,
+			'Khối 9': grade9,
+		}
+		console.log(gradeMap);
+		const subjectMap = {
+			"Toán": "Toán",
+			"Ngữ văn": "N.Văn",
+			"Lịch sử và địa lý": "LS & ĐL",
+			"Khoa học tự nhiên": "KHTN",
+			"Tiếng Anh": "T.Anh",
+			"Tin học": "Tin học",
+			"Công nghệ": "Công nghệ",
+			"Giáo dục công dân": "GDCD",
+			"Giáo dục thể chất": "GDTC",
+			"Âm nhạc": "Âm nhạc",
+			"Mỹ thuật": "Mỹ thuật",
+			"Hoạt động trải nghiệm": "HĐTN"
+		}
+		let arrChoose = [];
+		$('#class').change(async function() {
+			$('.fixed-bottom').removeClass('d-none');
+			$('.img-fluid').addClass('d-none');
+			$('.table').removeClass('d-none');
+			const classId = $(this).val();
+			console.log(classId);
+			let options = '';
+			await fetch(`/admin/getAssignments/${classId}`)
+			.then(res => res.json())
+			.then(data => {
+				if(data.length < 13) {
+					Swal.fire({
+						title: 'Cảnh báo!',
+						text: 'Lớp học chưa được phân công hết các môn. Vui lòng quay lại phân công',
+						icon: 'warning',
+						confirmButtonText: 'Xác nhận'
+					}).then((result) => {
+						if (result.isConfirmed) {
+							window.location.href='/admin/assignments';
+						}
+					})
+				}
+				console.log(data);
+				data.forEach(item => {
+					options += `<option value="${item._id}">${item.subject.name}</option>`
+				})
+			})
+			.catch(err => {
+				console.log(err);
+			});
+			$('.select-subject').each(function() {
+				$(this).empty();
+				const fullSelect = `<select class="form-select">
+					<option value="none" >Tiết trống</option>
+					${options}
+				</select>`
+				$(this).append(fullSelect);
+			});
+			fetch(`/admin/getSchedules/${classId}`)
+			.then(res => {
+				if(!res.ok) throw new Error('Lỗi');
+				return res.json();
+			})
+			.then(data => {
+				console.log(data)
+			})
+			.catch(err => {
+				console.log(err);
+				toastr.error("Lỗi hệ thống");
+			});
+		});
+		/*$('.select-subject').click(function() {
+			$(this).find('select').first().removeClass('d-none')
+		})*/
+		$('.select-subject').on('change', '.form-select', function() {
+			$(this).closest('td').data('subject', $(this).val());
+		})
+		$('.btn-save-timetable').click(()=>{
+			const nameTable = $('#nameTimetable').val();
+			$('#addTimetable').modal('hide');
+			$('.info-notime').addClass('d-none');
+			const newTimetable = `<div class="timetableDiv">${nameTable}</div>`;
+			$('.wrapper-tableItem').removeClass('d-none').append(newTimetable);
+			
+		});
+		$('.wrapper-tableItem').on('click', '.timetableDiv', function() {
+			$('.wrapper-tableItem').addClass('d-none');
+			//$('.table-responsive').removeClass('d-none');
+			$('.wrapper-choose').removeClass('d-none');
+		})
+		$('.wrapper-choose button').click(function() {
+			if(arrChoose.length < 2) {
+				$(this).attr('disabled', true);
+				arrChoose.push($(this).text());
+			}
+			if(arrChoose.length == 2) {
+				arrChoose.sort();
+				let ths = ``;
+				let tds = ``;
+				gradeMap[arrChoose[0]].forEach(item => {
+					ths += `<th scope="col">${item.name}</th>`;
+					let opts = `<option value="none" selected disabled>Chọn</option>`;
+					item.assignments.forEach(assign => {
+						const subjectName = subjectMap[assign.subject.name];
+						const nameParts = assign.teacher.name.split(" ");
+						const lastnameTeacher = nameParts[nameParts.length - 1];
+						opts += `<option value="${assign._id}">${subjectName}-${lastnameTeacher}</option>`;
+					});
+					tds += `<td scope="col">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}">
+							${opts}
+						</select>
+					</td>`;
+				});
+				gradeMap[arrChoose[1]].forEach(item => {
+					ths += `<th scope="col">${item.name}</th>`;
+					let opts = ``;
+					item.assignments.forEach(assign => {
+						opts += `<option value="${assign._id}">${assign.subject.name}-${assign.teacher.name}</option>`;
+					});
+					tds += `<td scope="col">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}">
+							${opts}
+						</select>
+					</td>`;
+				});
+
+				const remainingGrade = Object.keys(gradeMap).filter(key => !arrChoose.includes(key));
+				remainingGrade.sort();
+				let thsAf = ``;
+				let tdsAf = ``;
+				gradeMap[remainingGrade[0]].forEach(item => {
+					thsAf += `<th scope="col">${item.name}</th>`;
+					let opts = ``;
+					item.assignments.forEach(assign => {
+						opts += `<option value="${assign._id}">${assign.subject.name}-${assign.teacher.name}</option>`;
+					});
+					tdsAf += `<td scope="col">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}">
+							${opts}
+						</select>
+					</td>`;
+				});
+				gradeMap[remainingGrade[1]].forEach(item => {
+					thsAf += `<th scope="col">${item.name}</th>`;
+					let opts = ``;
+					item.assignments.forEach(assign => {
+						opts += `<option value="${assign._id}">${assign.subject.name}-${assign.teacher.name}</option>`;
+					});
+					tdsAf += `<td scope="col">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}">
+							${opts}
+						</select>
+					</td>`;
+				});
+				$('.wrapper-choose').addClass('d-none');
+				$('.table-morning').removeClass('d-none');
+				$('.table-afternoon').removeClass('d-none');
+				$('.buttons').removeClass('d-none');
+				$('.table-morning tr').not($('.thead-morning')).append(tds);
+				$('.thead-morning').append(ths);
+				$('.table-afternoon tr').not($('.thead-afternoon')).append(tdsAf);
+				$('.thead-afternoon').append(thsAf);
+			}
+		})
+		$('.btn-morning').click(()=> {
+			$('.btn-morning').addClass('border-primary');
+			$('.btn-afternoon').removeClass('border-primary');
+			$('.table-morning').removeClass('d-none');
+			$('.table-afternoon').addClass('d-none');
+		});
+		$('.btn-afternoon').click(()=> {
+			$('.btn-afternoon').addClass('border-primary');
+			$('.btn-morning').removeClass('border-primary');
+			$('.table-morning').addClass('d-none');
+			$('.table-afternoon').removeClass('d-none');
+		});
+	})
+</script>

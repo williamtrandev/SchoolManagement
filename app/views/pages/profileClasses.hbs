@@ -3,16 +3,17 @@
 		<div class="d-flex align-items-center">
 			<label for="grade">Khối</label>
 			<select class="form-select mx-3" id="grade" style="width: auto">
-				<option value="no" selected>Chọn khối</option>
+				<option value="no" selected disabled>Chọn khối</option>
 				<option value="6">6</option>
 				<option value="7">7</option>
 				<option value="8">8</option>
 				<option value="9">9</option>
 			</select>
 		</div>
-		<button type="button" class="btn btn-success" data-toggle="modal" data-target="#addClass">Thêm lớp</button>
+		<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addClass">Thêm lớp</button>
 	</div>
-	<div class="table-responsive">
+	<img src="/imgs/background_class_wait.png" alt="" class="img-fluid">
+	<div class="table-responsive d-none">
 		<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap" id="attendance-table">
 			<thead>
 				<tr class="text-dark">
@@ -24,17 +25,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{{#each classes}}
-					<tr>
-						<td>{{increasement @index}}</td>
-						<td>{{name}}</td>
-						<td>{{numberStudent}}</td>
-						<td>
-							{{teacher}}
-						</td>
-						<td><i class="mx-2 fas fa-user-edit editClass text-primary" style="cursor: pointer;" data-id="{{_id}}" data-teacher="{{idTeacher}}"></i></td>
-					</tr>
-				{{/each}}
+				
 			</tbody>
 		</table>
 	</div>
@@ -210,7 +201,10 @@
 				toastr.error("Vui lòng nhập tên lớp phù hợp (Ví dụ: 6A1, 9A10)");
 			}
 		});
-		$("#grade").change(function(){
+		$("#grade").change(function() {
+			$('#spinner').addClass("show");
+			$('.img-fluid').addClass('d-none');
+			$('.table-responsive').removeClass('d-none');
 			let grade = $(this).val();
 			fetch(`/admin/classes/${grade}`)
 			.then(res => res.json())
@@ -228,14 +222,16 @@
 						<td><i class="mx-2 fas fa-user-edit editClass text-primary" style="cursor: pointer;" data-id="${item._id}" data-teacher="${item.idTeacher}" onclick="handleOpenModal(this)"></i></td>
 					</tr>`;
 				});
+				$('#spinner').removeClass("show");
 				$('tbody').append(tr);
 			})
 			.catch(err => {
 				console.log(err);
+				$('#spinner').removeClass("show");
 				toastr.error("Đã có lỗi xảy ra");
 			});
 		});
-		$('.editClass').click(function() {
+		$('tbody').on('click', '.editClass', function() {
 			let id = $(this).data('id');	
 			let idTeacher = $(this).data('teacher');
 			tdTeacherName = $(this).closest('tr').find('td').eq(3);

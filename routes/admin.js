@@ -3,12 +3,16 @@ const router = express.Router();
 const adminController = require("../app/controllers/adminController");
 const verifyToken = require("../app/middlewares/verifyToken");
 
+const fileUpload = require('../app/middlewares/fileUpload');
+
 router.get('/', adminController.home);
 
+router.get('/attendance', adminController.attendance);
+
 router.get('/login', (req, res) => {
-	if(!req.cookies.jwt)
+	if (!req.cookies.jwt)
 		res.render('login');
-	else 
+	else
 		res.redirect('/admin');
 });
 
@@ -39,13 +43,15 @@ router.get('/classes', adminController.profileClasses);
 
 router.get('/getNoFormTeacher/:id', adminController.getNoFormTeacher);
 
-router.post('/addDataByFile', adminController.addDataByFile);
+router.post('/addDataByFile', fileUpload(), adminController.addDataByFile);
 
 router.get('/getGradeByYear/:year', adminController.getGradeByYear);
 
 router.get('/data', adminController.data);
 
 router.post('/setTeacher', adminController.setTeacher);
+
+router.post('/teacher', adminController.addTeacher);
 
 router.get('/teachers', adminController.teachers);
 
@@ -54,7 +60,32 @@ router.get('/getTeachersByGroup', adminController.getTeachersByGroup);
 router.put('/teacher/:teacherId', adminController.updateTeacher);
 
 router.get('/assignments', adminController.assignments);
+
 router.get('/getAllClass', adminController.getAllClass);
+
+router.get('/getAllClassByYear/:year', adminController.getAllClassByYear);
+
 router.get('/getAllSubject', adminController.getAllSubject);
+
 router.post('/saveAssignments', adminController.saveAssignments);
+
+router.get('/timeTable', adminController.timeTable);
+
+router.get('/getSchedules/:classId', adminController.getScheduleByClass);
+
+router.get('/getAssignments/:classId', adminController.getAssignmentsByClass);
+
+router.get('/student/:mssv', adminController.student);
+
+router.post('/editStudent/:mssv', adminController.editStudent);
+
+router.get('/rank', adminController.rank);
+
+router.get('/getRanking', adminController.getRanking);
+
+router.get('/newYear', adminController.newYearPage);
+
+router.get('/levelUp', adminController.levelUpPage);
+
+router.get('/studyResult', adminController.studyResult);
 module.exports = router;

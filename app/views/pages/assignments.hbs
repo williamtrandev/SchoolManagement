@@ -1,4 +1,4 @@
-<div class="bg-light text-center rounded p-3">
+<div class="bg-light text-center rounded p-3 assignments">
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-8">
@@ -84,7 +84,7 @@
 		let classMap = {};
 		let subjectMap = {};
 		let savedAssign = [];
-		
+		let checkedAssign = [];
 		await fetch(`/admin/getAllClass`)
 		.then(res => res.json())
 		.then(data => {
@@ -97,14 +97,15 @@
 			data.forEach(item => subjectMap[item.name] = item._id)
 		})
 		.catch(err => {console.log(err)});
-
+		
 		$('#tbody-teacher tr').each(function() {
 			const teacherId = $(this).data('id');
 			$(this).find('.subjectOfTeacher.saved').each(function() {
 				const subjectId = subjectMap[$(this).find('.nameSubject').first().text()];
 				$(this).find('.teacherClass').first().text().split(', ').forEach(className => {
 					const classId = classMap[className];
-					savedAssign.push({teacherId, subjectId, classId});
+					savedAssign.push({ teacherId, subjectId, classId });
+					checkedAssign.push({ subjectId, classId });
 				})
 			});
 		});
@@ -176,17 +177,27 @@
 				toastr.error('Vui lòng chọn giáo viên, sau đó chọn môn học rồi chọn lớp');
 			} else {
 				let inputCheck = $($(this).find('input'));
+				const classClickedId = $(this).data('id');
+				//console.log(checkedAssign)
+				
 				if(!inputCheck.attr('checked')) {
+					const findIndex = checkedAssign.findIndex(item => item.subjectId === subjectClicked.data('id') 
+											&& item.classId === classClickedId);
+					if(findIndex !== -1) {
+						toastr.error('Lớp học đã được phân công môn học này rồi');
+						return;
+					}
 					inputCheck.attr('checked', true);
+					checkedAssign.push({ subjectId: subjectClicked.data('id'), classId: classClickedId });
 					const classClick = $($(this).find('td').eq(1)).text();
-					console.log(classClick);
+					//console.log(classClick);
 					const subject = $(subjectClicked.find('td').eq(0)).text();
 					const allSubjectsOfTeacher = teacherClicked.find('.nameSubject');
 					const allSubjectsOfTeacherText = [];
 					allSubjectsOfTeacher.each(function() {
 						allSubjectsOfTeacherText.push($(this).text());
 					});
-					console.log(allSubjectsOfTeacherText);
+					//console.log(allSubjectsOfTeacherText);
 					if(!allSubjectsOfTeacherText.includes(subject)) {
 						const dataInsert = `<p class="mb-0"><span class="subjectOfTeacher" data-subject="${subject}"><span class="nameSubject" style="font-weight: 600">${subject}</span>: <span class="teacherClass" data-name="${subject}">${classClick}</span></span></p>`;
 						$(teacherClicked.find('td').eq(1)).append(dataInsert);
@@ -201,6 +212,9 @@
 				} else {
 					console.log(inputCheck);
 					inputCheck.attr('checked', false);
+					const findIndex = checkedAssign.findIndex(item => item.subjectId === subjectClicked.data('id') 
+											&& item.classId === classClickedId);
+					checkedAssign.splice(findIndex, 1)
 					const subject = $(subjectClicked.find('td').eq(0)).text();
 					const classClick = $($(this).find('td').eq(1)).text();
 					const allClassCheck = $(teacherClicked.find(`[data-name="${subject}"]`).eq(0)).text();
@@ -215,6 +229,7 @@
 					$(teacherClicked.find(`[data-name="${subject}"]`).eq(0)).empty()
 					.text(newArrayClassCheck.join(", "));
 				}
+				console.log(checkedAssign)
 			}
 		});
 		$('.btn-save-assign').click(()=> {

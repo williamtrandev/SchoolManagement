@@ -1,0 +1,103 @@
+<div class="bg-light text-center rounded p-3">
+	<div class="table-responsive">
+		<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap" id="rank-table">
+			<thead>
+				<tr class="text-dark">
+					<th scope="col">Hạng</th>
+					<th scope="col">Lớp</th>
+					<th scope="col">Điểm</th>
+				</tr>
+			</thead>
+			<tbody>
+				
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<script>
+	$(function() {
+		let violationMap = {};
+		fetch(`/admin/getRanking`)
+		.then(res => {
+			if(!res.ok) throw new Error('Lỗi');
+			return res.json();
+		})
+		.then(data => {
+			let htmls = ``;
+			data.forEach(item => {
+				violationMap[item.name] = item.violations;
+				htmls += `<tr>
+					<td>${item.rank}</td>
+					<td>${item.name}</td>
+					<td>${item.point}</td>
+				</tr>`;
+			})
+			$('tbody').append(htmls);
+		})
+		.catch(error => {
+			console.log(error);
+			toastr.error('Lỗi không lấy được thông tin');
+		});
+		$('tbody').on('click', 'tr', function() {
+			const className = $($(this).find('td').eq(1)).text();
+			let textShow = ``;
+			let detail = {};
+			const groupedViolations = violationMap[className].reduce((result, item) => {
+				const parts = item.date.split('-');
+				const date = `${parts[2]}-${parts[1]}-${parts[0]}`;
+				let type = '';
+				if(item.type === 'ABSENT') {
+					type = 'Vắng';
+				} else if(item.type === 'CONDUCT') {
+					type = 'Đạo đức';
+				} else {
+					type = 'Nề nếp';
+				}
+				const key = `${date}: ${type}`;
+				if (!result[key]) {
+					result[key] = [];
+				}
+				result[key].push(item.studentClass.student.name);
+				return result;
+			}, {});
+
+			/*const resultText = Object.keys(groupedViolations).map(key => {
+				const studentNames = groupedViolations[key].join(', ');
+				return `${key}: ${studentNames}`;
+			}).join('\n');*/
+
+			// Tạo bảng bằng chuỗi
+			let tableHTML = '<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap">';
+			tableHTML += '<thead><tr class="text-dark">';
+			tableHTML += '<th scope="col">Ngày vi phạm</th>';
+			tableHTML += '<th scope="col">Loại vi phạm</th>';
+			tableHTML += '<th scope="col">Tên học sinh</th>';
+			tableHTML += '</tr></thead>';
+			tableHTML += '<tbody>';
+
+			$.each(groupedViolations, function(key, value) {
+				const [date, type] = key.split(': ');
+
+				const studentNames = value.join(', ');
+
+				tableHTML += '<tr>';
+				tableHTML += '<td>' + date + '</td>';
+				tableHTML += '<td>' + type + '</td>';
+				tableHTML += '<td>' + studentNames + '</td>';
+				tableHTML += '</tr>';
+			});
+
+			tableHTML += '</tbody>';
+			tableHTML += '</table>';
+			const htmls = violationMap[className].length > 0 ? tableHTML : 'Không có vi phạm';
+			Swal.fire({
+				title: 'Thông tin!',
+				width: 'auto',
+				customClass: 'sweet-width',
+				html: htmls,
+				icon: 'info',
+			})
+		});
+	})
+</script>
