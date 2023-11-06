@@ -1,0 +1,128 @@
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-light rounded p-4">
+        <div class="d-flex">
+            <div style="width: 40%;">
+                <div class="text-dark fs-5 fw-bold mb-2">{{exercise.title}}</div>
+                <div class="text-dark mb-4">Lớp {{assignment.class.name}} - {{assignment.subject.name}}</div>
+            </div>
+            <div style="width: 60%;">
+                <button type="button" class="btn btn-primary" id="gradingComplete">Hoàn thành chấm điểm</button>
+            </div>
+        </div>
+        <div class="d-flex" style="height: 500px;">
+            <div style="width: 40%; height: 100%" class="overflow-auto pe-4">
+                <nav>
+                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                        <button class="nav-link active" id="nav-submitted-tab" data-toggle="tab"
+                            data-target="#nav-submitted" type="button" role="tab"
+                            aria-controls="nav-submitted" aria-selected="false">Đã nộp</button>
+                        <button class="nav-link" id="nav-notsubmitted-tab" data-toggle="tab"
+                            data-target="#nav-notsubmitted" type="button" role="tab"
+                            aria-controls="nav-notsubmitted" aria-selected="false">Chưa nộp</button>
+                    </div>
+                </nav>
+                <div class="tab-content pt-3" id="nav-tabContent">
+                    <div class="tab-pane fade show active" id="nav-submitted" role="tabpanel" aria-labelledby="nav-submitted-tab">
+                        <table id="submittedTable" class="table text-start align-middle table-bordered mb-0 table-hover">
+                            
+                            <tbody>
+                                {{#each submittedStudents}}
+                                <tr class="clickable-row" data-id="{{_id}}" data-name="{{name}}" data-images="{{json submissions.[0].imagePath}}">
+                                    <td>{{name}}</td>
+                                    <td class="scoreField" style="width: 60px;">{{submissions.[0].score}}</td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="nav-notsubmitted" role="tabpanel" aria-labelledby="nav-notsubmitted-tab">
+                        <table class="table text-start align-middle table-bordered mb-0">
+                            
+                            <tbody>
+                                {{#each notsubmittedStudents}}
+                                <tr>
+                                    <td>{{name}}</td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+            </div>
+            <div style="width: 60%; height: 100%;" class="overflow-auto">
+                <div id="currentStudent">Chọn học sinh để chấm điểm</div>
+                <input type="text" id="scoreInput" class="form-control w-25">
+
+                <div class="mt-4"><span class="fs-5">Bài nộp</span> (Chọn hình để phóng to)</div>
+                <div class="image-container row"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var chosenStudent;
+
+    $('.clickable-row').click(function (e) {
+        let name = $(this).data('name');
+        $('#currentStudent').html(`Chấm điểm cho <strong>${name}</strong>`);
+        chosenStudent = $(this);
+        let images = $(this).data('images');
+        $('.image-container').empty();
+        if (images != '') {
+            images.forEach(image => {
+                $('.image-container').append(`
+                    <div class="col-3" onclick="openImage('${image.filename}')" style="cursor: pointer;">
+                        <img src="/upload/${image.filename}" alt="${image.originalname}" class="object-fit-cover w-100" style="aspect-ratio: 1;">
+                    </div>
+                `);
+            });
+        }
+        $('.clickable-row').removeClass('active');
+        $(this).addClass('active');
+    });
+
+    $('#scoreInput').on('input', function () {
+        console.log(chosenStudent);
+        chosenStudent.find('.scoreField').text($(this).val());
+    });
+
+    function openImage(filename) {
+        window.open(`/upload/${filename}`);
+    }
+
+    $('#gradingComplete').click(function () {
+        const table = [];
+        const assignmentId = '{{assignment._id}}';
+        const exerciseId = '{{exercise._id}}';
+        $('#submittedTable tr').each(function() {
+            let studentId = $(this).data('id');
+            let score = parseFloat($(this).find('.scoreField').text());
+            if (isNaN(score)) {
+                toastr.error('Vẫn còn bài nộp chưa được chấm');
+                return;
+            }
+            table.push({ studentId, score });
+        });
+
+        fetch(`/teacher/grading/${exerciseId}`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(table),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                toastr.error(data.error);
+            } else {
+                window.location.href = `/teacher/classroom/${assignmentId}`;
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    });
+</script>

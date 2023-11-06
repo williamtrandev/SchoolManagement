@@ -3,13 +3,16 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var scoreSchema = new Schema({
-	score15Minute: Double,
-	score45Minute: Double,
-	scoreMidTerm: Double,
-	scoreFinalTerm: Double,
+	scoreFrequent: Number,
+	scoreMidTerm: Number,
+	scoreFinalTerm: Number,
 	assignment: {
 		type: Schema.Types.ObjectId,
 		ref: 'Assignment'
+	},
+	student: {
+		type: Schema.Types.ObjectId,
+		ref: 'Student'
 	},
 	termResult: {
 		type: Schema.Types.ObjectId,
