@@ -88,4 +88,6 @@ router.get('/newYear', adminController.newYearPage);
 router.get('/levelUp', adminController.levelUpPage);
 
 router.get('/studyResult', adminController.studyResult);
+
+router.get('/getResult/:classId', adminController.getResult);
 module.exports = router;

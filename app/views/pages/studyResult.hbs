@@ -11,16 +11,6 @@
 		<select class="form-select w-auto" id="classSelect">
 			{{!-- Class thì dùng fetch --}}
 		</select>
-		<label class="ms-4 me-3" for="monthSelect">Chọn đợt điểm:</label>
-		<select class="form-select w-auto" id="monthSelect">
-			<option value="none" disabled selected>Chọn</option>
-			<option value="9+10">Tháng 9+10</option>
-			<option value="11">Tháng 11</option>
-			<option value="12">Tháng 12</option>
-			<option value="1+2">Tháng 1+2</option>
-			<option value="3">Tháng 3</option>
-			<option value="4">Tháng 4</option>
-		</select>
 		
 	</div>
 	<div class="table-responsive d-none">
@@ -70,11 +60,8 @@
 		});
 		$('#classSelect').change(function() {
 			classSelected = $(this).val();
-		});
-		$('#monthSelect').change(function() {
-			let monthSelected = $(this).val();
-			console.log(yearSelected, classSelected, monthSelected);
-			fetch(`/admin/getStudyResult/${yearSelected}/${classSelected}/${monthSelected}`)
+			$('.table-responsive').removeClass('d-none');
+			fetch(`/admin/getResult/${classSelected}`)
 			.then(res => {
 				if(!res.ok) throw new Error('Lỗi');
 				return res.json();
@@ -84,7 +71,9 @@
 			})
 			.catch(err => {
 				console.log(err);
-			});
-		})
+				toastr.error('Lỗi khi lấy dữ liệu');
+			})
+		});
+		
 	})
 </script>

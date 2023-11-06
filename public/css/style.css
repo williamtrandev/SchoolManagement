@@ -389,7 +389,7 @@ tbody tr.active {
 .timetableDiv {
     background: #7cb1f1;
     cursor: pointer;
-    padding: 1rem;
+    padding: 0.5rem;
     font-size: 1.2rem;
     border-radius: 0.5rem;
     color: #F3F6F9;

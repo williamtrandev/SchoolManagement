@@ -1,66 +1,6 @@
 
-<div class="bg-light text-center rounded p-3 container-timetable" style="min-height: 80vh;">
+<div class="bg-light text-center rounded p-3 container-timetable" style="min-height: 80vh; margin-bottom: 100px">
 	
-	{{!-- <table class="table text-center align-middle table-bordered mb-0 mt-3 d-none">
-		<thead>
-			<tr class="text-dark">
-				<th scope="col">Tiết</th>
-				<th scope="col">Thứ hai</th>
-				<th scope="col">Thứ ba</th>
-				<th scope="col">Thứ tư</th>
-				<th scope="col">Thứ năm</th>
-				<th scope="col">Thứ sáu</th>
-				<th scope="col">Thứ bảy</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td>1</td>
-				<td>Chào cờ</td>
-				<td class="select-subject" data-period="1" data-date="3"></td>
-				<td class="select-subject" data-period="1" data-date="4"></td>
-				<td class="select-subject" data-period="1" data-date="5"></td>
-				<td class="select-subject" data-period="1" data-date="6"></td>
-				<td class="select-subject" data-period="1" data-date="7"></td>
-			</tr>
-			<tr>
-				<td>2</td>
-				<td class="select-subject" data-period="2" data-date="2"></td>
-				<td class="select-subject" data-period="2" data-date="3"></td>
-				<td class="select-subject" data-period="2" data-date="4"></td>
-				<td class="select-subject" data-period="2" data-date="5"></td>
-				<td class="select-subject" data-period="2" data-date="6"></td>
-				<td class="select-subject" data-period="2" data-date="7"></td>
-			</tr>
-			<tr>
-				<td>3</td>
-				<td class="select-subject" data-period="3" data-date="2"></td>
-				<td class="select-subject" data-period="3" data-date="3"></td>
-				<td class="select-subject" data-period="3" data-date="4"></td>
-				<td class="select-subject" data-period="3" data-date="5"></td>
-				<td class="select-subject" data-period="3" data-date="6"></td>
-				<td class="select-subject" data-period="3" data-date="7"></td>
-			</tr>
-			<tr>
-				<td>4</td>
-				<td class="select-subject" data-period="4" data-date="2"></td>
-				<td class="select-subject" data-period="4" data-date="3"></td>
-				<td class="select-subject" data-period="4" data-date="4"></td>
-				<td class="select-subject" data-period="4" data-date="5"></td>
-				<td class="select-subject" data-period="4" data-date="6"></td>
-				<td class="select-subject" data-period="4" data-date="7"></td>
-			</tr>
-			<tr>
-				<td>5</td>
-				<td class="select-subject" data-period="5" data-date="2"></td>
-				<td class="select-subject" data-period="5" data-date="3"></td>
-				<td class="select-subject" data-period="5" data-date="4"></td>
-				<td class="select-subject" data-period="5" data-date="5"></td>
-				<td class="select-subject" data-period="5" data-date="6"></td>
-				<td>SHCN</td>
-			</tr>
-		</tbody>
-	</table> --}}
 	{{#ifEquals (lengthArray schedules) 0}}
 	{{!-- 1 --}}
 		<div class="info-notime">
@@ -85,7 +25,7 @@
 		<button class="btn border-0 border-bottom btn-afternoon">Buổi chiều</button>
 	</div>
 	<div class="table-responsive table-morning d-none mon">
-		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
+		<table class="table table-auto text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-morning">
 				<th scope="col" rowspan="6" style="width: 50px">T2</th>
 				<th scope="col">Tiết</th>
@@ -423,12 +363,6 @@
 </div>
 
 
-<div class="navbar fixed-bottom navbar-light bg-light d-flex justify-content-end d-none" style="left: 250px">
-	<div class="container-fluid">
-		<button class="btn btn-primary ms-auto me-3 btn-save-timetable">Lưu</button>
-	</div>
-</div>
-
 
 <div class="modal" id="warning">
 	<div class="modal-dialog">
@@ -482,7 +416,11 @@
 	</div>
 </div>
 
-
+<div class="navbar fixed-bottom navbar-light bg-light d-flex justify-content-end d-none" style="left: 250px; height: 80px">
+	<div class="container-fluid">
+		<button class="btn btn-info text-white my-3 btn-save-schedule ms-auto me-3">Lưu</button>
+	</div>
+</div>
 
 <script>
 	$(async function() {
@@ -491,6 +429,7 @@
 		let grade7 = [];
 		let grade8 = [];
 		let grade9 = [];
+		let nameSchedule = null;
 		await fetch('/admin/getAllClass')
 		.then(res => res.json())
 		.then(data => classes = data)
@@ -530,65 +469,13 @@
 			"Hoạt động trải nghiệm": "HĐTN"
 		}
 		let arrChoose = [];
-		$('#class').change(async function() {
-			$('.fixed-bottom').removeClass('d-none');
-			$('.img-fluid').addClass('d-none');
-			$('.table').removeClass('d-none');
-			const classId = $(this).val();
-			console.log(classId);
-			let options = '';
-			await fetch(`/admin/getAssignments/${classId}`)
-			.then(res => res.json())
-			.then(data => {
-				if(data.length < 13) {
-					Swal.fire({
-						title: 'Cảnh báo!',
-						text: 'Lớp học chưa được phân công hết các môn. Vui lòng quay lại phân công',
-						icon: 'warning',
-						confirmButtonText: 'Xác nhận'
-					}).then((result) => {
-						if (result.isConfirmed) {
-							window.location.href='/admin/assignments';
-						}
-					})
-				}
-				console.log(data);
-				data.forEach(item => {
-					options += `<option value="${item._id}">${item.subject.name}</option>`
-				})
-			})
-			.catch(err => {
-				console.log(err);
-			});
-			$('.select-subject').each(function() {
-				$(this).empty();
-				const fullSelect = `<select class="form-select">
-					<option value="none" >Tiết trống</option>
-					${options}
-				</select>`
-				$(this).append(fullSelect);
-			});
-			fetch(`/admin/getSchedules/${classId}`)
-			.then(res => {
-				if(!res.ok) throw new Error('Lỗi');
-				return res.json();
-			})
-			.then(data => {
-				console.log(data)
-			})
-			.catch(err => {
-				console.log(err);
-				toastr.error("Lỗi hệ thống");
-			});
-		});
-		/*$('.select-subject').click(function() {
-			$(this).find('select').first().removeClass('d-none')
-		})*/
+		
 		$('.select-subject').on('change', '.form-select', function() {
 			$(this).closest('td').data('subject', $(this).val());
 		})
 		$('.btn-save-timetable').click(()=>{
 			const nameTable = $('#nameTimetable').val();
+			nameSchedule = nameTable;
 			$('#addTimetable').modal('hide');
 			$('.info-notime').addClass('d-none');
 			const newTimetable = `<div class="timetableDiv">${nameTable}</div>`;
@@ -616,22 +503,25 @@
 						const subjectName = subjectMap[assign.subject.name];
 						const nameParts = assign.teacher.name.split(" ");
 						const lastnameTeacher = nameParts[nameParts.length - 1];
-						opts += `<option value="${assign._id}">${subjectName}-${lastnameTeacher}</option>`;
+						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
 					});
 					tds += `<td scope="col">
-						<select class="form-select w-auto" data-period="$period" data-class="${item._id}">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
 							${opts}
 						</select>
 					</td>`;
 				});
 				gradeMap[arrChoose[1]].forEach(item => {
 					ths += `<th scope="col">${item.name}</th>`;
-					let opts = ``;
+					let opts = `<option value="none" selected disabled>Chọn</option>`;
 					item.assignments.forEach(assign => {
-						opts += `<option value="${assign._id}">${assign.subject.name}-${assign.teacher.name}</option>`;
+						const subjectName = subjectMap[assign.subject.name];
+						const nameParts = assign.teacher.name.split(" ");
+						const lastnameTeacher = nameParts[nameParts.length - 1];
+						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
 					});
 					tds += `<td scope="col">
-						<select class="form-select w-auto" data-period="$period" data-class="${item._id}">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
 							${opts}
 						</select>
 					</td>`;
@@ -643,33 +533,56 @@
 				let tdsAf = ``;
 				gradeMap[remainingGrade[0]].forEach(item => {
 					thsAf += `<th scope="col">${item.name}</th>`;
-					let opts = ``;
+					let opts = `<option value="none" selected disabled>Chọn</option>`;
 					item.assignments.forEach(assign => {
-						opts += `<option value="${assign._id}">${assign.subject.name}-${assign.teacher.name}</option>`;
+						const subjectName = subjectMap[assign.subject.name];
+						const nameParts = assign.teacher.name.split(" ");
+						const lastnameTeacher = nameParts[nameParts.length - 1];
+						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
 					});
 					tdsAf += `<td scope="col">
-						<select class="form-select w-auto" data-period="$period" data-class="${item._id}">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
 							${opts}
 						</select>
 					</td>`;
 				});
 				gradeMap[remainingGrade[1]].forEach(item => {
 					thsAf += `<th scope="col">${item.name}</th>`;
-					let opts = ``;
+					let opts = `<option value="none" selected disabled>Chọn</option>`;
 					item.assignments.forEach(assign => {
-						opts += `<option value="${assign._id}">${assign.subject.name}-${assign.teacher.name}</option>`;
+						const subjectName = subjectMap[assign.subject.name];
+						const nameParts = assign.teacher.name.split(" ");
+						const lastnameTeacher = nameParts[nameParts.length - 1];
+						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
 					});
 					tdsAf += `<td scope="col">
-						<select class="form-select w-auto" data-period="$period" data-class="${item._id}">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
 							${opts}
 						</select>
 					</td>`;
 				});
 				$('.wrapper-choose').addClass('d-none');
 				$('.table-morning').removeClass('d-none');
-				$('.table-afternoon').removeClass('d-none');
+				$('.fixed-bottom').removeClass('d-none');
+				//$('.table-afternoon').removeClass('d-none');
 				$('.buttons').removeClass('d-none');
 				$('.table-morning tr').not($('.thead-morning')).append(tds);
+				let optionsCC = `<select class="form-select">
+					<option>Chào cờ</option>
+				</select>`;
+				const tdsCC = $($('.table-morning.mon').find('tr').eq(1)).find('td');
+				const firstTd = tdsCC.first();
+				tdsCC.each(function() {
+					$(this).not(firstTd).empty().append(optionsCC);
+				});
+				let optionsSH = `<select class="form-select">
+					<option>Sinh hoạt CN</option>
+				</select>`;
+				const tdsSH = $($('.table-morning.satur').find('tr').eq(5)).find('td');
+				const firstTdSH = tdsSH.first();
+				tdsSH.each(function() {
+					$(this).not(firstTdSH).empty().append(optionsSH);
+				});
 				$('.thead-morning').append(ths);
 				$('.table-afternoon tr').not($('.thead-afternoon')).append(tdsAf);
 				$('.thead-afternoon').append(thsAf);
@@ -682,10 +595,114 @@
 			$('.table-afternoon').addClass('d-none');
 		});
 		$('.btn-afternoon').click(()=> {
+			let optionsCC = `<select class="form-select">
+					<option>Chào cờ</option>
+				</select>`;
+			let optionsSH = `<select class="form-select">
+					<option>Sinh hoạt CN</option>
+				</select>`;
+			const tdsCCAf = $($('.table-afternoon.mon').find('tr').eq(5)).find('td');
+			console.log(tdsCCAf)
+			const firstTdAf = tdsCCAf.first();
+			tdsCCAf.each(function() {
+				$(this).not(firstTdAf).empty().append(optionsCC);
+			});
+			const tdsSHAf = $($('.table-afternoon.satur').find('tr').eq(5)).find('td');
+			const firstTdSHAf = tdsSHAf.first();
+			tdsSHAf.each(function() {
+				$(this).not(firstTdSHAf).empty().append(optionsSH);
+			});
 			$('.btn-afternoon').addClass('border-primary');
 			$('.btn-morning').removeClass('border-primary');
 			$('.table-morning').addClass('d-none');
 			$('.table-afternoon').removeClass('d-none');
 		});
+		$('tr').on('change', '.form-select', function() {
+			let selectsInRow = $(this).closest('tr').find('select');
+			const selectedTeacher = $(this).find('option:selected').data('teacher');
+			const currentItem = $(this);
+			console.log(currentItem);
+			const selectedClass = $(this).data('class');
+			let i = 1;
+			selectsInRow.each(function() {
+				console.log('Td:' + i++);
+				console.log('select:'+$(this).find('option:selected').data('teacher'));
+				console.log(this)
+				console.log('\n========================================\n');
+				if (selectedTeacher === $(this).find('option:selected').data('teacher') && selectedClass !== $(this).data('class')) {
+					toastr.error('Trùng lịch giảng với lớp ' + $(this).data('classname'));
+					currentItem.val('none'); // Xóa giá trị đã chọn
+				}
+			});
+		});
+		function handleGetTable(schedules, trs, dayOfWeek, isAfternoon) {
+			let flag = true;
+			trs.each(function() {
+				let period = parseInt($(this).closest('tr').find('td').first().text());
+				if(isAfternoon) period += 5;
+				//console.log(period);
+				// Lấy từng ô phân công
+				const selectedMon = $(this).find('select');
+				// Duyệt từng hàng ở mỗi thứ
+				selectedMon.each(function() {
+					const assignmentId = $(this).val();
+					if(assignmentId === null) flag = false;
+					schedules.push({
+						assignmentId,
+						dayOfWeek: dayOfWeek,
+						period,
+					});
+				});	
+			});
+			return flag;
+		}
+		$('.btn-save-schedule').click(() => {
+			const schedules = [];
+			let flag = true;
+			$('.table-morning').each(function(index) {
+				let trs = $(this).find('tr');
+				if($(this).hasClass('mon')) {
+					trs = trs.slice(2);
+				} else if($(this).hasClass('satur')) {
+					trs = trs.slice(1, -1);
+				} else {
+					trs = trs.slice(1);
+				}
+				flag = handleGetTable(schedules, trs, index+2, false);
+			});
+			$('.table-afternoon').each(function(index) {
+				let trs = $(this).find('tr');
+				if($(this).hasClass('mon')) {
+					trs = trs.slice(1, -1);
+				} else if($(this).hasClass('satur')) {
+					trs = trs.slice(1, -1);
+				} else {
+					trs = trs.slice(1);
+				}
+				flag = handleGetTable(schedules, trs, index+2, true);
+			});
+			if(!flag) {
+				toastr.error('Chưa phân công đầy đủ các lớp');
+				return;
+			}
+			console.log(schedules);
+			console.log(nameSchedule);
+			fetch(`/admin/addSchedule`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ nameSchedule, assignments: schedules })
+			})
+			.then(res => {
+				if(!res.ok) throw new Error('Lỗi');
+				return res.json();
+			})
+			.then(data => {
+				toastr.success('Thêm thời khóa biểu mới thành công');
+			})
+			.catch(error => {
+				console.log(error);
+				toastr.error('Đã có lỗi xảy ra');
+			});
+		})
 	})
 </script>

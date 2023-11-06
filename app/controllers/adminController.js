@@ -9,6 +9,7 @@ const Subject = require("../models/Subject");
 const Violation = require("../models/Violation");
 const Schedule = require("../models/Schedule");
 const TermResult = require("../models/TermResult");
+const ScoreTable = require("../models/ScoreTable");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Excel = require('exceljs');
@@ -89,10 +90,10 @@ class AdminController {
 
 			const isMatch = await bcrypt.compare(password, teacher.password);
 			if (!isMatch) return res.status(400).json({ msg: "Invalid credentials. " });
-			
+
 			delete teacher.password;
 			const token = jwt.sign({ teacher: teacher }, process.env.JWT_SECRET);
-			
+
 			res.cookie('jwt', token, { maxAge: 60 * 60 * 1000, httpOnly: true });
 			req.session.teacher = teacher;
 			res.status(200).json({ token, teacher });
@@ -634,9 +635,15 @@ class AdminController {
 					const savedMom = await (new Parent({ name: momName, job: momJob, phone: momPhone, email: momEmail, student: student._id })).save();
 					// // insert vào classStudent
 					const savedStudentClass = await (new StudentClass({ student: student._id, class: classId })).save();
+					const newTerm = new TermResult({
+						comment: '', academicPerformance: '', conduct: '',
+						student: student._id, is1stSemester: true, year: yearId
+					});
+					const savedTerm = await newTerm.save();
 					student.parents.push(savedDad._id);
 					student.parents.push(savedMom._id);
 					student.studentClasses.push(savedStudentClass._id);
+					student.termResults.push(savedTerm._id);
 					await student.save();
 				});
 			});
@@ -1086,11 +1093,41 @@ class AdminController {
 	studyResult = async (req, res) => {
 		const subjects = await Subject.find().lean();
 		const years = await Year.find().sort().lean();
-		res.render('studyResult', { 
-			layout: 'manager_layout', title: 'Xem điểm', 
-			years, 
-			subjects, activeHoctap: 'active' 
+		res.render('studyResult', {
+			layout: 'manager_layout', title: 'Xem điểm',
+			years,
+			subjects, activeHoctap: 'active'
 		});
+	}
+	getResult = async (req, res) => {
+		try {
+			const classId = req.params.classId;
+			const students = await Student.find({ currentClass: classId })
+				.populate('scoreTables').lean();
+			console.log(students);
+		} catch (err) {
+			console.log(err);
+			res.status(500).json({ err: err });
+		}
+	}
+	saveSchedule = async (req, res) => {
+		try {
+			const { nameSchedule, assignments } = req.body;
+			const updatedAssignments = [];
+			for (const assignment of assignments) {
+				if (!updatedAssignments.includes(assignment.assignmentId)) {
+					updatedAssignments.push(assignment.assignmentId);
+				}
+				await Assignment.findByIdAndUpdate(assignment.assignmentId, {
+					$push: { teachingTime: { dayOfWeek: assignment.dayOfWeek, period: assignment.period } }
+				});
+			}
+			const newSchedule = new Schedule({ name: nameSchedule, assignments: updatedAssignments });
+			await newSchedule.save();
+			res.status(200).json(newSchedule);
+		} catch (error) {
+			res.status(500).json({ err: error });
+		}
 	}
 }
 
