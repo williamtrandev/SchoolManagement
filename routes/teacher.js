@@ -30,6 +30,8 @@ router.post('/grading/:id', verifyToken, teacherController.completeGrading);
 router.get('/classroom/:id/scores', verifyToken, teacherController.scorePage);
 router.post('/export-to-excel', teacherController.exportToExcel);
 router.post('/classroom/:id/import-score-excel', fileUpload(), teacherController.importExcel);
+router.get('/attendance/', verifyToken, teacherController.attendancePage);
+
 router.post('/updateStudent', teacherController.updateStudent);
 // router.post('/insert-assignment', teacherController.insertAssignment);
 

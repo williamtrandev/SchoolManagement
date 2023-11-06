@@ -1,0 +1,443 @@
+<div class="bg-light text-center rounded p-4" style="min-height: 80vh; margin-bottom: 100px">
+	<div class="group-attendance d-flex align-items-center justify-content-between mb-4">
+		<h5 class="mb-0 attendance-state">Trạng thái: <span id="attendance"></span></h5>
+		<div class="fs-5">
+			{{!-- <label for="grade">Khối</label>
+			<select class="form-select mx-3" id="grade" style="width: auto">
+				<option value="no" selected disabled>Chọn khối</option>
+				<option value="6">6</option>
+				<option value="7">7</option>
+				<option value="8">8</option>
+				<option value="9">9</option>
+			</select>
+			<label for="class">Lớp</label>
+			<select class="form-select mx-3" id="class" style="width: auto">
+			</select> --}}
+			Lớp <strong>{{schoolClass.name}}</strong> - Năm học: {{schoolClass.year.startYear}} - {{schoolClass.year.startYear}}
+		</div>
+		<div class="d-flex justify-content-between align-items-center attendance-info">
+			<div class="p-2 rounded-1 bg-success text-white me-3">Tất cả: <span id="totalStudent"></span></div>
+			<div class="p-2 rounded-1 bg-info text-white me-3">Có mặt: <span id="presentStudent">0</span></div>
+			<div class="p-2 rounded-1 bg-warning text-white me-3">Vắng: <span id="absentStudent">0</span></div>
+		</div>
+	</div>
+	<div class="table-responsive">
+		<table class="table text-center align-middle table-bordered table-hover mb-0" id="attendance-table">
+			<thead>
+				<tr class="text-dark">
+					<th scope="col" class="align-middle" rowspan="2">STT</th>
+					<th scope="col" class="align-middle" rowspan="2">Họ tên</th>
+					<th scope="col" class="align-middle" rowspan="2">Ngày sinh</th>
+					<th scope="col" class="align-middle" rowspan="2">Có mặt</th>
+					<th scope="col" class="align-middle" rowspan="2">Vắng</th>
+					<th scope="col" colspan="2">Vi phạm</th>
+				</tr>
+				<tr class="text-dark">
+					<th scope="col">Đạo đức</th>
+					<th scope="col">Nề nếp</th>
+				</tr>
+			</thead>
+			<tbody>
+				
+			</tbody>
+		</table>
+	</div>
+	<div class="navbar fixed-bottom navbar-light bg-light d-flex justify-content-end" style="left: 250px; height: 80px">
+		<div class="container-fluid">
+			<button class="btn btn-info text-white my-3 btn-save ms-auto me-3">Lưu</button>
+		</div>
+	</div>
+</div>
+
+
+<script>
+	const currentDate = new Date();
+	const day = currentDate.getDate(); // Lấy ngày (1-31)
+	const month = currentDate.getMonth() + 1; // Lấy tháng (0-11) và cộng thêm 1 để đổi về (1-12)
+	const year = currentDate.getFullYear(); 
+	const date = `${year}-${month}-${day}`;
+	let studentClassMap = {};
+	let updateListMap = {};
+	let newListMap = {};
+	let deleteList = [];
+	let savedList = [];
+	let newList = [];
+	let isAttended = false;
+	loadStudents();
+	function handleClickAttendance(e) {
+		let isNew = $(e).closest('tr').hasClass('new');
+		console.log(isNew);
+		// Lấy hàng (row) chứa phần tử đang được click
+		let row = $(e).closest('tr');
+		// Lấy tất cả các checkbox và select box trong hàng
+		$('.present', row).prop('checked', false);
+		$('.absent', row).prop('checked', false);
+		let studentId = $(e).data('student');
+		let classId = $(e).data('class');
+		// Đặt trạng thái của tất cả các phần tử trong hàng bằng với checkbox đang được click
+		
+		$(e).prop('checked', true); 
+		const item = isNew ? newListMap[studentId + "_" + classId] 
+							: updateListMap[studentId + "_" + classId];
+		const indexItem = item.violations.findIndex(vio => {
+			return vio.type === 'ABSENT' && vio.date === date;
+		})
+		if($(e).hasClass('absent')) {
+			row.data('absent', 1);
+			// Trỏ đến obj trong list sẽ được thêm mới
+			if(isNew) {
+				if(indexItem === -1) {
+					const isExisting = item.violations.some(violation => {
+						return violation.type === 'ABSENT' && violation.date === date;
+					});
+					// Nếu trong mảng đã có thì không thêm nữa, xử lý trong TH 
+					// người dùng nhấn vào nhiều lần
+					if(!isExisting) {
+						item.violations.push({
+							type: 'ABSENT',
+							date: date,
+						});
+					}
+				} 
+			} else {
+				// Chưa có vắng thì thêm vào để cập nhật thêm
+				const isExisting = item.violations.some(violation => {
+					return violation.type === 'ABSENT' && violation.date === date;
+				});
+				// Nếu trong mảng đã có thì không thêm nữa, xử lý trong TH 
+				// người dùng nhấn vào nhiều lần
+				if(!isExisting) {
+					item.violations.push({
+						type: 'ABSENT',
+						date: date,
+						action: 'add',
+					});
+				} else {
+					item.violations[indexItem] = {
+						...item.violations[indexItem],
+						action: item.violations[indexItem].action !== 'none' ? 'none' : 'delete',
+					};
+				}
+			}
+		} else {
+			console.log(item.violations[indexItem])
+			item.violations[indexItem] = {
+				...item.violations[indexItem],
+				action: item.violations[indexItem].action !== 'none' ? 'none' : 'delete',
+			};
+		}
+
+		let numPresent = $("input.present:checked").length;
+		let numAbsent1 = $("input.absent:checked").length;
+		$("#presentStudent").text(numPresent);
+		$("#absentStudent").text(numAbsent1);
+		
+	}
+
+	function loadStudents() {
+		savedList = [];
+		newList = [];
+		const id = '{{schoolClass._id}}';
+		console.log(id);
+		fetch(`/admin/class?id=${id}&date=${date}`)
+		.then(res => res.json())
+		.then(data => {
+			console.log(data);
+			console.log(data.isAttended);
+			let stateAtten = data.isAttended ? 'Đã điểm danh' : 'Chưa điểm danh';
+			isAttended = data.isAttended;
+			$("#attendance").text(stateAtten);	
+			$("#totalStudent").text(data.students.length);
+			
+			$("#attendance-table tbody").empty();
+			let i = 1;
+			let newTbody = '';
+			
+			data.students.forEach(item => {
+				const studentId = item.student._id;
+				const classId = item.class._id;
+				
+				let parts = item.student.birthday.substring(0, 10).split("-");
+				let birthday = `${parts[2]}-${parts[1]}-${parts[0]}`;
+				let checkedAbsent = '';
+				let checkedConduct = '';
+				let checkedGroove = '';
+				let checkedPresent = 'checked';
+				let className = '';
+				restore = 1;
+				absent = 1;
+				if(item.violations.length > 0) {
+					console.log('old');
+					className = 'old';
+					const objAdd = {
+						student: item.student._id,
+						class: item.class._id,
+						violations: item.violations.map(vio => {
+							return {
+								_id: vio._id,
+								type: vio.type,
+								date: date,	
+								student: item.student._id,
+								class: item.class._id,
+								action: 'none',
+							}
+							
+						}),
+					}
+					savedList.push(objAdd);
+					updateListMap[studentId + "_" + classId] = objAdd;
+
+					item.violations.forEach(vio => {
+						if(vio.type === 'ABSENT') {
+							checkedAbsent = 'checked';
+							checkedPresent = '';
+						} 
+						if(vio.type === 'CONDUCT') {
+							checkedConduct = 'checked';
+						}
+						if(vio.type === 'GROOVE') {
+							checkedGroove = 'checked';
+						}
+					});
+				} else {
+					className = 'new';
+					const newObjAdd = {
+						student: item.student._id,
+						class: item.class._id,
+						violations: [],
+					};
+					newList.push(newObjAdd);
+					newListMap[studentId + "_" + classId] = newObjAdd;
+				}
+				newTbody += 
+				`<tr class="${className}" data-id=${item.student._id} data-class=${id} data-absent=${absent} data-restore=${restore}>
+					<td>${i++}</td>
+					<td>${item.student.name}</td>
+					<td>${birthday}</td>
+					<td><input type="checkbox" class="form-check-input present" ${checkedPresent} 
+						onclick='handleClickAttendance(this)'
+						data-student="${item.student._id}" data-class="${item.class._id}"></td>
+					<td><input type="checkbox" class="form-check-input absent" ${checkedAbsent} 
+						onclick='handleClickAttendance(this)'
+						data-student="${item.student._id}" data-class="${item.class._id}"></td>
+					<td>
+						<input type="checkbox" class="form-check-input conduct" ${checkedConduct}
+							data-student="${item.student._id}" data-class="${item.class._id}">
+					</td>
+					<td>
+						<input type="checkbox" class="form-check-input groove" ${checkedGroove}
+							data-student="${item.student._id}" data-class="${item.class._id}">
+					</td>
+				</tr>`;
+			});
+			$("#attendance-table tbody").append(newTbody);
+			let numAbsent = $("input.absent:checked").length;
+			$("#absentStudent").text(numAbsent);
+			console.log(savedList);
+		})
+		.catch(err => {
+			console.log(err);
+		});
+	}
+
+	$(function() {
+		/*$("#grade").change(function() {
+			$('.attendance-wait').addClass('d-none');
+			$('.attendance-info').removeClass('d-none');
+			$('.attendance-state').removeClass('d-none');
+			$('.group-attendance').removeClass('justify-content-center')
+			.addClass('justify-content-between');
+			$('.table-responsive').removeClass('d-none');
+			$('.navbar').removeClass('d-none');
+			let grade = $(this).val();
+			fetch(`/admin/classes/${grade}`)
+			.then(res => res.json())
+			.then(data => {
+				$("#class").empty();
+				data.classes.forEach(item => {
+					$("#class").append(`<option value=${item._id}>${item.name}</option>`);
+				});
+				
+				$("#class").change();
+
+			})
+			.catch(err => { console.log(err) });
+		});*/
+		
+		/*function loadStudents() {
+			savedList = [];
+			newList = [];
+			const id = '{{schoolClass._id}}';
+			
+			fetch(`/admin/class?id=${id}&date=${date}`)
+			.then(res => res.json())
+			.then(data => {
+				console.log(data);
+				console.log(data.isAttended);
+				let stateAtten = data.isAttended ? 'Đã điểm danh' : 'Chưa điểm danh';
+				isAttended = data.isAttended;
+				$("#attendance").text(stateAtten);	
+				$("#totalStudent").text(data.students.length);
+				
+				$("#attendance-table tbody").empty();
+				let i = 1;
+				let newTbody = '';
+				
+				data.students.forEach(item => {
+					const studentId = item.student._id;
+					const classId = item.class._id;
+					
+					let parts = item.student.birthday.substring(0, 10).split("-");
+					let birthday = `${parts[2]}-${parts[1]}-${parts[0]}`;
+					let checkedAbsent = '';
+					let checkedConduct = '';
+					let checkedGroove = '';
+					let checkedPresent = 'checked';
+					let className = '';
+					restore = 1;
+					absent = 1;
+					if(item.violations.length > 0) {
+						console.log('old');
+						className = 'old';
+						const objAdd = {
+							student: item.student._id,
+							class: item.class._id,
+							violations: item.violations.map(vio => {
+								return {
+									_id: vio._id,
+									type: vio.type,
+									date: date,	
+									student: item.student._id,
+									class: item.class._id,
+									action: 'none',
+								}
+								
+							}),
+						}
+						savedList.push(objAdd);
+						updateListMap[studentId + "_" + classId] = objAdd;
+
+						item.violations.forEach(vio => {
+							if(vio.type === 'ABSENT') {
+								checkedAbsent = 'checked';
+								checkedPresent = '';
+							} 
+							if(vio.type === 'CONDUCT') {
+								checkedConduct = 'checked';
+							}
+							if(vio.type === 'GROOVE') {
+								checkedGroove = 'checked';
+							}
+						});
+					} else {
+						className = 'new';
+						const newObjAdd = {
+							student: item.student._id,
+							class: item.class._id,
+							violations: [],
+						};
+						newList.push(newObjAdd);
+						newListMap[studentId + "_" + classId] = newObjAdd;
+					}
+					newTbody += 
+					`<tr class="${className}" data-id=${item.student._id} data-class=${id} data-absent=${absent} data-restore=${restore}>
+						<td>${i++}</td>
+						<td>${item.student.name}</td>
+						<td>${birthday}</td>
+						<td><input type="checkbox" class="form-check-input present" ${checkedPresent} 
+							onclick='handleClickAttendance(this)'
+							data-student="${item.student._id}" data-class="${item.class._id}"></td>
+						<td><input type="checkbox" class="form-check-input absent" ${checkedAbsent} 
+							onclick='handleClickAttendance(this)'
+							data-student="${item.student._id}" data-class="${item.class._id}"></td>
+						<td>
+							<input type="checkbox" class="form-check-input conduct" ${checkedConduct}
+								data-student="${item.student._id}" data-class="${item.class._id}">
+						</td>
+						<td>
+							<input type="checkbox" class="form-check-input groove" ${checkedGroove}
+								data-student="${item.student._id}" data-class="${item.class._id}">
+						</td>
+					</tr>`;
+				});
+				$("#attendance-table tbody").append(newTbody);
+				let numAbsent = $("input.absent:checked").length;
+				$("#absentStudent").text(numAbsent);
+				console.log(savedList);
+			})
+			.catch(err => {
+				console.log(err);
+			});
+		})*/
+
+		
+
+		function handleViolationClick(e, type) {
+			const $element = $(e);
+			const isCheck = $element.is(':checked');
+			console.log(isCheck);
+			const studentId = $element.data('student');
+			const classId = $element.data('class');
+			const isNew = $element.closest('tr').hasClass('new');
+			const item = isNew ? newListMap[`${studentId}_${classId}`] : updateListMap[`${studentId}_${classId}`];
+			const currentDate = new Date();
+			const day = currentDate.getDate();
+			const month = currentDate.getMonth() + 1;
+			const year = currentDate.getFullYear();
+			const date = `${year}-${month}-${day}`;
+			console.log(item.violations);
+			const indexItem = item.violations.findIndex(vio => vio.type === type && vio.date === date);
+			console.log(indexItem);
+			if (isNew) {
+				if (indexItem === -1) {
+					item.violations.push({ type, date });
+				} else {
+					item.violations.splice(indexItem, 1);
+				}
+			} else {
+				if (indexItem === -1) {
+					return;
+				}
+				item.violations[indexItem] = {
+					...item.violations[indexItem],
+					action: isCheck ? 'none' : 'delete',
+				};
+			}
+
+			console.log(item);
+		}
+
+		$('tbody').on('click', '.conduct', function () {
+			handleViolationClick(this, 'CONDUCT');
+		});
+
+		$('tbody').on('click', '.groove', function () {
+			handleViolationClick(this, 'GROOVE');
+		});
+
+		$(".btn-save").click(function() {
+			let idClass = '{{schoolClass._id}}';
+			
+			const objVals = Object.values(newListMap);
+			const data = objVals.filter(item => item.violations.length > 0);
+			const updateList = Object.values(updateListMap);
+			console.log(data);
+			console.log(updateList);
+			fetch(`/admin/checkAttendance`, {
+				method: 'POST',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({ data, idClass, updateList, isAttended }),
+			})
+			.then(res => res.json())
+			.then(data => {
+				console.log("Success");
+				toastr.success("Đã lưu dữ liệu điểm danh");
+				$("#attendance").text("Đã điểm danh");
+			})
+			.catch(err => {
+				console.log(err);
+				toastr.error("Đã có lỗi xảy ra");
+			})
+		})
+	})
+</script>

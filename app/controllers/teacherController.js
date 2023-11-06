@@ -430,6 +430,33 @@ class TeacherController {
 		
 	}
 
+	async attendancePage(req, res) {
+		try {
+			const teacher = req.session.teacher;
+			const schoolClass = await Class.findById(teacher.class)
+				.populate('year')
+				.lean();
+			
+			const studentClass = await StudentClass.find({ class: schoolClass._id })
+				.populate('student')
+				.lean();
+			console.log(studentClass);
+			const students = studentClass.map(sc => sc.student);
+
+			res.render('teacherAttendance', {
+				layout: 'teacher_layout', 
+				activeAttendance: 'active', 
+				title: 'Điểm danh',
+				displayBackToTop: 'd-none',
+				teacher, 
+				schoolClass,
+				students,
+			});
+		} catch (err) {
+			res.status(500).json({ error: err.message });
+		}
+	}
+
 	async updateStudent(req, res) {
 		await Student.updateMany({ scoreTables: [], termResults: [] });
 		res.json('success');
