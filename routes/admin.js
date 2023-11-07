@@ -89,5 +89,6 @@ router.get('/levelUp', adminController.levelUpPage);
 
 router.get('/studyResult', adminController.studyResult);
 
-router.get('/getResult/:classId', adminController.getResult);
+router.get('/getResult/:classId/:term', adminController.getResult);
+router.get('/printResult', adminController.printResult);
 module.exports = router;

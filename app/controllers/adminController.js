@@ -15,6 +15,7 @@ const jwt = require("jsonwebtoken");
 const Excel = require('exceljs');
 const { ROLES, TYPE_VIOLATION, POINT_VIOLATION } = require('../constants');
 const { sendMailToUser } = require('../utils/mail');
+const TimeTable = require("../models/TimeTable");
 
 const workbook = new Excel.Workbook();
 
@@ -1101,10 +1102,22 @@ class AdminController {
 	}
 	getResult = async (req, res) => {
 		try {
-			const classId = req.params.classId;
+			const { classId, term } = req.params;
+			console.log(term);
 			const students = await Student.find({ currentClass: classId })
-				.populate('scoreTables').lean();
+				.populate('currentClass')
+				.populate({
+					path: 'scoreTables',
+					populate: {
+						path: 'assignment',
+						populate: {
+							path: 'subject'
+						}
+					}
+				})
+				.lean();
 			console.log(students);
+			res.status(200).json(students);
 		} catch (err) {
 			console.log(err);
 			res.status(500).json({ err: err });
@@ -1112,20 +1125,29 @@ class AdminController {
 	}
 	saveSchedule = async (req, res) => {
 		try {
-			const { nameSchedule, assignments } = req.body;
-			const updatedAssignments = [];
-			for (const assignment of assignments) {
-				if (!updatedAssignments.includes(assignment.assignmentId)) {
-					updatedAssignments.push(assignment.assignmentId);
-				}
-				await Assignment.findByIdAndUpdate(assignment.assignmentId, {
-					$push: { teachingTime: { dayOfWeek: assignment.dayOfWeek, period: assignment.period } }
-				});
+			const { nameTimeTable, schedules } = req.body;
+			let newTimeTable = await new TimeTable({ name: nameTimeTable, schedules: [] }).save();
+			const scheduleIds = [];
+			for (const schedule of schedules) {
+				const newSchedule = await new Schedule({
+					dayOfWeek: schedule.dayOfWeek,
+					period: schedule.period,
+					timeTable: newTimeTable._id
+				}).save();
+				scheduleIds.push(newSchedule._id);
 			}
-			const newSchedule = new Schedule({ name: nameSchedule, assignments: updatedAssignments });
-			await newSchedule.save();
-			res.status(200).json(newSchedule);
+			newTimeTable.schedules = scheduleIds;
+			await newTimeTable.save();
+			res.status(200).json(newTimeTable);
 		} catch (error) {
+			res.status(500).json({ err: error });
+		}
+	}
+	printResult = async (req, res) => {
+		try {
+			const subjects = await Subject.find().lean();
+		} catch(error) {
+			console.log(error);
 			res.status(500).json({ err: error });
 		}
 	}

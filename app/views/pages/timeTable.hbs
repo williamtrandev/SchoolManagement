@@ -429,7 +429,7 @@
 		let grade7 = [];
 		let grade8 = [];
 		let grade9 = [];
-		let nameSchedule = null;
+		let nameTimeTable = null;
 		await fetch('/admin/getAllClass')
 		.then(res => res.json())
 		.then(data => classes = data)
@@ -475,7 +475,7 @@
 		})
 		$('.btn-save-timetable').click(()=>{
 			const nameTable = $('#nameTimetable').val();
-			nameSchedule = nameTable;
+			nameTimeTable = nameTable;
 			$('#addTimetable').modal('hide');
 			$('.info-notime').addClass('d-none');
 			const newTimetable = `<div class="timetableDiv">${nameTable}</div>`;
@@ -686,11 +686,11 @@
 				return;
 			}
 			console.log(schedules);
-			console.log(nameSchedule);
+			console.log(nameTimeTable);
 			fetch(`/admin/addSchedule`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ nameSchedule, assignments: schedules })
+				body: JSON.stringify({ nameTimeTable, schedules })
 			})
 			.then(res => {
 				if(!res.ok) throw new Error('Lỗi');
