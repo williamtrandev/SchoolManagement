@@ -18,7 +18,6 @@ var assignmentSchema = new Schema({
 		type: Schema.Types.ObjectId,
 		ref: 'Year'
 	},
-	teachingTime: [Object],
 	announcements: [{ type: Schema.Types.ObjectId, ref: 'Announcement' }],
 	exercises: [{ type: Schema.Types.ObjectId, ref: 'Exercise' }],
 	schedules: [{ type: Schema.Types.ObjectId, ref: 'Schedule' }],
