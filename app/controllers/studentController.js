@@ -8,6 +8,7 @@ const Announcement = require("../models/Announcement");
 const Exercise = require("../models/Exercise");
 const Submission = require("../models/Submission");
 const Year = require("../models/Year");
+const Schedule = require('../models/Schedule');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const fs = require('fs');
@@ -32,16 +33,30 @@ class StudentController {
 				{ period: 3, subject: [] },
 				{ period: 4, subject: [] },
 				{ period: 5, subject: [] },
+				{ period: 6, subject: [] },
+				{ period: 7, subject: [] },
+				{ period: 8, subject: [] },
+				{ period: 9, subject: [] },
+				{ period: 10, subject: [] },
 			];
 
-			assignments.forEach(assignment => {
-				assignment.schedules.forEach(schedule => {
-					const period = schedule.period;
-					const date = schedule.date;
-					timeTable[period - 1].subject[date - 2] = assignment.subject.name;
-				});
-			});
-			console.log(timeTable);
+			for (let i = 0; i < assignments.length; i++) {
+				const schedules = await Schedule.find({ assignment: assignments[i]._id });
+				for (let j = 0; j < schedules.length; j++) {
+					console.log(schedules[j]);
+					const period = schedules[j].period;
+					const date = schedules[j].dayOfWeek;
+					timeTable[period - 1].subject[date - 2] = assignments[i].subject.name;
+				}
+			}
+			
+			if (timeTable[5].subject.length == 0) {
+				timeTable[0].subject[0] = 'Chào cờ';
+				timeTable[4].subject[5] = 'Sinh hoạt lớp';
+			} else {
+				timeTable[5].subject[0] = 'Chào cờ';
+				timeTable[9].subject[5] = 'Sinh hoạt lớp';
+			}
 
 			res.render('studentHome', { 
 				layout: 'student_layout', 
