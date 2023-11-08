@@ -71,6 +71,10 @@ router.post('/saveAssignments', adminController.saveAssignments);
 
 router.get('/timeTable', adminController.timeTable);
 
+router.post('/addSchedule', adminController.saveSchedule);
+
+router.get('/getTimeTable/:id', adminController.getTimeTable);
+
 router.get('/getSchedules/:classId', adminController.getScheduleByClass);
 
 router.get('/getAssignments/:classId', adminController.getAssignmentsByClass);
@@ -86,6 +90,8 @@ router.get('/getRanking', adminController.getRanking);
 router.get('/newYear', adminController.newYearPage);
 
 router.get('/levelUp', adminController.levelUpPage);
+
+router.get('/getLevelUp', adminController.levelUp);
 
 router.get('/studyResult', adminController.studyResult);
 

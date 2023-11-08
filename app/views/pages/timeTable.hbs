@@ -1,7 +1,7 @@
 
 <div class="bg-light text-center rounded p-3 container-timetable" style="min-height: 80vh; margin-bottom: 100px">
 	
-	{{#ifEquals (lengthArray schedules) 0}}
+	{{#ifEquals (lengthArray timeTables) 0}}
 	{{!-- 1 --}}
 		<div class="info-notime">
 			<img src="/imgs/background_timetable.png" alt="" class="img-fluid">
@@ -9,9 +9,13 @@
 			<button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
 		</div>
 	{{else}} 
-		
+		<div class="wrapper-tableItem">
+			{{#each timeTables}}
+				<div class="timetableOld btn btn-success w-100" data-id="{{_id}}">{{name}}</div>
+			{{/each}}
+			<button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
+		</div>
 	{{/ifEquals}}
-	<div class="wrapper-tableItem d-none"></div>
 	<div class="wrapper-choose d-none">
 		<h5>Chọn 2 khối học buổi sáng, 2 khối còn lại sẽ học buổi chiều</h5>
 		<button class="btn btn-primary">Khối 6</button>
@@ -479,8 +483,9 @@
 			$('#addTimetable').modal('hide');
 			$('.info-notime').addClass('d-none');
 			const newTimetable = `<div class="timetableDiv">${nameTable}</div>`;
-			$('.wrapper-tableItem').removeClass('d-none').append(newTimetable);
-			
+			//$('.wrapper-tableItem').removeClass('d-none').append(newTimetable);
+			$('.wrapper-tableItem').addClass('d-none');
+			$('.wrapper-choose').removeClass('d-none');
 		});
 		$('.wrapper-tableItem').on('click', '.timetableDiv', function() {
 			$('.wrapper-tableItem').addClass('d-none');
@@ -702,6 +707,114 @@
 			.catch(error => {
 				console.log(error);
 				toastr.error('Đã có lỗi xảy ra');
+			});
+		})
+		$('.timetableOld').click(function() {
+			$('.wrapper-tableItem').addClass('d-none');
+			$('.table-morning').removeClass('d-none');
+			const idTimeTable = $(this).data('id');
+			fetch(`/admin/getTimeTable/${idTimeTable}`)
+			.then(res => {
+				if(!res.ok) throw new Error('Lỗi');
+				return res.json();
+			})
+			.then(data => {
+				let ths = ``;
+				let tds = ``;
+				data.morningClassNames.forEach(item => {
+					ths += `<th scope="col">${item.name}</th>`;
+					let opts = `<option value="none" selected disabled>Chọn</option>`;
+					item.assignments.forEach(assign => {
+						const subjectName = subjectMap[assign.subject.name];
+						const nameParts = assign.teacher.name.split(" ");
+						const lastnameTeacher = nameParts[nameParts.length - 1];
+						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
+					});
+					tds += `<td scope="col">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
+							${opts}
+						</select>
+					</td>`;
+				});
+				gradeMap[arrChoose[1]].forEach(item => {
+					ths += `<th scope="col">${item.name}</th>`;
+					let opts = `<option value="none" selected disabled>Chọn</option>`;
+					item.assignments.forEach(assign => {
+						const subjectName = subjectMap[assign.subject.name];
+						const nameParts = assign.teacher.name.split(" ");
+						const lastnameTeacher = nameParts[nameParts.length - 1];
+						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
+					});
+					tds += `<td scope="col">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
+							${opts}
+						</select>
+					</td>`;
+				});
+
+				const remainingGrade = Object.keys(gradeMap).filter(key => !arrChoose.includes(key));
+				remainingGrade.sort();
+				let thsAf = ``;
+				let tdsAf = ``;
+				gradeMap[remainingGrade[0]].forEach(item => {
+					thsAf += `<th scope="col">${item.name}</th>`;
+					let opts = `<option value="none" selected disabled>Chọn</option>`;
+					item.assignments.forEach(assign => {
+						const subjectName = subjectMap[assign.subject.name];
+						const nameParts = assign.teacher.name.split(" ");
+						const lastnameTeacher = nameParts[nameParts.length - 1];
+						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
+					});
+					tdsAf += `<td scope="col">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
+							${opts}
+						</select>
+					</td>`;
+				});
+				gradeMap[remainingGrade[1]].forEach(item => {
+					thsAf += `<th scope="col">${item.name}</th>`;
+					let opts = `<option value="none" selected disabled>Chọn</option>`;
+					item.assignments.forEach(assign => {
+						const subjectName = subjectMap[assign.subject.name];
+						const nameParts = assign.teacher.name.split(" ");
+						const lastnameTeacher = nameParts[nameParts.length - 1];
+						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
+					});
+					tdsAf += `<td scope="col">
+						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
+							${opts}
+						</select>
+					</td>`;
+				});
+				$('.wrapper-choose').addClass('d-none');
+				$('.table-morning').removeClass('d-none');
+				$('.fixed-bottom').removeClass('d-none');
+				//$('.table-afternoon').removeClass('d-none');
+				$('.buttons').removeClass('d-none');
+				$('.table-morning tr').not($('.thead-morning')).append(tds);
+				let optionsCC = `<select class="form-select">
+					<option>Chào cờ</option>
+				</select>`;
+				const tdsCC = $($('.table-morning.mon').find('tr').eq(1)).find('td');
+				const firstTd = tdsCC.first();
+				tdsCC.each(function() {
+					$(this).not(firstTd).empty().append(optionsCC);
+				});
+				let optionsSH = `<select class="form-select">
+					<option>Sinh hoạt CN</option>
+				</select>`;
+				const tdsSH = $($('.table-morning.satur').find('tr').eq(5)).find('td');
+				const firstTdSH = tdsSH.first();
+				tdsSH.each(function() {
+					$(this).not(firstTdSH).empty().append(optionsSH);
+				});
+				$('.thead-morning').append(ths);
+				$('.table-afternoon tr').not($('.thead-afternoon')).append(tdsAf);
+				$('.thead-afternoon').append(thsAf);
+			})
+			.catch(error => {
+				console.log(error);
+				toastr.error('Lỗi');
 			});
 		})
 	})

@@ -707,7 +707,7 @@ class AdminController {
 		}
 	}
 	data = (req, res) => {
-		res.render('data', { layout: 'manager_layout' });
+		res.render('data', { layout: 'manager_layout', title: 'Thêm dữ liệu', activeHoso: 'active' });
 	}
 	setTeacher = async (req, res) => {
 		try {
@@ -797,6 +797,13 @@ class AdminController {
 				populate: ['class', 'subject']
 			})
 			.lean();
+		teachers.sort((teacherA, teacherB) => {
+			const subjectNameA = teacherA.group; // Assuming each teacher has at least one assignment
+			const subjectNameB = teacherB.group;
+
+			// Use localeCompare to compare subject names
+			return subjectNameA.localeCompare(subjectNameB);
+		});
 		console.log(teachers[0]);
 		let assignments = {};
 		teachers.forEach(teacher => {
@@ -919,16 +926,19 @@ class AdminController {
 	timeTable = async (req, res) => {
 		const year = await Year.findOne().sort({ _id: -1 });
 		const classes = await Class.find({ year: year._id }).lean();
-		const schedules = await Schedule.find()
+		const timeTables = await TimeTable.find()
 			.populate({
-				path: 'assignments',
-				match: { year: year._id }, // Sử dụng match để tìm theo year của assignment
+				path: 'schedules',
+				populate: {
+					path: 'assignment',
+					match: { year: year._id }, // Sử dụng match để tìm theo year của assignment
+				}
 			})
 			.lean();
-		console.log(schedules);
+		console.log(timeTables);
 		res.render('timeTable', {
 			layout: 'manager_layout', title: 'Thời khóa biểu',
-			classes, schedules, activePhancong: 'active'
+			classes, timeTables, activePhancong: 'active'
 		});
 	}
 	getScheduleByClass = async (req, res) => {
@@ -1082,12 +1092,180 @@ class AdminController {
 		try {
 			const year = await Year.findOne().sort({ _id: -1 });
 			const students = await Student.find()
+				.populate('currentClass')
 				.populate({
 					path: 'termResults',
-					match: { year: year._id }
+					match: { year: year._id },
+					populate: {
+						path: 'scoreTables'
+					}
 				}).lean();
-			console.log(students);
+			// const absentMap = {};
+			// for(const student of students) {
+			// 	const studentClass = await StudentClass.findOne({ 
+			// 		student: student._id, class: student.currentClass._id 
+			// 	}).lean();
+			// 	const numAbsent = await Violation.countDocuments({
+			// 		type: TYPE_VIOLATION.Absent, studentClass: studentClass._id
+			// 	});
+			// 	absentMap[student._id] = numAbsent;
+			// }
+			// console.log(absentMap);
+			// Lấy danh sách studentClass của tất cả học sinh
+			const studentIds = students.map(student => student._id);
+			const studentClasses = await StudentClass.find({
+				student: { $in: studentIds },
+				class: { $in: students.map(student => student.currentClass._id) }
+			}).lean();
+
+			// Tạo một đối tượng map để lưu trữ số ngày nghỉ của từng học sinh
+			const absentMap = {};
+
+			// Tạo một truy vấn để lấy tất cả số ngày nghỉ của các học sinh trong danh sách studentClasses
+			const numAbsentList = await Violation.aggregate([
+				{
+					$match: {
+						type: TYPE_VIOLATION.Absent,
+						studentClass: { $in: studentClasses.map(studentClass => studentClass._id) }
+					}
+				},
+				{
+					$group: {
+						_id: "$studentClass",
+						numAbsent: { $sum: 1 }
+					}
+				}
+			]);
+
+			// Lưu trữ kết quả vào absentMap, mặc định là 0 cho tất cả học sinh
+			students.forEach(student => {
+				absentMap[student._id] = 0;
+			});
+			numAbsentList.forEach(item => {
+				const studentClass = studentClasses.find(studentClass => studentClass._id.equals(item._id));
+				if (studentClass) {
+					const studentId = studentClass.student._id;
+					absentMap[studentId] = item.numAbsent;
+				}
+			});
+
+			console.log(absentMap);
+			const studentsMap = {};
+			students.forEach(student => {
+				if (!studentsMap[student.currentClass.name]) {
+					studentsMap[student.currentClass.name] = [];
+				}
+				let pointAvg = 0;
+				let conduct1;
+				let conduct2;
+				let academicPerformance1;
+				let academicPerformance2;
+				let count65 = 0;
+				let count8 = 0;
+				let count5 = 0;
+				let count35 = 0;
+				let countL35 = 0;
+				let countCD = 0;
+				let numSubjectWithPoint;
+				student.termResults.forEach(term => {
+					numSubjectWithPoint = 0
+					let sumPoint = 0;
+					let pointWithChar;
+					let pointWithChar1;
+					let pointWithChar2;
+					term.scoreTables.forEach(scoreTable => {
+						if (scoreTable.scoreFrequent !== 'Đ' && scoreTable.scoreFrequent !== 'CĐ'
+							&& scoreTable.scoreMidTerm !== 'Đ' && scoreTable.scoreMidTerm !== 'CĐ'
+							&& scoreTable.scoreFinalTerm !== 'Đ' && scoreTable.scoreFinalTerm !== 'CĐ') {
+							numSubjectWithPoint++;
+							const avgSubject = (parseFloat(scoreTable.scoreFrequent) + 2 * parseFloat(scoreTable.scoreMidTerm) + 3 * parseFloat(scoreTable.scoreFinalTerm)) / 6;
+							if (avgSubject >= 8) {
+								count8++;
+							} else if (avgSubject >= 6.5) {
+								count65++;
+							} else if (avgSubject >= 5) {
+								count5++;
+							} else if (avgSubject >= 3.5) {
+								count35++;
+							} else {
+								countL35++;
+							}
+							sumPoint += avgSubject;
+							// Nếu là điểm chữ
+						} else {
+							if (scoreTable.scoreFrequent !== 'Đ'
+								&& scoreTable.scoreMidTerm !== 'Đ'
+								&& scoreTable.scoreFinalTerm !== 'Đ') {
+								pointWithChar = 'Đ';
+							} else {
+								pointWithChar = 'CĐ';
+							}
+						}
+					})
+					// Nếu là học kì 2 thì * 2 
+					if (!term.is1stSemester) {
+						sumPoint *= 2;
+						conduct2 = term.conduct;
+						academicPerformance2 = term.academicPerformance;
+						pointWithChar2 = pointWithChar;
+						if (pointWithChar2 === 'CĐ') {
+							countCD++;
+						}
+					} else {
+						conduct1 = term.conduct;
+						academicPerformance1 = term.academicPerformance;
+						pointWithChar1 = pointWithChar;
+					}
+					pointAvg += sumPoint;
+				})
+				// Điểm sau khi tính trung bình
+				pointAvg /= 3;
+				let conduct;
+				let academicPerformance;
+				const acaMap = {
+					'Tốt': 1,
+					'Khá': 2,
+					'Đạt': 3,
+					'Chưa đạt': 4
+				}
+				// HK2 tốt, HK1 khá trở lên 
+				if (acaMap[academicPerformance2] === 1 && acaMap[academicPerformance1] <= 2) {
+					conduct = 'Tốt';
+					// HK2 Khá, HK1 Đạt trở lên; HK2 Đạt, HK1 Tốt; HK2 Tốt, HK1 Đạt hoặc Chưa đạt.
+				} else if (acaMap[academicPerformance2] === 2 && acaMap[academicPerformance1] <= 3 ||
+					acaMap[academicPerformance2] === 3 && acaMap[academicPerformance1] === 1 ||
+					acaMap[academicPerformance2] === 1 && acaMap[academicPerformance1] >= 3) {
+					conduct = 'Khá';
+					// HK2 Đạt, HK1 Khá, Đạt hoặc Chưa đạt; HK2 Khá, HK1 Chưa đạt.
+				} else if (acaMap[academicPerformance2] === 3 && acaMap[academicPerformance1] >= 2 ||
+					acaMap[academicPerformance2] === 2 && acaMap[academicPerformance1] === 4) {
+					conduct = 'Đạt';
+				} else {
+					conduct = 'Chưa đạt';
+				}
+
+				// Kq học tập
+				if (countCD === 0 && count5 === 0 && count35 === 0 && count8 >= 6) {
+					academicPerformance = 'Tốt';
+				} else if (countCD === 0 && count35 === 0 && count65 >= 6) {
+					academicPerformance = 'Khá';
+				} else if (countCD === 1 && count5 >= 6 && countL35 === 0) {
+					academicPerformance = 'Đạt';
+				} else {
+					academicPerformance = 'Chưa đạt';
+				}
+				const returnStudent = {
+					...student,
+					pointAvg: pointAvg.toFixed(2),
+					conduct: conduct,
+					numAbsent: absentMap[student._id],
+					academicPerformance: academicPerformance
+				}
+				studentsMap[student.currentClass.name].push(returnStudent);
+			})
+			res.status(200).json(studentsMap);
 		} catch (err) {
+			console.log(err);
 			res.status(500).json({ err: err });
 		}
 	}
@@ -1127,15 +1305,26 @@ class AdminController {
 		try {
 			const { nameTimeTable, schedules } = req.body;
 			let newTimeTable = await new TimeTable({ name: nameTimeTable, schedules: [] }).save();
-			const scheduleIds = [];
-			for (const schedule of schedules) {
-				const newSchedule = await new Schedule({
+			//const scheduleIds = [];
+			const scheduleDocs = schedules.map(schedule => {
+				return new Schedule({
 					dayOfWeek: schedule.dayOfWeek,
 					period: schedule.period,
+					assignment: schedule.assignmentId,
 					timeTable: newTimeTable._id
-				}).save();
-				scheduleIds.push(newSchedule._id);
-			}
+				});
+			});
+			const schedulesInserted = await Schedule.insertMany(scheduleDocs);
+			const scheduleIds = schedulesInserted.map(schedule => schedule._id);
+			// for (const schedule of schedules) {
+			// 	const newSchedule = await new Schedule({
+			// 		dayOfWeek: schedule.dayOfWeek,
+			// 		period: schedule.period,
+			// 		assignment: schedule.assignment,
+			// 		timeTable: newTimeTable._id
+			// 	}).save();
+			// 	scheduleIds.push(newSchedule._id);
+			// }
 			newTimeTable.schedules = scheduleIds;
 			await newTimeTable.save();
 			res.status(200).json(newTimeTable);
@@ -1143,10 +1332,50 @@ class AdminController {
 			res.status(500).json({ err: error });
 		}
 	}
+	getTimeTable = async (req, res) => {
+		try {
+			const id = req.params.id;
+			// Lấy các schedules sáng (period <= 5) và lấy thông tin về lớp và assignment
+			const morningSchedules = await Schedule.find({
+				timeTable: id,
+				period: { $lte: 5 }
+			}).populate({
+				path: 'assignment',
+				populate: {
+					path: 'class',
+				},
+			}).lean();
+
+			// Lấy các schedules chiều (period > 5) và lấy thông tin về lớp và assignment
+			const afternoonSchedules = await Schedule.find({
+				timeTable: id,
+				period: { $gt: 5 }
+			}).populate({
+				path: 'assignment',
+				populate: {
+					path: 'class',
+				},
+			}).lean();
+
+			// Sử dụng Set để loại bỏ lớp trùng lặp cho buổi sáng
+			const morningClassNamesSet = new Set(morningSchedules.map(schedule => schedule.assignment.class.name));
+
+			// Sử dụng Set để loại bỏ lớp trùng lặp cho buổi chiều
+			const afternoonClassNamesSet = new Set(afternoonSchedules.map(schedule => schedule.assignment.class.name));
+
+			// Chuyển Set thành mảng
+			const morningClassNames = [...morningClassNamesSet];
+			const afternoonClassNames = [...afternoonClassNamesSet];
+			res.status(200).json({ morningClassNames, afternoonClassNames, morningSchedules, afternoonSchedules });
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ err: error });
+		}
+	}
 	printResult = async (req, res) => {
 		try {
 			const subjects = await Subject.find().lean();
-		} catch(error) {
+		} catch (error) {
 			console.log(error);
 			res.status(500).json({ err: error });
 		}

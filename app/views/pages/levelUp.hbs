@@ -3,15 +3,32 @@
 	<p><button class="btn btn-primary start-levelUp">Bắt đầu xét lên lớp</button></p>
 </div>
 <div class="bg-light text-center rounded p-4 d-none wrapper-levelUp">
+	<div class="d-flex justify-content-between mb-4">
+		<div class="d-flex align-items-center">
+			<label class="me-3" for="gradeSelect">Chọn khối:</label>
+			<select class="form-select w-auto" id="gradeSelect">
+				<option value="none" disabled selected>Chọn khối</option>
+				<option value="6">Khối 6</option>
+				<option value="7">Khối 7</option>
+				<option value="8">Khối 8</option>
+				<option value="9">Khối 9</option>
+			</select>
+			<label class="ms-4 me-3" for="classSelect">Chọn lớp:</label>
+			<select class="form-select w-auto" id="classSelect">
+				{{!-- Class thì dùng fetch --}}
+				<option value="none" disabled selected>Chọn lớp</option>
+			</select>
+		</div>
+	</div>
 	<div class="table-responsive">
 		<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap" id="levelUp-table">
 			<thead>
 				<tr class="text-dark">
 					<th scope="col">Mã học sinh</th>
 					<th scope="col">Tên học sinh</th>
-					<th scope="col">Điểm trung bình cả năm</th>
-					<th scope="col">Học lực</th>
-					<th scope="col">Hạnh kiểm</th>
+					<th scope="col">ĐTB cả năm</th>
+					<th scope="col">Kết quả học tập</th>
+					<th scope="col">Kết quả rèn luyện</th>
 					<th scope="col">Số ngày nghỉ</th>
 					<th scope="col">Xét lên lớp, lưu ban</th>
 				</tr>
@@ -39,5 +56,51 @@
 	$('.start-levelUp').click(() => {
 		$('.wrapper-start').addClass('d-none');
 		$('.wrapper-levelUp').removeClass('d-none');
+	})
+	let studentsMap = {};
+	let allClass = [];
+	$(function() {
+		fetch(`/admin/getLevelUp`)
+		.then(res => res.json())
+		.then(data => studentsMap = data)
+		.catch(err => console.log(err))
+
+		fetch(`/admin/getAllClass`)
+		.then(res => res.json())
+		.then(data => {
+			allClass = data;
+			let options = `<option value="none">Chọn</option>`;
+			data.forEach(item => {
+				options += `<option value="${item.name}">${item.name}</option>`;
+			})
+			$('#classSelect').empty().append(options);
+		})	
+		.catch(err => console.log(err))
+
+		$('#gradeSelect').change(function() {
+			let grade = $(this).val();
+			let filterClass = allClass.filter(item => item.name.charAt(0) === grade);
+			let options = `<option value="none">Chọn</option>`;
+			filterClass.forEach(item => {
+				options += `<option value="${item.name}">${item.name}</option>`;
+			})
+			$('#classSelect').empty().append(options);
+		})
+		$('#classSelect').change(function() {
+			let choose = $(this).val();
+			let trs = ``;
+			studentsMap[choose].forEach(student => {
+				trs += `<tr>
+					<td>${student.studentId}</td>
+					<td>${student.name}</td>
+					<td>${student.pointAvg}</td>
+					<td>${student.academicPerformance}</td>
+					<td>${student.conduct}</td>
+					<td>${student.numAbsent}</td>
+					<td>${student.resultLevelUp}</td>
+				</tr>`
+			})
+			$('#levelUp-table tbody').empty().append(trs);
+		})
 	})
 </script>
