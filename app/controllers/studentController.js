@@ -40,7 +40,10 @@ class StudentController {
 	async login(req, res) {
 		try {
 			const { studentId, password } = req.body;
-			const student = await Student.findOne({ studentId: studentId }).populate('currentClass').lean();
+			const student = await Student.findOne({ studentId: studentId })
+				.populate('currentClass')
+				.populate('parents')
+				.lean();
 			if (!student) {
 				return res.status(404).json({ error: 'Mã học sinh không tồn tại' });
 			}
@@ -242,6 +245,23 @@ class StudentController {
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
+		}
+	}
+
+	async informationPage(req, res) {
+		try {
+			const student = req.session.student;
+			const subjects = await Subject.find().lean();
+			
+			res.render('studentInformation', {
+				layout: 'student_layout', 
+				title: 'Thông tin',
+				student,
+				subjects,
+				displayBackToTop: 'd-none',
+			});
+		} catch (err) {
+			res.status(500).json({ error: 'Server error' });
 		}
 	}
 }

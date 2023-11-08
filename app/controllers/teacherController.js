@@ -400,7 +400,7 @@ class TeacherController {
 				if (rowNumber != 1) {
 					const studentId = row.getCell(1).value;
 					const student = await Student.findOne({ studentId: studentId });
-					const termResult = await TermResult.findOne({ student: student._id, year: newestYear })
+					const termResult = await TermResult.findOne({ student: student._id, year: newestYear }).sort({ _id: -1 });
 					const scoreTable = await ScoreTable.findOneAndUpdate(
 						{ assignment: assignmentId, student: student._id },
 						{ 
@@ -433,6 +433,12 @@ class TeacherController {
 	async attendancePage(req, res) {
 		try {
 			const teacher = req.session.teacher;
+			const currentYear = await Year.findOne({}).sort({ _id: -1 });
+			const assignments = await Assignment.find({ teacher: teacher._id, year: currentYear })
+				.populate('subject')
+				.populate('class')
+				.lean();
+
 			const schoolClass = await Class.findById(teacher.class)
 				.populate('year')
 				.lean();
@@ -448,7 +454,8 @@ class TeacherController {
 				activeAttendance: 'active', 
 				title: 'Điểm danh',
 				displayBackToTop: 'd-none',
-				teacher, 
+				teacher,
+				assignments, 
 				schoolClass,
 				students,
 			});
@@ -457,33 +464,26 @@ class TeacherController {
 		}
 	}
 
-	async updateStudent(req, res) {
-		await Student.updateMany({ scoreTables: [], termResults: [] });
-		res.json('success');
+	async informationPage(req, res) {
+		try {
+			const teacher = req.session.teacher;
+			const currentYear = await Year.findOne({}).sort({ _id: -1 });
+			const assignments = await Assignment.find({ teacher: teacher._id, year: currentYear })
+				.populate('subject')
+				.populate('class')
+				.lean();
+
+			res.render('teacherInformation', {
+				layout: 'teacher_layout', 
+				title: 'Thông tin',
+				teacher,
+				assignments,
+				displayBackToTop: 'd-none',
+			});
+		} catch (err) {
+			res.status(500).json({ error: 'Server error' });
+		}
 	}
-
-	// async insertAssignment(req, res) {
-	// 	const {
-	// 		subjectName,
-	// 		className,
-	// 	} = req.body;
-	// 	const subject = await Subject.findOne({name: subjectName});
-	// 	const schoolClass = await Class.findOne({name: className});
-	// 	const currentYear = await Year.findOne({}).sort({ _id: -1 });
-
-	// 	const newAssignment = new Assignment({
-	// 		teacher: '653bc90e0f1874418cb11993', 
-	// 		subject, 
-	// 		class: schoolClass, 
-	// 		year: currentYear, 
-	// 		announcements: [],
-	// 		exercises: [],
-	// 		schedules: [],
-	// 		scoreTables: [],
-	// 	});
-	// 	const savedAssignment = await newAssignment.save();
-	// 	res.json(savedAssignment);
-	// }
 
 }
 

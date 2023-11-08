@@ -41,15 +41,12 @@
     <div class="row g-4">
         {{#each assignments}}
         <div class="col-sm-12 col-md-6 col-xl-4">
-            <div class="h-100 bg-light rounded p-4">
-                <div class="mb-4">
-                    <a href="subject.html" class="mb-0 fs-5 fw-bold dark-link">{{subject.name}}</a>
-                    <div class="mb-0">{{teacher.name}}</div>
+            <a href="/student/learning/{{{subject.slug}}}" class="h-100 bg-light rounded p-4 card text-dark">
+                <div>
+                    <div class="mb-0 fs-5 fw-bold dark-link">{{subject.name}}</div>
+                    <div>{{teacher.name}}</div>
                 </div>
-                <!-- Thêm content vào đây -->
-                <div class="d-flex mb-2">Bài tập mới</div>
-                <div class="d-flex mb-2">Bài tập mới</div>
-            </div>
+            </a>
         </div>
         {{/each}}
 
