@@ -78,14 +78,17 @@
             tableData.push(rowData);
         });
 
-        console.log(tableData);
+        const body = {
+            subject: '{{assignment.subject.slug}}',
+            tableData,
+        }
 
         const response = await fetch('/teacher/export-to-excel', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ tableData }),
+            body: JSON.stringify(body),
         });
 
         if (response.ok) {
@@ -93,7 +96,7 @@
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'score_{{assignment.class.name}}_{{assignment.year.startYear}}{{assignment.year.endYear}}.xlsx';
+            a.download = 'score_{{assignment.class.name}}_{{assignment.subject.slug}}_{{assignment.year.startYear}}{{assignment.year.endYear}}.xlsx';
             a.click();
             window.URL.revokeObjectURL(url);
         } else {

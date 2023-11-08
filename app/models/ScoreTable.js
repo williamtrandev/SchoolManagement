@@ -3,9 +3,9 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var scoreSchema = new Schema({
-	scoreFrequent: Number,
-	scoreMidTerm: Number,
-	scoreFinalTerm: Number,
+	scoreFrequent: String,
+	scoreMidTerm: String,
+	scoreFinalTerm: String,
 	assignment: {
 		type: Schema.Types.ObjectId,
 		ref: 'Assignment'

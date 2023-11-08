@@ -64,6 +64,16 @@ module.exports = {
 		return '';
 	},
 	avgScore: function (scoreTable) {
-		return ((scoreTable.scoreFrequent + 2 * scoreTable.scoreMidTerm + 3 * scoreTable.scoreFinalTerm)/6).toFixed(1);
+		if (scoreTable) {
+			const avg = ((parseFloat(scoreTable.scoreFrequent) + 2 * parseFloat(scoreTable.scoreMidTerm) + 3 * parseFloat(scoreTable.scoreFinalTerm))/6).toFixed(1)
+			if (isNaN(avg)) {
+				return scoreTable.scoreFinalTerm;
+			} else {
+				return avg;
+			}
+		} else {
+			return '';
+		}
+		
 	},
 }

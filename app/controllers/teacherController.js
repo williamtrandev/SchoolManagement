@@ -346,8 +346,9 @@ class TeacherController {
 
 	exportToExcel(req, res) {
 		// Nhận dữ liệu bảng từ yêu cầu POST
+		const subjectSlug = req.body.subject;
 		const tableData = req.body.tableData;
-
+		const notNumberSubject = ['giao-duc-the-chat', 'am-nhac', 'my-thuat', 'hoat-dong-trai-nghiem'];
 		// Sử dụng exceljs để tạo một workbook và worksheet
 		const workbook = new exceljs.Workbook();
 		const worksheet = workbook.addWorksheet('Sheet 1');
@@ -357,12 +358,21 @@ class TeacherController {
 			worksheet.addRow(row);
 		}
 
-		// Tạo công thức Excel trong cột cuối cùng
-		for (let row = 2; row <= tableData.length; row++) {
-			worksheet.getCell(`F${row}`).value = {
-				formula: `ROUND((C${row} + D${row}*2 + E${row}*3)/6, 1)`,
-				result: ((parseFloat(tableData[row - 1][2]) + parseFloat(tableData[row - 1][3])*2 + parseFloat(tableData[row - 1][4])*3)/6).toFixed(1),
-			};
+		if (notNumberSubject.includes(subjectSlug)) {
+			for (let row = 2; row <= tableData.length; row++) {
+				worksheet.getCell(`F${row}`).value = {
+					formula: `E${row}`,
+					result: tableData[row - 1][4],
+				};
+			}
+		} else {
+			// Tạo công thức Excel trong cột cuối cùng
+			for (let row = 2; row <= tableData.length; row++) {
+				worksheet.getCell(`F${row}`).value = {
+					formula: `ROUND((C${row} + D${row}*2 + E${row}*3)/6, 1)`,
+					result: ((parseFloat(tableData[row - 1][2]) + parseFloat(tableData[row - 1][3])*2 + parseFloat(tableData[row - 1][4])*3)/6).toFixed(1),
+				};
+			}
 		}
 	
 		// Tạo một tệp Excel tạm thời
