@@ -1316,15 +1316,8 @@ class AdminController {
 			});
 			const schedulesInserted = await Schedule.insertMany(scheduleDocs);
 			const scheduleIds = schedulesInserted.map(schedule => schedule._id);
-			// for (const schedule of schedules) {
-			// 	const newSchedule = await new Schedule({
-			// 		dayOfWeek: schedule.dayOfWeek,
-			// 		period: schedule.period,
-			// 		assignment: schedule.assignment,
-			// 		timeTable: newTimeTable._id
-			// 	}).save();
-			// 	scheduleIds.push(newSchedule._id);
-			// }
+			
+			
 			newTimeTable.schedules = scheduleIds;
 			await newTimeTable.save();
 			res.status(200).json(newTimeTable);
@@ -1341,9 +1334,7 @@ class AdminController {
 				period: { $lte: 5 }
 			}).populate({
 				path: 'assignment',
-				populate: {
-					path: 'class',
-				},
+				populate: [{ path: 'class' }, { path: 'subject' }, { path: 'teacher' }],
 			}).lean();
 
 			// Lấy các schedules chiều (period > 5) và lấy thông tin về lớp và assignment
@@ -1352,9 +1343,7 @@ class AdminController {
 				period: { $gt: 5 }
 			}).populate({
 				path: 'assignment',
-				populate: {
-					path: 'class',
-				},
+				populate: [{ path: 'class' }, { path: 'subject' }, { path: 'teacher' }],
 			}).lean();
 
 			// Sử dụng Set để loại bỏ lớp trùng lặp cho buổi sáng
