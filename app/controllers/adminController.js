@@ -1149,7 +1149,7 @@ class AdminController {
 				}
 			});
 
-			console.log(absentMap);
+			//console.log(absentMap);
 			const studentsMap = {};
 			students.forEach(student => {
 				if (!studentsMap[student.currentClass.name]) {
@@ -1174,6 +1174,7 @@ class AdminController {
 					let pointWithChar1;
 					let pointWithChar2;
 					term.scoreTables.forEach(scoreTable => {
+						console.log(scoreTable);
 						if (scoreTable.scoreFrequent !== 'Đ' && scoreTable.scoreFrequent !== 'CĐ'
 							&& scoreTable.scoreMidTerm !== 'Đ' && scoreTable.scoreMidTerm !== 'CĐ'
 							&& scoreTable.scoreFinalTerm !== 'Đ' && scoreTable.scoreFinalTerm !== 'CĐ') {
@@ -1365,6 +1366,41 @@ class AdminController {
 		try {
 			const subjects = await Subject.find().lean();
 		} catch (error) {
+			console.log(error);
+			res.status(500).json({ err: error });
+		}
+	}
+	newSemester = async (req, res) => {
+		try {
+			const students = await Student.find().populate('currentClass');
+			const newTermResults = students.map(student => {
+				return new TermResult({
+					comment: '',
+					academicPerformance: '',
+					conduct: '',
+					is1stSemester: false,
+					scoreTables: [],
+					year: student.currentClass.year,
+					student: student._id
+				})
+			})
+			const savedTerm = await TermResult.insertMany(newTermResults);
+			const savedMap = {};
+			savedTerm.forEach(item => {
+				savedMap[item.student] = item._id;
+			});
+			// Tạo một danh sách cập nhật sử dụng updateMany
+			const bulkUpdateOperations = students.map(student => ({
+				updateOne: {
+					filter: { _id: student._id },
+					update: { $push: { termResults: savedMap[student._id] } },
+				},
+			}));
+
+			// Sử dụng updateMany để cập nhật nhiều học sinh cùng một lúc
+			await Student.bulkWrite(bulkUpdateOperations);
+			res.status(200).json(savedTerm);
+		} catch(error) {
 			console.log(error);
 			res.status(500).json({ err: error });
 		}
