@@ -360,8 +360,8 @@ class TeacherController {
 		// Tạo công thức Excel trong cột cuối cùng
 		for (let row = 2; row <= tableData.length; row++) {
 			worksheet.getCell(`F${row}`).value = {
-				formula: `(C${row}*1 + D${row}*2 + E${row}*3)/5`,
-				result: (tableData[row - 1][2] + tableData[row - 1][3]*2 + tableData[row - 1][4]*3)/5,
+				formula: `ROUND((C${row} + D${row}*2 + E${row}*3)/6, 1)`,
+				result: ((parseFloat(tableData[row - 1][2]) + parseFloat(tableData[row - 1][3])*2 + parseFloat(tableData[row - 1][4])*3)/6).toFixed(1),
 			};
 		}
 	

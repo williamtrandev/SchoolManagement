@@ -64,6 +64,6 @@ module.exports = {
 		return '';
 	},
 	avgScore: function (scoreTable) {
-		return (scoreTable.scoreFrequent + 2 * scoreTable.scoreMidTerm + 3 * scoreTable.scoreFinalTerm)/5
+		return ((scoreTable.scoreFrequent + 2 * scoreTable.scoreMidTerm + 3 * scoreTable.scoreFinalTerm)/6).toFixed(1);
 	},
 }
