@@ -32,5 +32,6 @@ router.post('/export-to-excel', teacherController.exportToExcel);
 router.post('/classroom/:id/import-score-excel', fileUpload(), teacherController.importExcel);
 router.get('/attendance/', verifyToken, teacherController.attendancePage);
 router.get('/information', verifyToken, teacherController.informationPage);
+router.post('/change-password', verifyToken, teacherController.changePassword);
 
 module.exports = router;

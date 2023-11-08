@@ -485,6 +485,28 @@ class TeacherController {
 		}
 	}
 
+	async changePassword(req, res) {
+		try {
+			const teacher = req.session.teacher;
+			const oldPassword = req.body.oldPassword;
+			const newPassword = req.body.newPassword;
+
+			const teacherInfo = await Teacher.findById(teacher._id);
+
+			const isMatch = await bcrypt.compare(oldPassword, teacherInfo.password);
+			if (!isMatch) {
+				return res.status(401).json({ error: 'Mật khẩu cũ không chính xác' });
+			}
+
+			const hashedPassword = await bcrypt.hash(newPassword, 10);
+			
+			await Teacher.updateOne({ _id: teacher._id }, { password: hashedPassword });
+			return res.json({ success: 'Thay đổi mật khẩu thành công' })
+
+		} catch (err) {
+			res.status(500).json({ error: 'Server error' });
+		}
+	}
 }
 
 module.exports = new TeacherController;

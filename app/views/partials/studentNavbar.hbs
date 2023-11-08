@@ -23,12 +23,40 @@
                 </div>
             </div>
             <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                <a href="/student/information" class="dropdown-item">Thông tin</a>
-                <a href="#" class="dropdown-item">Đổi mật khẩu</a>
+                <a href="/student/information" class="dropdown-item"><i class="fa-solid fa-user me-2"></i>Thông tin</a>
+                <a class="dropdown-item" style="cursor: pointer;"
+                    data-toggle="modal" data-target="#changePasswordModal"
+                ><i class="fa-solid fa-key me-2"></i>Đổi mật khẩu</a>
                 <div class="dropdown-divider"></div>
-                <a href="/student/logout" class="dropdown-item">Đăng xuất</a>
+                <a href="/student/logout" class="dropdown-item"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Đăng xuất</a>
             </div>
         </div>
     </div>
 </nav>
 <!-- Navbar End -->
+
+<!-- Change password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">Đổi mật khẩu</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="oldPassword" class="form-label">Mật khẩu cũ</label>
+                    <input type="password" class="form-control" id="oldPassword" placeholder="Nhập mật khẩu cũ">
+                </div>
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                    <input type="password" class="form-control" id="newPassword" placeholder="Nhập mật khẩu mới">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="changeStudentPasswordBtn">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>

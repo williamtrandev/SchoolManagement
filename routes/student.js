@@ -24,5 +24,6 @@ router.post('/submission/:id', upload.array('files', 10), studentController.exer
 router.delete('/submission/:id', studentController.exerciseUnsubmit);
 router.get('/learning-result', verifyToken, studentController.learningResultPage);
 router.get('/information', verifyToken, studentController.informationPage);
+router.post('/change-password', verifyToken, studentController.changePassword);
 
 module.exports = router;
