@@ -97,4 +97,5 @@ router.get('/studyResult', adminController.studyResult);
 
 router.get('/getResult/:classId/:term', adminController.getResult);
 router.get('/printResult', adminController.printResult);
+router.get('/startNewSemester', adminController.newSemester);
 module.exports = router;

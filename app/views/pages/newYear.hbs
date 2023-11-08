@@ -10,10 +10,51 @@
 <script>
 	$(function() {
 		$('.btn-semester').click(() => {
-			
+			Swal.fire({
+				title: 'Xác nhận bắt đầu học kì mới',
+				text: 'Có chắc chắn?',
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonText: 'Đồng ý',
+				cancelButtonText: 'Hủy'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					fetch(`/admin/startNewSemester`)
+					.then(response => response.json())
+					.then(data => {
+						Swal.fire('Thành công', 'Đã thêm học kì mới!', 'success');
+					})
+					.catch(error => {
+						Swal.fire('Lỗi', 'Thêm không thành công!', 'error');
+					});
+				} else if (result.isDismiss === Swal.DismissReason.cancel) {
+					Swal.fire('Hủy', 'Bạn đã hủy việc thêm!', 'error');
+				}
+			});
+
 		})
 		$('.btn-year').click(() => {
-			
+			Swal.fire({
+				title: 'Xác nhận bắt đầu năm học mới',
+				text: 'Có chắc chắn?',
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonText: 'Đồng ý',
+				cancelButtonText: 'Hủy'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					fetch()
+					.then(response => response.json())
+					.then(data => {
+						Swal.fire('Thành công', 'Đã thêm năm học mới!', 'success');
+					})
+					.catch(error => {
+						Swal.fire('Lỗi', 'Thêm không thành công!', 'error');
+					});
+				} else if (result.isDismiss === Swal.DismissReason.cancel) {
+					Swal.fire('Hủy', 'Bạn đã hủy việc thêm!', 'error');
+				}
+			});
 		});
 	})
 </script>
