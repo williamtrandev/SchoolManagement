@@ -25,14 +25,32 @@ class TeacherController {
 			const assignments = await Assignment.find({ teacher: teacher._id, year: currentYear })
 				.populate('subject')
 				.populate('class')
+				.populate('schedules')
 				.lean();
-			
+			console.log(assignments);
+			const timeTable = [
+				{ period: 1, class: [] },
+				{ period: 2, class: [] },
+				{ period: 3, class: [] },
+				{ period: 4, class: [] },
+				{ period: 5, class: [] },
+			];
+
+			assignments.forEach(assignment => {
+				assignment.schedules.forEach(schedule => {
+					const period = schedule.period;
+					const date = schedule.date;
+					timeTable[period - 1].class[date - 2] = assignment.class.name;
+				});
+			});
+			console.log(timeTable);
 			res.render('teacherHome', { 
 				layout: 'teacher_layout', 
 				title: "Trang chủ", 
 				activeHome: "active",
 				teacher, 
 				assignments,
+				timeTable,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });

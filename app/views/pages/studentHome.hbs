@@ -19,16 +19,14 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {{#each timeTable}}
                     <tr>
-                        <td>1</td>
-                        <td>Toán</td>
-                        <td>Lý</td>
-                        <td>Hóa</td>
-                        <td>Sinh</td>
-                        <td>Sử</td>
-                        <td>Địa</td>
+                        <td>{{period}}</td>
+                        {{#each subject}}
+                        <td>{{.}}</td>
+                        {{/each}}
                     </tr>
-                    
+                    {{/each}}
                 </tbody>
             </table>
         </div>

@@ -21,8 +21,28 @@ class StudentController {
 			const subjects = await Subject.find().lean();
 			
 			const assignments = await Assignment.find({class: student.currentClass})
-				.populate('teacher').populate('subject').lean();
-			
+				.populate('teacher')
+				.populate('subject')
+				.populate('schedules')
+				.lean();
+
+			const timeTable = [
+				{ period: 1, subject: [] },
+				{ period: 2, subject: [] },
+				{ period: 3, subject: [] },
+				{ period: 4, subject: [] },
+				{ period: 5, subject: [] },
+			];
+
+			assignments.forEach(assignment => {
+				assignment.schedules.forEach(schedule => {
+					const period = schedule.period;
+					const date = schedule.date;
+					timeTable[period - 1].subject[date - 2] = assignment.subject.name;
+				});
+			});
+			console.log(timeTable);
+
 			res.render('studentHome', { 
 				layout: 'student_layout', 
 				title: "Trang chủ", 
@@ -30,6 +50,7 @@ class StudentController {
 				student, 
 				subjects,
 				assignments,
+				timeTable,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
