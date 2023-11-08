@@ -19,16 +19,14 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {{#each timeTable}}
                     <tr>
-                        <td>1</td>
-                        <td>6A1</td>
-                        <td>6A1</td>
-                        <td>6A1</td>
-                        <td>6A1</td>
-                        <td>6A1</td>
-                        <td>6A1</td>
+                        <td>{{period}}</td>
+                        {{#each class}}
+                        <td>{{.}}</td>
+                        {{/each}}
                     </tr>
-                    
+                    {{/each}}
                 </tbody>
             </table>
         </div>

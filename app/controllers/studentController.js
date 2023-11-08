@@ -21,8 +21,28 @@ class StudentController {
 			const subjects = await Subject.find().lean();
 			
 			const assignments = await Assignment.find({class: student.currentClass})
-				.populate('teacher').populate('subject').lean();
-			
+				.populate('teacher')
+				.populate('subject')
+				.populate('schedules')
+				.lean();
+
+			const timeTable = [
+				{ period: 1, subject: [] },
+				{ period: 2, subject: [] },
+				{ period: 3, subject: [] },
+				{ period: 4, subject: [] },
+				{ period: 5, subject: [] },
+			];
+
+			assignments.forEach(assignment => {
+				assignment.schedules.forEach(schedule => {
+					const period = schedule.period;
+					const date = schedule.date;
+					timeTable[period - 1].subject[date - 2] = assignment.subject.name;
+				});
+			});
+			console.log(timeTable);
+
 			res.render('studentHome', { 
 				layout: 'student_layout', 
 				title: "Trang chủ", 
@@ -30,6 +50,7 @@ class StudentController {
 				student, 
 				subjects,
 				assignments,
+				timeTable,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
@@ -40,12 +61,15 @@ class StudentController {
 	async login(req, res) {
 		try {
 			const { studentId, password } = req.body;
-			const student = await Student.findOne({ studentId: studentId }).populate('currentClass').lean();
+			const student = await Student.findOne({ studentId: studentId })
+				.populate('currentClass')
+				.populate('parents')
+				.lean();
 			if (!student) {
 				return res.status(404).json({ error: 'Mã học sinh không tồn tại' });
 			}
 
-			const isMatch = bcrypt.compare(password, student.password);
+			const isMatch = await bcrypt.compare(password, student.password);
 			if (!isMatch) {
 				return res.status(401).json({ error: 'Mật khẩu không chính xác' });
 			}
@@ -242,6 +266,46 @@ class StudentController {
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
+		}
+	}
+
+	async informationPage(req, res) {
+		try {
+			const student = req.session.student;
+			const subjects = await Subject.find().lean();
+			
+			res.render('studentInformation', {
+				layout: 'student_layout', 
+				title: 'Thông tin',
+				student,
+				subjects,
+				displayBackToTop: 'd-none',
+			});
+		} catch (err) {
+			res.status(500).json({ error: 'Server error' });
+		}
+	}
+
+	async changePassword(req, res) {
+		try {
+			const student = req.session.student;
+			const oldPassword = req.body.oldPassword;
+			const newPassword = req.body.newPassword;
+
+			const studentInfo = await Student.findById(student._id);
+
+			const isMatch = await bcrypt.compare(oldPassword, studentInfo.password);
+			if (!isMatch) {
+				return res.status(401).json({ error: 'Mật khẩu cũ không chính xác' });
+			}
+
+			const hashedPassword = await bcrypt.hash(newPassword, 10);
+			
+			await Student.updateOne({ _id: student._id }, { password: hashedPassword });
+			return res.json({ success: 'Thay đổi mật khẩu thành công' })
+
+		} catch (err) {
+			res.status(500).json({ error: 'Server error' });
 		}
 	}
 }

@@ -14,6 +14,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const exceljs = require('exceljs');
 const fs = require('fs');
+const TermResult = require('../models/TermResult');
 
 class TeacherController {
     async home(req, res) {
@@ -24,14 +25,32 @@ class TeacherController {
 			const assignments = await Assignment.find({ teacher: teacher._id, year: currentYear })
 				.populate('subject')
 				.populate('class')
+				.populate('schedules')
 				.lean();
-			
+			console.log(assignments);
+			const timeTable = [
+				{ period: 1, class: [] },
+				{ period: 2, class: [] },
+				{ period: 3, class: [] },
+				{ period: 4, class: [] },
+				{ period: 5, class: [] },
+			];
+
+			assignments.forEach(assignment => {
+				assignment.schedules.forEach(schedule => {
+					const period = schedule.period;
+					const date = schedule.date;
+					timeTable[period - 1].class[date - 2] = assignment.class.name;
+				});
+			});
+			console.log(timeTable);
 			res.render('teacherHome', { 
 				layout: 'teacher_layout', 
 				title: "Trang chủ", 
 				activeHome: "active",
 				teacher, 
 				assignments,
+				timeTable,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
@@ -345,8 +364,9 @@ class TeacherController {
 
 	exportToExcel(req, res) {
 		// Nhận dữ liệu bảng từ yêu cầu POST
+		const subjectSlug = req.body.subject;
 		const tableData = req.body.tableData;
-
+		const notNumberSubject = ['giao-duc-the-chat', 'am-nhac', 'my-thuat', 'hoat-dong-trai-nghiem'];
 		// Sử dụng exceljs để tạo một workbook và worksheet
 		const workbook = new exceljs.Workbook();
 		const worksheet = workbook.addWorksheet('Sheet 1');
@@ -356,12 +376,21 @@ class TeacherController {
 			worksheet.addRow(row);
 		}
 
-		// Tạo công thức Excel trong cột cuối cùng
-		for (let row = 2; row <= tableData.length; row++) {
-			worksheet.getCell(`F${row}`).value = {
-				formula: `(C${row}*1 + D${row}*2 + E${row}*3)/5`,
-				result: (tableData[row - 1][2] + tableData[row - 1][3]*2 + tableData[row - 1][4]*3)/5,
-			};
+		if (notNumberSubject.includes(subjectSlug)) {
+			for (let row = 2; row <= tableData.length; row++) {
+				worksheet.getCell(`F${row}`).value = {
+					formula: `E${row}`,
+					result: tableData[row - 1][4],
+				};
+			}
+		} else {
+			// Tạo công thức Excel trong cột cuối cùng
+			for (let row = 2; row <= tableData.length; row++) {
+				worksheet.getCell(`F${row}`).value = {
+					formula: `ROUND((C${row} + D${row}*2 + E${row}*3)/6, 1)`,
+					result: ((parseFloat(tableData[row - 1][2]) + parseFloat(tableData[row - 1][3])*2 + parseFloat(tableData[row - 1][4])*3)/6).toFixed(1),
+				};
+			}
 		}
 	
 		// Tạo một tệp Excel tạm thời
@@ -388,41 +417,124 @@ class TeacherController {
 	}
 
 	async importExcel(req, res) {
-		
-		const workbook = new exceljs.Workbook();
-		const worksheet = await workbook.xlsx.readFile(filepath);
-		const worksheetData = worksheet.getWorksheet(1); // Lấy trang tính toán đầu tiên
+		try {
+			const assignmentId = req.params.id;
+			const newestYear = await Year.findOne({}).sort({ _id: -1 });
+			const excelFile = req.files.file;
+			const workbook = new exceljs.Workbook();
+			await workbook.xlsx.load(excelFile.data);
+			const worksheetData = workbook.getWorksheet(1); // Lấy trang tính toán đầu tiên
+			worksheetData.eachRow(async (row, rowNumber) => {
+				if (rowNumber != 1) {
+					const studentId = row.getCell(1).value;
+					const student = await Student.findOne({ studentId: studentId });
+					const termResult = await TermResult.findOne({ student: student._id, year: newestYear }).sort({ _id: -1 });
+					const scoreTable = await ScoreTable.findOneAndUpdate(
+						{ assignment: assignmentId, student: student._id },
+						{ 
+							scoreFrequent: row.getCell(3).value,
+							scoreMidTerm: row.getCell(4).value,
+							scoreFinalTerm: row.getCell(5).value,
+							assignment: assignmentId,
+							student: student._id, 
+							termResult: termResult._id },
+						{ new: true, upsert: true }
+					);
+					if (!student.scoreTables.includes(scoreTable._id)) {
+						student.scoreTables.push(scoreTable._id);
+						await student.save();
+					}
+					if (!termResult.scoreTables.includes(scoreTable._id)) {
+						termResult.scoreTables.push(scoreTable._id);
+						await termResult.save();
+					}
+				}
+			});
+			return res.json('Success');
+		} catch (err) {
+			console.log(err);
+			return res.status(500).send('Internal Server Error');
+		}
 		
 	}
 
-	async updateStudent(req, res) {
-		await Student.updateMany({ scoreTables: [], termResults: [] });
-		res.json('success');
+	async attendancePage(req, res) {
+		try {
+			const teacher = req.session.teacher;
+			const currentYear = await Year.findOne({}).sort({ _id: -1 });
+			const assignments = await Assignment.find({ teacher: teacher._id, year: currentYear })
+				.populate('subject')
+				.populate('class')
+				.lean();
+
+			const schoolClass = await Class.findById(teacher.class)
+				.populate('year')
+				.lean();
+			
+			const studentClass = await StudentClass.find({ class: schoolClass._id })
+				.populate('student')
+				.lean();
+			console.log(studentClass);
+			const students = studentClass.map(sc => sc.student);
+
+			res.render('teacherAttendance', {
+				layout: 'teacher_layout', 
+				activeAttendance: 'active', 
+				title: 'Điểm danh',
+				displayBackToTop: 'd-none',
+				teacher,
+				assignments, 
+				schoolClass,
+				students,
+			});
+		} catch (err) {
+			res.status(500).json({ error: err.message });
+		}
 	}
 
-	// async insertAssignment(req, res) {
-	// 	const {
-	// 		subjectName,
-	// 		className,
-	// 	} = req.body;
-	// 	const subject = await Subject.findOne({name: subjectName});
-	// 	const schoolClass = await Class.findOne({name: className});
-	// 	const currentYear = await Year.findOne({}).sort({ _id: -1 });
+	async informationPage(req, res) {
+		try {
+			const teacher = req.session.teacher;
+			const currentYear = await Year.findOne({}).sort({ _id: -1 });
+			const assignments = await Assignment.find({ teacher: teacher._id, year: currentYear })
+				.populate('subject')
+				.populate('class')
+				.lean();
 
-	// 	const newAssignment = new Assignment({
-	// 		teacher: '653bc90e0f1874418cb11993', 
-	// 		subject, 
-	// 		class: schoolClass, 
-	// 		year: currentYear, 
-	// 		announcements: [],
-	// 		exercises: [],
-	// 		schedules: [],
-	// 		scoreTables: [],
-	// 	});
-	// 	const savedAssignment = await newAssignment.save();
-	// 	res.json(savedAssignment);
-	// }
+			res.render('teacherInformation', {
+				layout: 'teacher_layout', 
+				title: 'Thông tin',
+				teacher,
+				assignments,
+				displayBackToTop: 'd-none',
+			});
+		} catch (err) {
+			res.status(500).json({ error: 'Server error' });
+		}
+	}
 
+	async changePassword(req, res) {
+		try {
+			const teacher = req.session.teacher;
+			const oldPassword = req.body.oldPassword;
+			const newPassword = req.body.newPassword;
+
+			const teacherInfo = await Teacher.findById(teacher._id);
+
+			const isMatch = await bcrypt.compare(oldPassword, teacherInfo.password);
+			if (!isMatch) {
+				return res.status(401).json({ error: 'Mật khẩu cũ không chính xác' });
+			}
+
+			const hashedPassword = await bcrypt.hash(newPassword, 10);
+			
+			await Teacher.updateOne({ _id: teacher._id }, { password: hashedPassword });
+			return res.json({ success: 'Thay đổi mật khẩu thành công' })
+
+		} catch (err) {
+			res.status(500).json({ error: 'Server error' });
+		}
+	}
 }
 
 module.exports = new TeacherController;

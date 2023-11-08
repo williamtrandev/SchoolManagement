@@ -73,3 +73,67 @@ function localDateTimeString(dateStr) {
     }
     return `${year}-${month}-${day}T${hour}:${minute}`;
 }
+
+if ($('#changeStudentPasswordBtn').length) {
+    $('#changeStudentPasswordBtn').click(() => {
+        const oldPassword = $('#oldPassword').val();
+        const newPassword = $('#newPassword').val();
+        if (oldPassword == '' || newPassword == '') {
+            toastr.error('Mật khẩu không được để trống');
+            return;
+        }
+        const body = { oldPassword, newPassword };
+
+        fetch('/student/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type':'application/json'
+            },
+            body: JSON.stringify(body),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                toastr.error(data.error);
+            } else {
+                $('#changePasswordModal').modal('hide');
+                toastr.success(data.success);
+            }
+        })
+        .catch(err => {
+            toastr.error('Có lỗi trong quá trình đổi mật khẩu');
+        });
+    });
+}
+
+if ($('#changeTeacherPasswordBtn').length) {
+    $('#changeTeacherPasswordBtn').click(() => {
+        const oldPassword = $('#oldPassword').val();
+        const newPassword = $('#newPassword').val();
+        if (oldPassword == '' || newPassword == '') {
+            toastr.error('Mật khẩu không được để trống');
+            return;
+        }
+        const body = { oldPassword, newPassword };
+
+        fetch('/teacher/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type':'application/json'
+            },
+            body: JSON.stringify(body),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                toastr.error(data.error);
+            } else {
+                $('#changePasswordModal').modal('hide');
+                toastr.success(data.success);
+            }
+        })
+        .catch(err => {
+            toastr.error('Có lỗi trong quá trình đổi mật khẩu');
+        });
+    });
+}

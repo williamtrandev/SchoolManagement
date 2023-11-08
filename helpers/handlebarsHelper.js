@@ -23,6 +23,19 @@ module.exports = {
 		}
 		return `${day}/${month}/${year} ${hour}:${minute}`;
 	},
+	dateFormat: function (dateStr) {
+		const date = new Date(dateStr);
+		const year = date.getFullYear();
+		let month = date.getMonth() + 1;
+		if (month < 10) {
+			month = '0' + month;
+		}
+		let day = date.getDate();
+		if (day < 10) {
+			day = '0' + day;
+		}
+		return `${day} - ${month} - ${year}`;
+	},
 	ifEqualsYear: function (year) {
 		const currentYear = new Date().getFullYear();
 		return (year == currentYear);
@@ -49,5 +62,18 @@ module.exports = {
 			return JSON.stringify(arr);
 		}
 		return '';
+	},
+	avgScore: function (scoreTable) {
+		if (scoreTable) {
+			const avg = ((parseFloat(scoreTable.scoreFrequent) + 2 * parseFloat(scoreTable.scoreMidTerm) + 3 * parseFloat(scoreTable.scoreFinalTerm))/6).toFixed(1)
+			if (isNaN(avg)) {
+				return scoreTable.scoreFinalTerm;
+			} else {
+				return avg;
+			}
+		} else {
+			return '';
+		}
+		
 	},
 }

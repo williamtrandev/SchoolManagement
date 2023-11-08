@@ -1,0 +1,52 @@
+<div class="container-fluid pt-4 px-4 h-75">
+    <div class="bg-light text-center rounded p-4 h-100">
+        <table class="table text-start fs-5">
+            <tr>
+                <th scope="row">Mã học sinh</th>
+                <td>{{student.studentId}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Họ tên</th>
+                <td>{{student.name}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Ngày sinh</th>
+                <td>{{dateFormat student.birthday}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Giới tính</th>
+                <td>{{#ifEquals student.gender true}}Nam{{else}}Nữ{{/ifEquals}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Dân tộc</th>
+                <td>{{student.ethnicity}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Địa chỉ</th>
+                <td>{{student.address}}</td>
+            </tr>
+        </table>
+
+        <div class="fs-5 fw-bold mb-2">Phụ huynh</div>
+        <table class="table text-start align-middle table-bordered mb-0">
+            <thead>
+                <tr class="text-dark">
+                    <th>Họ tên</th>
+                    <th>Nghề nghiệp</th>
+                    <th>Số điện thoại</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each student.parents}}
+                <tr>
+                    <td>{{name}}</td>
+                    <td>{{job}}</td>
+                    <td>{{phone}}</td>
+                    <td>{{email}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>

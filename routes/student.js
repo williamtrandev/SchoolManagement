@@ -23,21 +23,7 @@ router.get('/exercises', verifyToken, studentController.exercisesPage);
 router.post('/submission/:id', upload.array('files', 10), studentController.exerciseSubmit);
 router.delete('/submission/:id', studentController.exerciseUnsubmit);
 router.get('/learning-result', verifyToken, studentController.learningResultPage);
-
-router.get('/register', (req, res) => {
-	res.render('studentRegister');
-});
-
-// router.post('/register', studentController.register);
-
-// router.post('/subject', studentController.insertSubject);
-// router.post('/assignment', studentController.insertAssignment);
-// router.post('/announcement', studentController.insertAnnouncement);
-// router.post('/exercise', studentController.insertExercise);
-// router.post('/year', studentController.insertYear);
-// router.post('/studentclass', studentController.insertStudentClass)
-// router.post('/class', studentController.insertClass);
-// router.put('/', studentController.changeCurrentClass);
-// router.put('/exercise', studentController.changeExerciseDeadline);
+router.get('/information', verifyToken, studentController.informationPage);
+router.post('/change-password', verifyToken, studentController.changePassword);
 
 module.exports = router;

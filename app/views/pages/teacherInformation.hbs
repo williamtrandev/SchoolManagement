@@ -1,0 +1,34 @@
+<div class="container-fluid pt-4 px-4 h-75">
+    <div class="bg-light text-center rounded p-4 h-100">
+        <table class="table text-start fs-5">
+            <tr>
+                <th scope="row">Họ tên</th>
+                <td>{{teacher.name}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Ngày sinh</th>
+                <td>{{dateFormat teacher.birthday}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Giới tính</th>
+                <td>{{#ifEquals teacher.gender true}}Nam{{else}}Nữ{{/ifEquals}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Địa chỉ</th>
+                <td>{{teacher.address}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Số điện thoại</th>
+                <td>{{teacher.phone}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Email</th>
+                <td>{{teacher.email}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Tổ</th>
+                <td>{{teacher.group}}</td>
+            </tr>
+        </table>
+    </div>
+</div>
