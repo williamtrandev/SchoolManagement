@@ -1255,15 +1255,23 @@ class AdminController {
 				} else {
 					academicPerformance = 'Chưa đạt';
 				}
+				let result;
+				if (absentMap[student._id] <= 45 && conduct === 'Đạt' && academicPerformance === 'Đạt') {
+					result = 'Lên lớp';
+				} else {
+					result = 'Lưu ban';
+				}
 				const returnStudent = {
 					...student,
 					pointAvg: pointAvg.toFixed(2),
 					conduct: conduct,
 					numAbsent: absentMap[student._id],
-					academicPerformance: academicPerformance
+					academicPerformance: academicPerformance,
+					result: result,
 				}
 				studentsMap[student.currentClass.name].push(returnStudent);
 			})
+			console.log(studentsMap);
 			res.status(200).json(studentsMap);
 		} catch (err) {
 			console.log(err);
@@ -1317,8 +1325,8 @@ class AdminController {
 			});
 			const schedulesInserted = await Schedule.insertMany(scheduleDocs);
 			const scheduleIds = schedulesInserted.map(schedule => schedule._id);
-			
-			
+
+
 			newTimeTable.schedules = scheduleIds;
 			await newTimeTable.save();
 			res.status(200).json(newTimeTable);
@@ -1362,6 +1370,208 @@ class AdminController {
 			res.status(500).json({ err: error });
 		}
 	}
+	addTimeTableByExcel = async (req, res) => {
+		try {
+			const excelFile = req.files.file;
+			const classMap = {};
+			const scheduleMap = {};
+			const scheduleAfMap = {};
+			const teachersMap = {};
+			const teachersAfMap = {};
+			await workbook.xlsx.load(excelFile.data);
+			let nameTimeTable;
+			const TKBMorningSheet = workbook.getWorksheet('Sáng');
+			let preCell = null;
+			let newObj = {};
+			TKBMorningSheet.eachRow((row, rowNumber) => {
+				// Lấy tên thời khóa biểu
+				if (rowNumber === 1) {
+					nameTimeTable = row.getCell(1).toString();
+					// Lấy danh sách class mapping
+				} else if (rowNumber === 2) {
+					row.eachCell((cell, cellNumber) => {
+						if (cellNumber > 2) {
+							classMap[cellNumber] = cell.value.toString();
+						}
+					})
+				} else {
+					const day = row.getCell(1).value.toString().split(' ').pop();
+					const period = row.getCell(2).value.toString();
+					const isDiff = period !== preCell;
+					preCell = row.getCell(2).value.toString();
+					row.eachCell((cell, cellNumber) => {
+						if (cellNumber > 2) {
+							if (!scheduleMap[`Schedule${day}_${period}`]) {
+								scheduleMap[`Schedule${day}_${period}`] = []
+							}
+							if (!teachersMap[`Teacher${day}_${period}`]) {
+								teachersMap[`Teacher${day}_${period}`] = []
+							}
+							if (isDiff) {
+								//console.log('diff', period);
+								newObj = {
+									subject: cell.value.toString(),
+									class: classMap[cellNumber],
+									dayOfWeek: day,
+									period: period,
+								};
+								scheduleMap[`Schedule${day}_${period}`].push(newObj);
+							} else {
+								teachersMap[`Teacher${day}_${period}`].push(cell.value.toString());
+							}
+						}
+					})
+				}
+			})
+			const combinedScheduleMorning = {};
+
+			for (const scheduleKey in scheduleMap) {
+				const scheduleItems = scheduleMap[scheduleKey];
+				const teacherKey = scheduleKey.replace('Schedule', 'Teacher');
+				const teacherItems = teachersMap[teacherKey];
+				if (teacherItems) {
+					for (let i = 0; i < scheduleItems.length; i++) {
+						if (i < teacherItems.length) {
+							scheduleItems[i].teacher = teacherItems[i];
+						}
+					}
+				}
+
+				combinedScheduleMorning[scheduleKey] = scheduleItems;
+			}
+			delete combinedScheduleMorning['Schedule2_1']
+			delete combinedScheduleMorning['Schedule7_5']
+			let scheduleArray = [];
+			for (const key in combinedScheduleMorning) {
+				if (Array.isArray(combinedScheduleMorning[key])) {
+					scheduleArray = [...scheduleArray, ...combinedScheduleMorning[key]];
+				}
+			}
+
+
+			const TKBAfternoonSheet = workbook.getWorksheet('Chiều');
+			let preCellAf = null;
+			let newObjAf = {};
+			TKBAfternoonSheet.eachRow((row, rowNumber) => {
+				if (rowNumber === 2) {
+					row.eachCell((cell, cellNumber) => {
+						if (cellNumber > 2) {
+							classMap[cellNumber] = cell.value.toString();
+						}
+					})
+				} else {
+					const day = row.getCell(1).value.toString().split(' ').pop();
+					const period = row.getCell(2).value.toString();
+					const isDiff = period !== preCellAf;
+					preCellAf = row.getCell(2).value.toString();
+					row.eachCell((cell, cellNumber) => {
+						if (cellNumber > 2) {
+							if (!scheduleAfMap[`Schedule${day}_${parseInt(period) + 5}`]) {
+								scheduleAfMap[`Schedule${day}_${parseInt(period) + 5}`] = []
+							}
+							if (!teachersAfMap[`Teacher${day}_${parseInt(period) + 5}`]) {
+								teachersAfMap[`Teacher${day}_${parseInt(period) + 5}`] = []
+							}
+							if (isDiff) {
+								newObjAf = {
+									subject: cell.value.toString(),
+									class: classMap[cellNumber],
+									dayOfWeek: day,
+									period: parseInt(period) + 5,
+								};
+								scheduleAfMap[`Schedule${day}_${parseInt(period) + 5}`].push(newObjAf);
+							} else {
+								teachersAfMap[`Teacher${day}_${parseInt(period) + 5}`].push(cell.value.toString());
+							}
+						}
+					})
+				}
+			})
+			const combinedScheduleAfternoon = {};
+
+			for (const scheduleKey in scheduleAfMap) {
+				const scheduleItems = scheduleAfMap[scheduleKey];
+				const teacherKey = scheduleKey.replace('Schedule', 'Teacher');
+				const teacherItems = teachersAfMap[teacherKey];
+				if (teacherItems) {
+					for (let i = 0; i < scheduleItems.length; i++) {
+						if (i < teacherItems.length) {
+							scheduleItems[i].teacher = teacherItems[i];
+						}
+					}
+				}
+
+				combinedScheduleAfternoon[scheduleKey] = scheduleItems;
+			}
+			delete combinedScheduleAfternoon["Schedule2_10"];
+			delete combinedScheduleAfternoon["Schedule7_10"];
+			for (const key in combinedScheduleAfternoon) {
+				if (Array.isArray(combinedScheduleAfternoon[key])) {
+					scheduleArray = [...scheduleArray, ...combinedScheduleAfternoon[key]];
+				}
+			}
+			const newTimeTable = await new TimeTable({ name: nameTimeTable, schedules: [] }).save();
+
+			const schedules = [];
+			const cache = {};
+
+			await Promise.all(scheduleArray.map(async item => {
+				const cacheKey = `${item.teacher}-${item.class}-${item.subject}`;
+
+				if (cache[cacheKey]) {
+					// Sử dụng kết quả từ bộ đệm nếu có sẵn
+					const findAssignment = cache[cacheKey];
+
+					schedules.push(new Schedule({
+						dayOfWeek: item.dayOfWeek,
+						assignment: findAssignment._id,
+						period: item.period,
+						timeTable: newTimeTable._id
+					}));
+				} else {
+					const teacherId = await Teacher.findOne({ name: item.teacher });
+					const classId = await Class.findOne({ name: item.class });
+					const subjectId = await Subject.findOne({ name: item.subject });
+					if(!teacherId) {
+						console.log(item.teacher);
+					}
+					if(!classId) {
+						console.log(item.class);
+					}
+					if(!subjectId) {
+						console.log(item.subject);
+					}
+					const findAssignment = await Assignment.findOne({
+						teacher: teacherId._id,
+						class: classId._id,
+						subject: subjectId._id,
+					});
+					if(!findAssignment) {
+						console.log('null with teacher ' + teacherId.name + ' and class ' + classId.name + ' and subject ' + subjectId.name)
+					}
+					
+					// Lưu kết quả vào bộ đệm
+					cache[cacheKey] = findAssignment;
+
+					schedules.push(new Schedule({
+						dayOfWeek: item.dayOfWeek,
+						assignment: findAssignment._id,
+						period: item.period,
+						timeTable: newTimeTable._id
+					}));
+				}
+			}));
+
+			const savedSchedule = await Schedule.insertMany(schedules);
+			const scheduleIds = savedSchedule.map(schedule => schedule._id);
+			newTimeTable.schedules = scheduleIds;
+			await newTimeTable.save();
+			res.status(200).json(newTimeTable);
+		} catch (error) {
+			console.log(error);
+			res.status(500).json({ err: error });
+		}
+	}
 	printResult = async (req, res) => {
 		try {
 			const subjects = await Subject.find().lean();
@@ -1400,7 +1610,7 @@ class AdminController {
 			// Sử dụng updateMany để cập nhật nhiều học sinh cùng một lúc
 			await Student.bulkWrite(bulkUpdateOperations);
 			res.status(200).json(savedTerm);
-		} catch(error) {
+		} catch (error) {
 			console.log(error);
 			res.status(500).json({ err: error });
 		}

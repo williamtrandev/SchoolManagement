@@ -43,7 +43,7 @@
 				cancelButtonText: 'Hủy'
 			}).then((result) => {
 				if (result.isConfirmed) {
-					fetch()
+					fetch(`/admin/startNewYear`)
 					.then(response => response.json())
 					.then(data => {
 						Swal.fire('Thành công', 'Đã thêm năm học mới!', 'success');
