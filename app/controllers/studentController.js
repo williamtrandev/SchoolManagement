@@ -9,6 +9,7 @@ const Exercise = require("../models/Exercise");
 const Submission = require("../models/Submission");
 const Year = require("../models/Year");
 const Schedule = require('../models/Schedule');
+const TimeTable = require('../models/TimeTable');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const fs = require('fs');
@@ -27,6 +28,8 @@ class StudentController {
 				.populate('schedules')
 				.lean();
 
+			const findTimeTable = await TimeTable.findOne({ isUsed: true });
+
 			const timeTable = [
 				{ period: 1, subject: [] },
 				{ period: 2, subject: [] },
@@ -41,7 +44,7 @@ class StudentController {
 			];
 
 			for (let i = 0; i < assignments.length; i++) {
-				const schedules = await Schedule.find({ assignment: assignments[i]._id });
+				const schedules = await Schedule.find({ assignment: assignments[i]._id, timeTable: findTimeTable._id });
 				for (let j = 0; j < schedules.length; j++) {
 					console.log(schedules[j]);
 					const period = schedules[j].period;
@@ -161,50 +164,50 @@ class StudentController {
 		}
 	}
 
-	async exercisesPage(req, res, next) {
-		try {
-			const student = req.session.student;
-			const currentClass = student.currentClass;
-			const subjects = await Subject.find().lean();
+	// async exercisesPage(req, res, next) {
+	// 	try {
+	// 		const student = req.session.student;
+	// 		const currentClass = student.currentClass;
+	// 		const subjects = await Subject.find().lean();
 
-			const assignments = await Assignment.find({class: currentClass})
-				.populate('subject')
-				.populate({
-					path: 'exercises',
-					populate: {
-						path: 'submissions',
-						match: { student: student._id }
-					}
-				})
-				.populate({
-					path: 'exercises',
-					populate: {
-						path: 'subject',
-					}
-				}).lean();
+	// 		const assignments = await Assignment.find({class: currentClass})
+	// 			.populate('subject')
+	// 			.populate({
+	// 				path: 'exercises',
+	// 				populate: {
+	// 					path: 'submissions',
+	// 					match: { student: student._id }
+	// 				}
+	// 			})
+	// 			.populate({
+	// 				path: 'exercises',
+	// 				populate: {
+	// 					path: 'subject',
+	// 				}
+	// 			}).lean();
 
-			// const exercises = await Exercise.find({assignment})
-			// 	.sort({createdAt: 'desc'})
-			// 	.populate({
-			// 		path: 'assignment',
-			// 		populate: {
-			// 			path: 'subject',
-			// 			model: 'Subject'
-			// 		}
-			// 	});
+	// 		// const exercises = await Exercise.find({assignment})
+	// 		// 	.sort({createdAt: 'desc'})
+	// 		// 	.populate({
+	// 		// 		path: 'assignment',
+	// 		// 		populate: {
+	// 		// 			path: 'subject',
+	// 		// 			model: 'Subject'
+	// 		// 		}
+	// 		// 	});
 
-			res.render('studentExercises', {
-				layout: 'student_layout', 
-				title: 'Bài tập',
-				activeExercises: "active", 
-				student,
-				subjects,
-				assignments,
-			});
-		} catch (err) {
-			res.status(500).json({ error: err.message });
-		}
-	}
+	// 		res.render('studentExercises', {
+	// 			layout: 'student_layout', 
+	// 			title: 'Bài tập',
+	// 			activeExercises: "active", 
+	// 			student,
+	// 			subjects,
+	// 			assignments,
+	// 		});
+	// 	} catch (err) {
+	// 		res.status(500).json({ error: err.message });
+	// 	}
+	// }
 
 	async exerciseSubmit(req, res, next) {
 		try {
@@ -255,6 +258,7 @@ class StudentController {
 	async learningResultPage(req, res, next) {
 		try {
 			const student = req.session.student;
+			const currentYear = await Year.findOne({}).sort({ _id: -1 }).lean();
 			const subjects = await Subject.find().lean();
 			const studentClass = await StudentClass.find({ student: student._id })
 				.populate({
@@ -266,11 +270,24 @@ class StudentController {
 				}).lean();
 
 			console.log(studentClass);
-			
+			// const classes = studentClass.map(sc => sc.class._id);
 			const years = studentClass.map(sc => sc.class.year);
+			for (let i = 0; i < years.length; i++) {
+				if (years[i].startYear == currentYear.startYear) {
+					years[i].selected = 'selected';
+				}
+			}
 
-			console.log(years);
-
+			const assignments = await Assignment.find({ class: student.currentClass._id })
+				.populate('subject')
+				.populate({
+					path: 'scoreTables',
+					match: { student: student._id },
+					options: { sort: { '_id': 1 } }
+				})
+				.sort({ subject: 1 })
+				.lean();
+			
 			res.render('studentLearningResult', {
 				layout: 'student_layout', 
 				title: 'Kết quả học tập', 
@@ -278,9 +295,41 @@ class StudentController {
 				student,
 				subjects,
 				years,
+				assignments,
 			});
 		} catch (err) {
 			res.status(500).json({ error: err.message });
+		}
+	}
+
+	async reloadResultPage(req, res) {
+		try {
+			const studentId = req.params.studentId;
+			const yearId = req.params.yearId;
+
+			// const year = await Year.findById(yearId);
+			const studentClass = await StudentClass.find({ student: studentId })
+				.populate('class');
+			let findClass;
+			for (const sc of studentClass) {
+				if (sc.class.year == yearId) {
+					findClass = sc.class._id;
+					break;
+				}
+			}
+			const assignments = await Assignment.find({ class: findClass })
+				.populate('subject')
+				.populate({
+					path: 'scoreTables',
+					match: { student: studentId },
+					options: { sort: { '_id': 1 } }
+				})
+				.sort({ subject: 1 })
+				.lean();
+			
+			return res.json({ success: assignments });
+		} catch (err) {
+			return res.status(500).json({ error: 'Lỗi hệ thống' });
 		}
 	}
 

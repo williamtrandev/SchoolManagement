@@ -74,6 +74,18 @@ module.exports = {
 		} else {
 			return '';
 		}
-		
+	},
+	avgScoreAll: function (scoreTables) {
+		if (scoreTables.length > 1) {
+			const avg1 = ((parseFloat(scoreTables[0].scoreFrequent) + 2 * parseFloat(scoreTables[0].scoreMidTerm) + 3 * parseFloat(scoreTables[0].scoreFinalTerm))/6).toFixed(1);
+			const avg2 = ((parseFloat(scoreTables[1].scoreFrequent) + 2 * parseFloat(scoreTables[1].scoreMidTerm) + 3 * parseFloat(scoreTables[1].scoreFinalTerm))/6).toFixed(1);
+			if (isNaN(avg1) || isNaN(avg2)) {
+				return scoreTables[1].scoreFinalTerm;
+			} else {
+				return (avg1 + avg2 * 2)/3;
+			}
+		} else {
+			return '';
+		}
 	},
 }
