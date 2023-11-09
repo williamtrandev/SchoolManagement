@@ -103,7 +103,7 @@ router.get('/printResult', adminController.printResult);
 router.get('/startNewSemester', adminController.newSemester);
 router.get('/startNewYear', adminController.startNewYear);
 router.get('/deleteTimeTable', async(req, res) => {
-	const id = `654d0bce0c678fba2d1d5d3e`;
+	const id = `654d0c7bd6fe0f16e33ba30a`;
 	await Schedule.deleteMany({ timeTable: id });
 	res.status(200).json('ok')
 })

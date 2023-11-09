@@ -842,14 +842,29 @@ class AdminController {
 		try {
 			const year = await Year.findOne({}).sort({ _id: -1 });
 			const classes = await Class.find({ year: year._id })
-				.populate({
-					path: 'assignments',
-					populate: [
-						{ path: 'teacher' },
-						{ path: 'subject' }
-					]
-				})
-				.lean();
+			.populate({
+				path: 'assignments',
+				populate: [
+					{ path: 'teacher' },
+					{ path: 'subject' }
+				]
+			})
+			.lean();
+			classes.sort((a, b) => {
+				const regex = /(\d+)([A-Za-z]+)(\d+)/;
+				const [, numA, charA, numA2] = a.name.match(regex);
+				const [, numB, charB, numB2] = b.name.match(regex);
+
+				if (charA.localeCompare(charB) !== 0) {
+					return charA.localeCompare(charB);
+				}
+
+				if (parseInt(numA) !== parseInt(numB)) {
+					return parseInt(numA) - parseInt(numB);
+				}
+
+				return parseInt(numA2) - parseInt(numB2);
+			});
 			console.log(classes);
 			return res.status(200).json(classes);
 		} catch (err) {
@@ -1363,7 +1378,37 @@ class AdminController {
 
 			// Chuyển Set thành mảng
 			const morningClassNames = [...morningClassNamesSet];
+			morningClassNames.sort((a, b) => {
+				const regex = /(\d+)([A-Za-z]+)(\d+)/;
+				const [, numA, charA, numA2] = a.match(regex);
+				const [, numB, charB, numB2] = b.match(regex);
+
+				if (charA.localeCompare(charB) !== 0) {
+					return charA.localeCompare(charB);
+				}
+
+				if (parseInt(numA) !== parseInt(numB)) {
+					return parseInt(numA) - parseInt(numB);
+				}
+
+				return parseInt(numA2) - parseInt(numB2);
+			});
 			const afternoonClassNames = [...afternoonClassNamesSet];
+			afternoonClassNames.sort((a, b) => {
+				const regex = /(\d+)([A-Za-z]+)(\d+)/;
+				const [, numA, charA, numA2] = a.match(regex);
+				const [, numB, charB, numB2] = b.match(regex);
+
+				if (charA.localeCompare(charB) !== 0) {
+					return charA.localeCompare(charB);
+				}
+
+				if (parseInt(numA) !== parseInt(numB)) {
+					return parseInt(numA) - parseInt(numB);
+				}
+
+				return parseInt(numA2) - parseInt(numB2);
+			});
 			res.status(200).json({ morningClassNames, afternoonClassNames, morningSchedules, afternoonSchedules });
 		} catch (error) {
 			console.error(error);
@@ -1514,54 +1559,40 @@ class AdminController {
 
 			const schedules = [];
 			const cache = {};
-
 			await Promise.all(scheduleArray.map(async item => {
 				const cacheKey = `${item.teacher}-${item.class}-${item.subject}`;
-
-				if (cache[cacheKey]) {
-					// Sử dụng kết quả từ bộ đệm nếu có sẵn
-					const findAssignment = cache[cacheKey];
-
-					schedules.push(new Schedule({
-						dayOfWeek: item.dayOfWeek,
-						assignment: findAssignment._id,
-						period: item.period,
-						timeTable: newTimeTable._id
-					}));
-				} else {
-					const teacherId = await Teacher.findOne({ name: item.teacher });
-					const classId = await Class.findOne({ name: item.class });
-					const subjectId = await Subject.findOne({ name: item.subject });
-					if(!teacherId) {
-						console.log(item.teacher);
-					}
-					if(!classId) {
-						console.log(item.class);
-					}
-					if(!subjectId) {
-						console.log(item.subject);
-					}
-					const findAssignment = await Assignment.findOne({
-						teacher: teacherId._id,
-						class: classId._id,
-						subject: subjectId._id,
-					});
-					if(!findAssignment) {
-						console.log('null with teacher ' + teacherId.name + ' and class ' + classId.name + ' and subject ' + subjectId.name)
-					}
-					
-					// Lưu kết quả vào bộ đệm
-					cache[cacheKey] = findAssignment;
-
-					schedules.push(new Schedule({
-						dayOfWeek: item.dayOfWeek,
-						assignment: findAssignment._id,
-						period: item.period,
-						timeTable: newTimeTable._id
-					}));
+				const teacherId = await Teacher.findOne({ name: item.teacher });
+				const classId = await Class.findOne({ name: item.class });
+				const subjectId = await Subject.findOne({ name: item.subject });
+				if(!teacherId) {
+					console.log(item.teacher);
 				}
+				if(!classId) {
+					console.log(item.class);
+				}
+				if(!subjectId) {
+					console.log(item.subject);
+				}
+				const findAssignment = await Assignment.findOne({
+					teacher: teacherId._id,
+					class: classId._id,
+					subject: subjectId._id,
+				});
+				if(!findAssignment) {
+					console.log('null with teacher ' + teacherId.name + ' and class ' + classId.name + ' and subject ' + subjectId.name)
+				}
+				// Lưu kết quả vào bộ đệm
+				cache[cacheKey] = findAssignment._id;
+				
 			}));
-
+			scheduleArray.forEach(item => {
+				schedules.push(new Schedule({
+					dayOfWeek: item.dayOfWeek,
+					period: item.period,
+					assignment: cache[`${item.teacher}-${item.class}-${item.subject}`],
+					timeTable: newTimeTable._id
+				}))
+			})
 			const savedSchedule = await Schedule.insertMany(schedules);
 			const scheduleIds = savedSchedule.map(schedule => schedule._id);
 			newTimeTable.schedules = scheduleIds;
