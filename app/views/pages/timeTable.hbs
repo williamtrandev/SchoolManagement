@@ -6,14 +6,20 @@
 		<div class="info-notime">
 			<img src="/imgs/background_timetable.png" alt="" class="img-fluid">
 			<h5 style="font-weight: normal;">Chưa có thời khóa biểu nào</h5>
-			<button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
+			<div class="d-flex justify-content-center">
+				<button class="btn btn-primary mt-3 me-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
+				<button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addTimetableByExcel">Nhập từ file</button>
+			</div>
 		</div>
 	{{else}} 
 		<div class="wrapper-tableItem">
 			{{#each timeTables}}
-				<div class="timetableOld btn btn-success w-100" data-id="{{_id}}">{{name}}</div>
+				<div class="timetableOld btn btn-success w-100 my-2" data-id="{{_id}}">{{name}}</div>
 			{{/each}}
-			<button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
+			<div class="d-flex justify-content-center">
+				<button class="btn btn-primary mt-3 me-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
+				<button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addTimetableByExcel">Nhập từ file</button>
+			</div>
 		</div>
 	{{/ifEquals}}
 	<div class="wrapper-choose d-none">
@@ -419,6 +425,36 @@
 		</div>
 	</div>
 </div>
+
+
+<div class="modal fade" id="addTimetableByExcel">
+    <div class="modal-dialog">
+		<div class="modal-content p-2">
+			<!-- Modal Header -->
+			<div class="modal-header justify-content-center">
+				<h4 class="modal-title">Tạo đợt áp dụng mới</h4>
+			</div>
+			
+			<!-- Modal body -->
+			<div class="modal-body">
+				<div class="mx-auto">
+					<form enctype="multipart/form-data">
+						<input type="file" name="file" id="file-input" class="d-none" accept=".xlsx, .xls">
+						<label for="file-input" style="cursor: pointer;" class="d-block position-relative text-white bg-primary text-center rounded m-auto p-3"><i class="fas fa-upload"></i>&nbsp;Chọn File để thêm</label>
+						<p class="text-primary text-center p-2 mt-3 d-none rounded" style="background: #eff5ff;" id="file-name"></p>
+					</form>
+					<p class="mt-2">Tải tệp mẫu <a href="/file/Sample_TKB.xlsx" download>tại đây</a></p>
+				</div>
+			</div>
+			<!-- Modal footer -->
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary btn-save-timetableByExcel">Đồng ý</button>
+				<button type="button" class="btn border" data-dismiss="modal">Hủy</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 
 <div class="navbar fixed-bottom navbar-light bg-light d-flex justify-content-end d-none" style="left: 250px; height: 80px">
 	<div class="container-fluid">
@@ -865,6 +901,42 @@
 				console.log(error);
 				toastr.error('Lỗi');
 			});
-		})
+		});
+		$('#file-input').change(() => {
+			let name = $('#file-input')[0].files[0].name;
+			$('#file-name').text(name);
+			$('#file-name').removeClass('d-none');
+		});
+		$(".btn-save-timetableByExcel").click(() => {
+			const file = $('#file-input')[0].files[0];
+			if(file) {
+				const formData = new FormData();
+				formData.append('file', file);
+				$('#spinner').addClass('show');
+				fetch('/admin/addTimeTableByExcel', {
+					method: 'POST',
+					body: formData,
+				})
+				.then(response => {
+					if(!response.ok) {
+						throw new Error('Lỗi');
+					}
+					return response.json();
+				})
+				.then(data => {
+					console.log(data);
+					$('#spinner').removeClass('show');
+					toastr.success('Lưu thành công');
+					setTimeout(() => {
+						window.location.reload();
+					}, 1000);
+				})
+				.catch(error => {
+					console.error(error);
+					$('#spinner').removeClass('show');
+					toastr.error('Lỗi hệ thống');
+				});
+			}
+		});
 	})
 </script>
