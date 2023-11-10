@@ -842,7 +842,7 @@
 							const schedule = timetableMorningMap[`${dayOfWeek}_${startPeriod}`][index];
 							let content = `<p>${schedule.assignment.subject.name}</p>
 							<i>(${schedule.assignment.teacher.name})</i>`;
-							$(this).append(content);
+							$(this).empty().append(content);
 						})
 						startPeriod++;
 					});
@@ -891,7 +891,7 @@
 							const schedule = timetableAfternoonMap[`${dayOfWeek}_${startPeriod}`][index];
 							let content = `<p>${schedule.assignment.subject.name}</p>
 							<i>(${schedule.assignment.teacher.name})</i>`;
-							$(this).append(content);
+							$(this).empty().append(content);
 						})
 						startPeriod++;
 					});
