@@ -1,5 +1,18 @@
 <div class="bg-light text-center rounded p-3">
-	<div class="table-responsive">
+	<div class="d-flex justify-content-between mb-4">
+		<div class="d-flex align-items-center">
+			<label class="me-3" for="yearSelect">Chọn khối:</label>
+			<select class="form-select w-auto" id="gradeSelect">
+				<option value="none" disabled selected>Chọn khối</option>
+				<option value="6">Khối 6</option>
+				<option value="7">Khối 7</option>
+				<option value="8">Khối 8</option>
+				<option value="9">Khối 9</option>
+			</select>
+		</div>
+	</div>
+	<img src="/imgs/background_rank_wait.png" alt="" class="img-fluid" style="height: 80vh">
+	<div class="table-responsive d-none">
 		<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap" id="rank-table">
 			<thead>
 				<tr class="text-dark">
@@ -18,14 +31,35 @@
 <script>
 	$(function() {
 		let violationMap = {};
+		let gradeMap = {
+			6: [],
+			7: [],
+			8: [],
+			9: []
+		}
+		
 		fetch(`/admin/getRanking`)
 		.then(res => {
 			if(!res.ok) throw new Error('Lỗi');
 			return res.json();
 		})
 		.then(data => {
+			console.log(data);
+			gradeMap[6] = data.grade6;
+			gradeMap[7] = data.grade7;
+			gradeMap[8] = data.grade8;
+			gradeMap[9] = data.grade9;
+			
+		})
+		.catch(error => {
+			console.log(error);
+			toastr.error('Lỗi không lấy được thông tin');
+		});
+
+		$('#gradeSelect').change(function() {
+			let grade = $(this).val();
 			let htmls = ``;
-			data.forEach(item => {
+			gradeMap[grade].forEach(item => {
 				violationMap[item.name] = item.violations;
 				htmls += `<tr>
 					<td>${item.rank}</td>
@@ -33,12 +67,12 @@
 					<td>${item.point}</td>
 				</tr>`;
 			})
-			$('tbody').append(htmls);
+			$('.img-fluid').addClass('d-none');
+			$('.table-responsive').removeClass('d-none');
+			$('tbody').empty().append(htmls);
 		})
-		.catch(error => {
-			console.log(error);
-			toastr.error('Lỗi không lấy được thông tin');
-		});
+		
+		
 		$('tbody').on('click', 'tr', function() {
 			const className = $($(this).find('td').eq(1)).text();
 			let textShow = ``;

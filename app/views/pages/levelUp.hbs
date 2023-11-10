@@ -54,21 +54,36 @@
 
 <script>
 	$('.start-levelUp').click(() => {
-		$('.wrapper-start').addClass('d-none');
-		$('.wrapper-levelUp').removeClass('d-none');
+		Swal.fire({
+			title: 'Xác nhận xét lên lớp',
+			text: 'Có chắc chắn? Thao tác này sẽ thêm mới năm học',
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonText: 'Đồng ý',
+			cancelButtonText: 'Hủy'
+		}).then(async (result) => {
+			if (result.isConfirmed) {
+				$('.wrapper-start').addClass('d-none');
+				$('.wrapper-levelUp').removeClass('d-none');
+				$('#spinner').addClass('show');
+				await fetch(`/admin/getLevelUp`)
+				.then(res => res.json())
+				.then(data => {
+					studentsMap = data;
+					$('#spinner').removeClass('show');
+				})
+				.catch(err => console.log(err))
+
+				
+			} else if (result.isDismiss === Swal.DismissReason.cancel) {
+				Swal.fire('Hủy', 'Bạn đã hủy việc thêm!', 'error');
+			}
+		});
+		
 	})
 	let studentsMap = {};
 	let allClass = [];
 	$(async function() {
-		$('#spinner').addClass('show');
-		await fetch(`/admin/getLevelUp`)
-		.then(res => res.json())
-		.then(data => {
-			studentsMap = data;
-			$('#spinner').removeClass('show');
-		})
-		.catch(err => console.log(err))
-
 		fetch(`/admin/getAllClass`)
 		.then(res => res.json())
 		.then(data => {
