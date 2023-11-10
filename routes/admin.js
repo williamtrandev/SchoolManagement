@@ -78,6 +78,8 @@ router.post('/addTimeTableByExcel', fileUpload(), adminController.addTimeTableBy
 
 router.get('/getTimeTable/:id', adminController.getTimeTable);
 
+router.get('/useTimeTable/:id', adminController.useTimeTable);
+
 router.get('/getSchedules/:classId', adminController.getScheduleByClass);
 
 router.get('/getAssignments/:classId', adminController.getAssignmentsByClass);

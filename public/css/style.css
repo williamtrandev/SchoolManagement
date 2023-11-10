@@ -395,3 +395,8 @@ tbody tr.active {
     color: #F3F6F9;
     margin-bottom: 20px;
 } 
+
+.isUsed-true {
+    background-color: #48c58b !important;
+    border-color: #48c58b !important;
+}

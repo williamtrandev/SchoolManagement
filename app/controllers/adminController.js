@@ -1668,6 +1668,19 @@ class AdminController {
 			res.status(500).json({ err: error });
 		}
 	}
+	useTimeTable = async (req, res) => {
+		try {
+			const id = req.params.id;
+			await TimeTable.findOneAndUpdate(
+				{ isUsed: true }, 
+				{ isUsed: false },
+			);
+			const timeTable = await TimeTable.findByIdAndUpdate(id, { isUsed: true });
+			res.status(200).json(timeTable);
+		} catch (error) {
+			res.status(500).json({ err: error });
+		}
+	}
 }
 
 

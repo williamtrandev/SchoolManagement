@@ -14,7 +14,7 @@
 	{{else}} 
 		<div class="wrapper-tableItem">
 			{{#each timeTables}}
-				<div class="timetableOld btn btn-success w-100 my-2" data-id="{{_id}}">{{name}}</div>
+				<div class="timetableOld btn btn-success w-100 my-2 isUsed-{{isUsed}}" data-id="{{_id}}">{{name}}{{#if isUsed}} - Đang sử dụng {{/if}}</div>
 			{{/each}}
 			<div class="d-flex justify-content-center">
 				<button class="btn btn-primary mt-3 me-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
@@ -766,141 +766,324 @@
 		const timetableMorningMap = {};
 		const timetableAfternoonMap = {};
 		$('.timetableOld').click(function() {
-			newMode = false;
-			const idTimeTable = $(this).data('id');
-			fetch(`/admin/getTimeTable/${idTimeTable}`)
-			.then(res => {
-				if(!res.ok) throw new Error('Lỗi');
-				return res.json();
-			})
-			.then(data => {
-				let ths = ``;
-				let tds = ``;
-				data.morningClassNames.forEach(item => {
-					ths += `<th scope="col">${item}</th>`;
-				});
-				$('.table-morning tbody tr').each(function() {
-					if(!$(this).hasClass('thead-morning')) {
-						let tds = ``;
-						for(let i = 0; i < data.morningClassNames.length; i++) {
-							tds += `<td></td>`;
-						}
-						$(this).append(tds);
-					}
-				})
-				let thsAf = ``;
-				let tdsAf = ``;
-				data.afternoonClassNames.forEach(item => {
-					thsAf += `<th scope="col">${item}</th>`;
-				});
-				console.log(data.morningSchedules)
-				$('.wrapper-tableItem').addClass('d-none');
-				$('.wrapper-choose').addClass('d-none');
-				$('.table-morning').removeClass('d-none');
-				$('.buttons').removeClass('d-none');
-				$('.table-morning tr').not($('.thead-morning')).append(tds);
-				let textCC = `Chào cờ`;
-				const tdsCC = $($('.table-morning.mon').find('tr').eq(1)).find('td');
-				console.log(tdsCC)
-				const firstTd = tdsCC.first();
-				tdsCC.each(function() {
-					$(this).not(firstTd).text(textCC);
-				});
-				let textSH = `Sinh hoạt CN`;
-				const tdsSH = $($('.table-morning.satur').find('tr').eq(5)).find('td');
-				const firstTdSH = tdsSH.first();
-				tdsSH.each(function() {
-					$(this).not(firstTdSH).text(textSH);
-				});
-				
-				data.morningSchedules.forEach(item => {
-					if(!timetableMorningMap[`${item.dayOfWeek}_${item.period}`]) {
-						timetableMorningMap[`${item.dayOfWeek}_${item.period}`] = [];
-					}
-					timetableMorningMap[`${item.dayOfWeek}_${item.period}`].push(item);
-				})
-				console.log(timetableMorningMap)
-				$('.table-morning').each(function(index) {
-					let trs = $(this).find('tr');
-					const dayOfWeek = $(this).data('day');
-					let isSatur = false;
-					let startPeriod = 1;
-					console.log(dayOfWeek);
-					if($(this).hasClass('mon')) {
-						trs = trs.slice(2);
-						startPeriod = 2;
-					} else if($(this).hasClass('satur')) {
-						trs = trs.slice(1, -1);
-						isSatur = true;
-					} else {
-						trs = trs.slice(1);
-					}
-					trs.each(function() {
-						let tds = ``;
-						if(startPeriod === 5 && isSatur) return;
-						$(this).find('td').slice(1).each(function(index) {
-							const schedule = timetableMorningMap[`${dayOfWeek}_${startPeriod}`][index];
-							let content = `<p>${schedule.assignment.subject.name}</p>
-							<i>(${schedule.assignment.teacher.name})</i>`;
-							$(this).empty().append(content);
+			let thisTimeTable = $(this);
+			if($(this).hasClass('isUsed-false')) {
+				Swal.fire({
+					title: 'Chọn chế độ',
+					text: 'Chọn xem thời khóa biểu hoặc dùng thời khóa biểu này',
+					icon: 'info',
+					showCancelButton: true,
+					confirmButtonText: 'Xem thời khóa biểu',
+					cancelButtonText: 'Dùng thời khóa biểu này'
+				}).then(async (result) => {
+					const idTimeTable = $(this).data('id');
+					if (result.isConfirmed) {
+						newMode = false;
+						fetch(`/admin/getTimeTable/${idTimeTable}`)
+						.then(res => {
+							if(!res.ok) throw new Error('Lỗi');
+							return res.json();
 						})
-						startPeriod++;
-					});
-				});
+						.then(data => {
+							let ths = ``;
+							let tds = ``;
+							data.morningClassNames.forEach(item => {
+								ths += `<th scope="col">${item}</th>`;
+							});
+							$('.table-morning tbody tr').each(function() {
+								if(!$(this).hasClass('thead-morning')) {
+									let tds = ``;
+									for(let i = 0; i < data.morningClassNames.length; i++) {
+										tds += `<td></td>`;
+									}
+									$(this).append(tds);
+								}
+							})
+							let thsAf = ``;
+							let tdsAf = ``;
+							data.afternoonClassNames.forEach(item => {
+								thsAf += `<th scope="col">${item}</th>`;
+							});
+							console.log(data.morningSchedules)
+							$('.wrapper-tableItem').addClass('d-none');
+							$('.wrapper-choose').addClass('d-none');
+							$('.table-morning').removeClass('d-none');
+							$('.buttons').removeClass('d-none');
+							$('.table-morning tr').not($('.thead-morning')).append(tds);
+							let textCC = `Chào cờ`;
+							const tdsCC = $($('.table-morning.mon').find('tr').eq(1)).find('td');
+							console.log(tdsCC)
+							const firstTd = tdsCC.first();
+							tdsCC.each(function() {
+								$(this).not(firstTd).text(textCC);
+							});
+							let textSH = `Sinh hoạt CN`;
+							const tdsSH = $($('.table-morning.satur').find('tr').eq(5)).find('td');
+							const firstTdSH = tdsSH.first();
+							tdsSH.each(function() {
+								$(this).not(firstTdSH).text(textSH);
+							});
+							
+							data.morningSchedules.forEach(item => {
+								if(!timetableMorningMap[`${item.dayOfWeek}_${item.period}`]) {
+									timetableMorningMap[`${item.dayOfWeek}_${item.period}`] = [];
+								}
+								timetableMorningMap[`${item.dayOfWeek}_${item.period}`].push(item);
+							})
+							console.log(timetableMorningMap)
+							$('.table-morning').each(function(index) {
+								let trs = $(this).find('tr');
+								const dayOfWeek = $(this).data('day');
+								let isSatur = false;
+								let startPeriod = 1;
+								console.log(dayOfWeek);
+								if($(this).hasClass('mon')) {
+									trs = trs.slice(2);
+									startPeriod = 2;
+								} else if($(this).hasClass('satur')) {
+									trs = trs.slice(1, -1);
+									isSatur = true;
+								} else {
+									trs = trs.slice(1);
+								}
+								trs.each(function() {
+									let tds = ``;
+									if(startPeriod === 5 && isSatur) return;
+									$(this).find('td').slice(1).each(function(index) {
+										const schedule = timetableMorningMap[`${dayOfWeek}_${startPeriod}`][index];
+										let content = `<p>${schedule.assignment.subject.name}</p>
+										<i>(${schedule.assignment.teacher.name})</i>`;
+										$(this).empty().append(content);
+									})
+									startPeriod++;
+								});
+							});
 
-				
-				
-				$('.thead-morning').append(ths);
-				$('.table-afternoon tr').not($('.thead-afternoon')).append(tdsAf);
-				$('.table-afternoon tbody tr').each(function() {
-					if(!$(this).hasClass('thead-afternoon')) {
-						let tds = ``;
-						for(let i = 0; i < data.afternoonClassNames.length; i++) {
-							tds += `<td></td>`;
-						}
-						$(this).append(tds);
-					}
-				})
-				$('.thead-afternoon').append(thsAf);
-				data.afternoonSchedules.forEach(item => {
-					if(!timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`]) {
-						timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`] = [];
-					}
-					timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`].push(item);
-				})
-				console.log(timetableAfternoonMap)
-				$('.table-afternoon').each(function(index) {
-					let trs = $(this).find('tr');
-					const dayOfWeek = $(this).data('day');
-					let isMonAndSatur = false;
-					let startPeriod = 6;
-					console.log(dayOfWeek);
-					if($(this).hasClass('mon')) {
-						trs = trs.slice(1, -1);
-						isMonAndSatur = true;
-					} else if($(this).hasClass('satur')) {
-						trs = trs.slice(1, -1);
-						isMonAndSatur = true;
-					} else {
-						trs = trs.slice(1);
-					}
-					trs.each(function() {
-						let tds = ``;
-						if(startPeriod === 10 && isMonAndSatur) return;
-						$(this).find('td').slice(1).each(function(index) {
-							const schedule = timetableAfternoonMap[`${dayOfWeek}_${startPeriod}`][index];
-							let content = `<p>${schedule.assignment.subject.name}</p>
-							<i>(${schedule.assignment.teacher.name})</i>`;
-							$(this).empty().append(content);
+							
+							
+							$('.thead-morning').append(ths);
+							$('.table-afternoon tr').not($('.thead-afternoon')).append(tdsAf);
+							$('.table-afternoon tbody tr').each(function() {
+								if(!$(this).hasClass('thead-afternoon')) {
+									let tds = ``;
+									for(let i = 0; i < data.afternoonClassNames.length; i++) {
+										tds += `<td></td>`;
+									}
+									$(this).append(tds);
+								}
+							})
+							$('.thead-afternoon').append(thsAf);
+							data.afternoonSchedules.forEach(item => {
+								if(!timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`]) {
+									timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`] = [];
+								}
+								timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`].push(item);
+							})
+							console.log(timetableAfternoonMap)
+							$('.table-afternoon').each(function(index) {
+								let trs = $(this).find('tr');
+								const dayOfWeek = $(this).data('day');
+								let isMonAndSatur = false;
+								let startPeriod = 6;
+								console.log(dayOfWeek);
+								if($(this).hasClass('mon')) {
+									trs = trs.slice(1, -1);
+									isMonAndSatur = true;
+								} else if($(this).hasClass('satur')) {
+									trs = trs.slice(1, -1);
+									isMonAndSatur = true;
+								} else {
+									trs = trs.slice(1);
+								}
+								trs.each(function() {
+									let tds = ``;
+									if(startPeriod === 10 && isMonAndSatur) return;
+									$(this).find('td').slice(1).each(function(index) {
+										const schedule = timetableAfternoonMap[`${dayOfWeek}_${startPeriod}`][index];
+										let content = `<p>${schedule.assignment.subject.name}</p>
+										<i>(${schedule.assignment.teacher.name})</i>`;
+										$(this).empty().append(content);
+									})
+									startPeriod++;
+								});
+							});
 						})
-						startPeriod++;
-					});
+						.catch(error => {
+							console.log(error);
+							toastr.error('Lỗi');
+						});
+
+						
+					} else if (result.dismiss === Swal.DismissReason.cancel) {
+						fetch(`/admin/useTimeTable/${idTimeTable}`)
+						.then(res => {
+							if(!res.ok) throw new Error('Lỗi');
+							return res.json();
+						})
+						.then(data => {
+							Swal.fire(
+								'Thành công',
+								'Đã áp dụng thời khóa biểu này',
+								'success'
+							);
+							let usedText = $('.timetableOld.isUsed-true').text();
+							$('.timetableOld.isUsed-true')
+								.removeClass('isUsed-true')
+								.addClass('isUsed-false')
+								.text(usedText.replace(' - Đang sử dụng', ''));
+							thisTimeTable
+								.removeClass('isUsed-false')
+								.addClass('isUsed-true')
+								.text(thisTimeTable.text() + ' - Đang sử dụng');
+						})
+						.catch(err => {
+							Swal.fire(
+								'Thất bại',
+								'Áp dụng thời khóa biểu không thành công',
+								'error'
+							);
+						});
+						
+					}
 				});
-			})
-			.catch(error => {
-				console.log(error);
-				toastr.error('Lỗi');
-			});
+			} else {
+				newMode = false;
+				const idTimeTable = $(this).data('id');
+				fetch(`/admin/getTimeTable/${idTimeTable}`)
+				.then(res => {
+					if(!res.ok) throw new Error('Lỗi');
+					return res.json();
+				})
+				.then(data => {
+					let ths = ``;
+					let tds = ``;
+					data.morningClassNames.forEach(item => {
+						ths += `<th scope="col">${item}</th>`;
+					});
+					$('.table-morning tbody tr').each(function() {
+						if(!$(this).hasClass('thead-morning')) {
+							let tds = ``;
+							for(let i = 0; i < data.morningClassNames.length; i++) {
+								tds += `<td></td>`;
+							}
+							$(this).append(tds);
+						}
+					})
+					let thsAf = ``;
+					let tdsAf = ``;
+					data.afternoonClassNames.forEach(item => {
+						thsAf += `<th scope="col">${item}</th>`;
+					});
+					console.log(data.morningSchedules)
+					$('.wrapper-tableItem').addClass('d-none');
+					$('.wrapper-choose').addClass('d-none');
+					$('.table-morning').removeClass('d-none');
+					$('.buttons').removeClass('d-none');
+					$('.table-morning tr').not($('.thead-morning')).append(tds);
+					let textCC = `Chào cờ`;
+					const tdsCC = $($('.table-morning.mon').find('tr').eq(1)).find('td');
+					console.log(tdsCC)
+					const firstTd = tdsCC.first();
+					tdsCC.each(function() {
+						$(this).not(firstTd).text(textCC);
+					});
+					let textSH = `Sinh hoạt CN`;
+					const tdsSH = $($('.table-morning.satur').find('tr').eq(5)).find('td');
+					const firstTdSH = tdsSH.first();
+					tdsSH.each(function() {
+						$(this).not(firstTdSH).text(textSH);
+					});
+					
+					data.morningSchedules.forEach(item => {
+						if(!timetableMorningMap[`${item.dayOfWeek}_${item.period}`]) {
+							timetableMorningMap[`${item.dayOfWeek}_${item.period}`] = [];
+						}
+						timetableMorningMap[`${item.dayOfWeek}_${item.period}`].push(item);
+					})
+					console.log(timetableMorningMap)
+					$('.table-morning').each(function(index) {
+						let trs = $(this).find('tr');
+						const dayOfWeek = $(this).data('day');
+						let isSatur = false;
+						let startPeriod = 1;
+						console.log(dayOfWeek);
+						if($(this).hasClass('mon')) {
+							trs = trs.slice(2);
+							startPeriod = 2;
+						} else if($(this).hasClass('satur')) {
+							trs = trs.slice(1, -1);
+							isSatur = true;
+						} else {
+							trs = trs.slice(1);
+						}
+						trs.each(function() {
+							let tds = ``;
+							if(startPeriod === 5 && isSatur) return;
+							$(this).find('td').slice(1).each(function(index) {
+								const schedule = timetableMorningMap[`${dayOfWeek}_${startPeriod}`][index];
+								let content = `<p>${schedule.assignment.subject.name}</p>
+								<i>(${schedule.assignment.teacher.name})</i>`;
+								$(this).empty().append(content);
+							})
+							startPeriod++;
+						});
+					});
+
+					
+					
+					$('.thead-morning').append(ths);
+					$('.table-afternoon tr').not($('.thead-afternoon')).append(tdsAf);
+					$('.table-afternoon tbody tr').each(function() {
+						if(!$(this).hasClass('thead-afternoon')) {
+							let tds = ``;
+							for(let i = 0; i < data.afternoonClassNames.length; i++) {
+								tds += `<td></td>`;
+							}
+							$(this).append(tds);
+						}
+					})
+					$('.thead-afternoon').append(thsAf);
+					data.afternoonSchedules.forEach(item => {
+						if(!timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`]) {
+							timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`] = [];
+						}
+						timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`].push(item);
+					})
+					console.log(timetableAfternoonMap)
+					$('.table-afternoon').each(function(index) {
+						let trs = $(this).find('tr');
+						const dayOfWeek = $(this).data('day');
+						let isMonAndSatur = false;
+						let startPeriod = 6;
+						console.log(dayOfWeek);
+						if($(this).hasClass('mon')) {
+							trs = trs.slice(1, -1);
+							isMonAndSatur = true;
+						} else if($(this).hasClass('satur')) {
+							trs = trs.slice(1, -1);
+							isMonAndSatur = true;
+						} else {
+							trs = trs.slice(1);
+						}
+						trs.each(function() {
+							let tds = ``;
+							if(startPeriod === 10 && isMonAndSatur) return;
+							$(this).find('td').slice(1).each(function(index) {
+								const schedule = timetableAfternoonMap[`${dayOfWeek}_${startPeriod}`][index];
+								let content = `<p>${schedule.assignment.subject.name}</p>
+								<i>(${schedule.assignment.teacher.name})</i>`;
+								$(this).empty().append(content);
+							})
+							startPeriod++;
+						});
+					});
+				})
+				.catch(error => {
+					console.log(error);
+					toastr.error('Lỗi');
+				});
+			}
+			
 		});
 		$('#file-input').change(() => {
 			let name = $('#file-input')[0].files[0].name;
