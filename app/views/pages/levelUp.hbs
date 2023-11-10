@@ -59,10 +59,14 @@
 	})
 	let studentsMap = {};
 	let allClass = [];
-	$(function() {
-		fetch(`/admin/getLevelUp`)
+	$(async function() {
+		$('#spinner').addClass('show');
+		await fetch(`/admin/getLevelUp`)
 		.then(res => res.json())
-		.then(data => studentsMap = data)
+		.then(data => {
+			studentsMap = data;
+			$('#spinner').removeClass('show');
+		})
 		.catch(err => console.log(err))
 
 		fetch(`/admin/getAllClass`)
@@ -97,7 +101,7 @@
 					<td>${student.academicPerformance}</td>
 					<td>${student.conduct}</td>
 					<td>${student.numAbsent}</td>
-					<td>${student.resultLevelUp}</td>
+					<td>${student.result}</td>
 				</tr>`
 			})
 			$('#levelUp-table tbody').empty().append(trs);

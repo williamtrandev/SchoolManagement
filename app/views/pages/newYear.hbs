@@ -1,5 +1,60 @@
 <div class="container text-center" id="">
 	<img src="/imgs/background_newYear.png" alt="" class="img-fluid" style="max-height: 70vh">
-	<p class="mt-2">Lưu ý: Khi thêm năm học mới, các thông tin như điểm, thông tin học sinh sẽ không thể chỉnh sửa</p>
-	<button class="btn btn-primary">Bắt đầu năm học mới</button>
+	<p class="mt-2">Lưu ý: Khi thêm năm học mới, điểm sẽ không thể chỉnh sửa</p>
+	<div class="d-flex justify-content-center">
+		<button class="btn btn-primary me-3 btn-semester">Bắt đầu học kì mới</button>
+		<button class="btn btn-primary btn-year">Bắt đầu năm học mới</button>
+	</div>
 </div>
+
+<script>
+	$(function() {
+		$('.btn-semester').click(() => {
+			Swal.fire({
+				title: 'Xác nhận bắt đầu học kì mới',
+				text: 'Có chắc chắn?',
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonText: 'Đồng ý',
+				cancelButtonText: 'Hủy'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					fetch(`/admin/startNewSemester`)
+					.then(response => response.json())
+					.then(data => {
+						Swal.fire('Thành công', 'Đã thêm học kì mới!', 'success');
+					})
+					.catch(error => {
+						Swal.fire('Lỗi', 'Thêm không thành công!', 'error');
+					});
+				} else if (result.isDismiss === Swal.DismissReason.cancel) {
+					Swal.fire('Hủy', 'Bạn đã hủy việc thêm!', 'error');
+				}
+			});
+
+		})
+		$('.btn-year').click(() => {
+			Swal.fire({
+				title: 'Xác nhận bắt đầu năm học mới',
+				text: 'Có chắc chắn?',
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonText: 'Đồng ý',
+				cancelButtonText: 'Hủy'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					fetch(`/admin/startNewYear`)
+					.then(response => response.json())
+					.then(data => {
+						Swal.fire('Thành công', 'Đã thêm năm học mới!', 'success');
+					})
+					.catch(error => {
+						Swal.fire('Lỗi', 'Thêm không thành công!', 'error');
+					});
+				} else if (result.isDismiss === Swal.DismissReason.cancel) {
+					Swal.fire('Hủy', 'Bạn đã hủy việc thêm!', 'error');
+				}
+			});
+		});
+	})
+</script>

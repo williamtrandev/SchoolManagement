@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const adminController = require("../app/controllers/adminController");
 const verifyToken = require("../app/middlewares/verifyToken");
+const TimeTable = require("../app/models/TimeTable");
+const Schedule = require("../app/models/Schedule");
 
 const fileUpload = require('../app/middlewares/fileUpload');
 
@@ -72,6 +74,7 @@ router.post('/saveAssignments', adminController.saveAssignments);
 router.get('/timeTable', adminController.timeTable);
 
 router.post('/addSchedule', adminController.saveSchedule);
+router.post('/addTimeTableByExcel', fileUpload(), adminController.addTimeTableByExcel);
 
 router.get('/getTimeTable/:id', adminController.getTimeTable);
 
@@ -97,4 +100,11 @@ router.get('/studyResult', adminController.studyResult);
 
 router.get('/getResult/:classId/:term', adminController.getResult);
 router.get('/printResult', adminController.printResult);
+router.get('/startNewSemester', adminController.newSemester);
+router.get('/startNewYear', adminController.startNewYear);
+router.get('/deleteTimeTable', async(req, res) => {
+	const id = `654d0c7bd6fe0f16e33ba30a`;
+	await Schedule.deleteMany({ timeTable: id });
+	res.status(200).json('ok')
+})
 module.exports = router;

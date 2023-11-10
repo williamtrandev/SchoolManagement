@@ -6,14 +6,20 @@
 		<div class="info-notime">
 			<img src="/imgs/background_timetable.png" alt="" class="img-fluid">
 			<h5 style="font-weight: normal;">Chưa có thời khóa biểu nào</h5>
-			<button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
+			<div class="d-flex justify-content-center">
+				<button class="btn btn-primary mt-3 me-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
+				<button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addTimetableByExcel">Nhập từ file</button>
+			</div>
 		</div>
 	{{else}} 
 		<div class="wrapper-tableItem">
 			{{#each timeTables}}
-				<div class="timetableOld btn btn-success w-100" data-id="{{_id}}">{{name}}</div>
+				<div class="timetableOld btn btn-success w-100 my-2" data-id="{{_id}}">{{name}}</div>
 			{{/each}}
-			<button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
+			<div class="d-flex justify-content-center">
+				<button class="btn btn-primary mt-3 me-3" data-toggle="modal" data-target="#addTimetable">Lập thời khóa biểu</button>
+				<button class="btn btn-primary mt-3" data-toggle="modal" data-target="#addTimetableByExcel">Nhập từ file</button>
+			</div>
 		</div>
 	{{/ifEquals}}
 	<div class="wrapper-choose d-none">
@@ -28,7 +34,7 @@
 		<button class="btn border-0 border-bottom border-primary me-4 btn-morning">Buổi sáng</button>
 		<button class="btn border-0 border-bottom btn-afternoon">Buổi chiều</button>
 	</div>
-	<div class="table-responsive table-morning d-none mon">
+	<div class="table-responsive table-morning d-none mon" data-day="2">
 		<table class="table table-auto text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-morning">
 				<th scope="col" rowspan="6" style="width: 50px">T2</th>
@@ -54,7 +60,7 @@
 			</tr>
 		</table>
 	</div>
-	<div class="table-responsive table-morning d-none tues">
+	<div class="table-responsive table-morning d-none tues" data-day="3">
 		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-morning">
 				<th scope="col" rowspan="6" style="width: 50px">T3</th>
@@ -82,7 +88,7 @@
 			</tr>
 		</table>
 	</div>
-	<div class="table-responsive table-morning d-none wed">
+	<div class="table-responsive table-morning d-none wed" data-day="4">
 		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-morning">
 				<th scope="col" rowspan="6" style="width: 50px">T4</th>
@@ -110,7 +116,7 @@
 			</tr>
 		</table>
 	</div>
-	<div class="table-responsive table-morning d-none thurs">
+	<div class="table-responsive table-morning d-none thurs" data-day="5">
 		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-morning">
 				<th scope="col" rowspan="6" style="width: 50px">T5</th>
@@ -138,7 +144,7 @@
 			</tr>
 		</table>
 	</div>
-	<div class="table-responsive table-morning d-none fri">
+	<div class="table-responsive table-morning d-none fri" data-day="6">
 		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-morning">
 				<th scope="col" rowspan="6" style="width: 50px">T6</th>
@@ -166,7 +172,7 @@
 			</tr>
 		</table>
 	</div>
-	<div class="table-responsive table-morning d-none satur">
+	<div class="table-responsive table-morning d-none satur" data-day="7">
 		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-morning">
 				<th scope="col" rowspan="6" style="width: 50px">T7</th>
@@ -198,7 +204,7 @@
 
 
 	{{!-- Afternoon --}}
-	<div class="table-responsive table-afternoon d-none mon">
+	<div class="table-responsive table-afternoon d-none mon" data-day="2">
 		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-afternoon">
 				<th scope="col" rowspan="6" style="width: 50px">T2</th>
@@ -224,7 +230,7 @@
 			</tr>
 		</table>
 	</div>
-	<div class="table-responsive table-afternoon d-none tues">
+	<div class="table-responsive table-afternoon d-none tues" data-day="3">
 		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-afternoon">
 				<th scope="col" rowspan="6" style="width: 50px">T3</th>
@@ -252,7 +258,7 @@
 			</tr>
 		</table>
 	</div>
-	<div class="table-responsive table-afternoon d-none wed">
+	<div class="table-responsive table-afternoon d-none wed" data-day="4">
 		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-afternoon">
 				<th scope="col" rowspan="6" style="width: 50px">T4</th>
@@ -280,7 +286,7 @@
 			</tr>
 		</table>
 	</div>
-	<div class="table-responsive table-afternoon d-none thurs">
+	<div class="table-responsive table-afternoon d-none thurs" data-day="5">
 		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-afternoon">
 				<th scope="col" rowspan="6" style="width: 50px">T5</th>
@@ -308,7 +314,7 @@
 			</tr>
 		</table>
 	</div>
-	<div class="table-responsive table-afternoon d-none fri">
+	<div class="table-responsive table-afternoon d-none fri" data-day="6">
 		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-afternoon">
 				<th scope="col" rowspan="6" style="width: 50px">T6</th>
@@ -336,7 +342,7 @@
 			</tr>
 		</table>
 	</div>
-	<div class="table-responsive table-afternoon d-none satur">
+	<div class="table-responsive table-afternoon d-none satur" data-day="7">
 		<table class="table text-center align-middle table-bordered mb-0 mt-3 overflow-auto text-nowrap">
 			<tr class="text-dark thead-afternoon">
 				<th scope="col" rowspan="6" style="width: 50px">T7</th>
@@ -420,6 +426,36 @@
 	</div>
 </div>
 
+
+<div class="modal fade" id="addTimetableByExcel">
+    <div class="modal-dialog">
+		<div class="modal-content p-2">
+			<!-- Modal Header -->
+			<div class="modal-header justify-content-center">
+				<h4 class="modal-title">Tạo đợt áp dụng mới</h4>
+			</div>
+			
+			<!-- Modal body -->
+			<div class="modal-body">
+				<div class="mx-auto">
+					<form enctype="multipart/form-data">
+						<input type="file" name="file" id="file-input" class="d-none" accept=".xlsx, .xls">
+						<label for="file-input" style="cursor: pointer;" class="d-block position-relative text-white bg-primary text-center rounded m-auto p-3"><i class="fas fa-upload"></i>&nbsp;Chọn File để thêm</label>
+						<p class="text-primary text-center p-2 mt-3 d-none rounded" style="background: #eff5ff;" id="file-name"></p>
+					</form>
+					<p class="mt-2">Tải tệp mẫu <a href="/file/Sample_TKB.xlsx" download>tại đây</a></p>
+				</div>
+			</div>
+			<!-- Modal footer -->
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary btn-save-timetableByExcel">Đồng ý</button>
+				<button type="button" class="btn border" data-dismiss="modal">Hủy</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+
 <div class="navbar fixed-bottom navbar-light bg-light d-flex justify-content-end d-none" style="left: 250px; height: 80px">
 	<div class="container-fluid">
 		<button class="btn btn-info text-white my-3 btn-save-schedule ms-auto me-3">Lưu</button>
@@ -433,6 +469,7 @@
 		let grade7 = [];
 		let grade8 = [];
 		let grade9 = [];
+		let newMode = true;
 		let nameTimeTable = null;
 		await fetch('/admin/getAllClass')
 		.then(res => res.json())
@@ -600,23 +637,40 @@
 			$('.table-afternoon').addClass('d-none');
 		});
 		$('.btn-afternoon').click(()=> {
-			let optionsCC = `<select class="form-select">
+			if(newMode) {
+				let optionsCC = `<select class="form-select">
 					<option>Chào cờ</option>
 				</select>`;
-			let optionsSH = `<select class="form-select">
-					<option>Sinh hoạt CN</option>
-				</select>`;
-			const tdsCCAf = $($('.table-afternoon.mon').find('tr').eq(5)).find('td');
-			console.log(tdsCCAf)
-			const firstTdAf = tdsCCAf.first();
-			tdsCCAf.each(function() {
-				$(this).not(firstTdAf).empty().append(optionsCC);
-			});
-			const tdsSHAf = $($('.table-afternoon.satur').find('tr').eq(5)).find('td');
-			const firstTdSHAf = tdsSHAf.first();
-			tdsSHAf.each(function() {
-				$(this).not(firstTdSHAf).empty().append(optionsSH);
-			});
+				let optionsSH = `<select class="form-select">
+						<option>Sinh hoạt CN</option>
+					</select>`;
+				const tdsCCAf = $($('.table-afternoon.mon').find('tr').eq(5)).find('td');
+				console.log(tdsCCAf)
+				const firstTdAf = tdsCCAf.first();
+				tdsCCAf.each(function() {
+					$(this).not(firstTdAf).empty().append(optionsCC);
+				});
+				const tdsSHAf = $($('.table-afternoon.satur').find('tr').eq(5)).find('td');
+				const firstTdSHAf = tdsSHAf.first();
+				tdsSHAf.each(function() {
+					$(this).not(firstTdSHAf).empty().append(optionsSH);
+				});
+				
+			} else {
+				let textCC = `Chào cờ`;
+				let textSH = `Sinh hoạt CN`;
+				const tdsCCAf = $($('.table-afternoon.mon').find('tr').eq(5)).find('td');
+				console.log(tdsCCAf)
+				const firstTdAf = tdsCCAf.first();
+				tdsCCAf.each(function() {
+					$(this).not(firstTdAf).text(textCC);
+				});
+				const tdsSHAf = $($('.table-afternoon.satur').find('tr').eq(5)).find('td');
+				const firstTdSHAf = tdsSHAf.first();
+				tdsSHAf.each(function() {
+					$(this).not(firstTdSHAf).text(textSH);
+				});
+			}
 			$('.btn-afternoon').addClass('border-primary');
 			$('.btn-morning').removeClass('border-primary');
 			$('.table-morning').addClass('d-none');
@@ -709,9 +763,10 @@
 				toastr.error('Đã có lỗi xảy ra');
 			});
 		})
+		const timetableMorningMap = {};
+		const timetableAfternoonMap = {};
 		$('.timetableOld').click(function() {
-			$('.wrapper-tableItem').addClass('d-none');
-			$('.table-morning').removeClass('d-none');
+			newMode = false;
 			const idTimeTable = $(this).data('id');
 			fetch(`/admin/getTimeTable/${idTimeTable}`)
 			.then(res => {
@@ -722,100 +777,166 @@
 				let ths = ``;
 				let tds = ``;
 				data.morningClassNames.forEach(item => {
-					ths += `<th scope="col">${item.name}</th>`;
-					let opts = `<option value="none" selected disabled>Chọn</option>`;
-					item.assignments.forEach(assign => {
-						const subjectName = subjectMap[assign.subject.name];
-						const nameParts = assign.teacher.name.split(" ");
-						const lastnameTeacher = nameParts[nameParts.length - 1];
-						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
-					});
-					tds += `<td scope="col">
-						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
-							${opts}
-						</select>
-					</td>`;
+					ths += `<th scope="col">${item}</th>`;
 				});
-				gradeMap[arrChoose[1]].forEach(item => {
-					ths += `<th scope="col">${item.name}</th>`;
-					let opts = `<option value="none" selected disabled>Chọn</option>`;
-					item.assignments.forEach(assign => {
-						const subjectName = subjectMap[assign.subject.name];
-						const nameParts = assign.teacher.name.split(" ");
-						const lastnameTeacher = nameParts[nameParts.length - 1];
-						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
-					});
-					tds += `<td scope="col">
-						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
-							${opts}
-						</select>
-					</td>`;
-				});
-
-				const remainingGrade = Object.keys(gradeMap).filter(key => !arrChoose.includes(key));
-				remainingGrade.sort();
+				$('.table-morning tbody tr').each(function() {
+					if(!$(this).hasClass('thead-morning')) {
+						let tds = ``;
+						for(let i = 0; i < data.morningClassNames.length; i++) {
+							tds += `<td></td>`;
+						}
+						$(this).append(tds);
+					}
+				})
 				let thsAf = ``;
 				let tdsAf = ``;
-				gradeMap[remainingGrade[0]].forEach(item => {
-					thsAf += `<th scope="col">${item.name}</th>`;
-					let opts = `<option value="none" selected disabled>Chọn</option>`;
-					item.assignments.forEach(assign => {
-						const subjectName = subjectMap[assign.subject.name];
-						const nameParts = assign.teacher.name.split(" ");
-						const lastnameTeacher = nameParts[nameParts.length - 1];
-						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
-					});
-					tdsAf += `<td scope="col">
-						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
-							${opts}
-						</select>
-					</td>`;
+				data.afternoonClassNames.forEach(item => {
+					thsAf += `<th scope="col">${item}</th>`;
 				});
-				gradeMap[remainingGrade[1]].forEach(item => {
-					thsAf += `<th scope="col">${item.name}</th>`;
-					let opts = `<option value="none" selected disabled>Chọn</option>`;
-					item.assignments.forEach(assign => {
-						const subjectName = subjectMap[assign.subject.name];
-						const nameParts = assign.teacher.name.split(" ");
-						const lastnameTeacher = nameParts[nameParts.length - 1];
-						opts += `<option value="${assign._id}" data-teacher="${assign.teacher._id}">${subjectName}-${lastnameTeacher}</option>`;
-					});
-					tdsAf += `<td scope="col">
-						<select class="form-select w-auto" data-period="$period" data-class="${item._id}" data-className="${item.name}">
-							${opts}
-						</select>
-					</td>`;
-				});
+				console.log(data.morningSchedules)
+				$('.wrapper-tableItem').addClass('d-none');
 				$('.wrapper-choose').addClass('d-none');
 				$('.table-morning').removeClass('d-none');
-				$('.fixed-bottom').removeClass('d-none');
-				//$('.table-afternoon').removeClass('d-none');
 				$('.buttons').removeClass('d-none');
 				$('.table-morning tr').not($('.thead-morning')).append(tds);
-				let optionsCC = `<select class="form-select">
-					<option>Chào cờ</option>
-				</select>`;
+				let textCC = `Chào cờ`;
 				const tdsCC = $($('.table-morning.mon').find('tr').eq(1)).find('td');
+				console.log(tdsCC)
 				const firstTd = tdsCC.first();
 				tdsCC.each(function() {
-					$(this).not(firstTd).empty().append(optionsCC);
+					$(this).not(firstTd).text(textCC);
 				});
-				let optionsSH = `<select class="form-select">
-					<option>Sinh hoạt CN</option>
-				</select>`;
+				let textSH = `Sinh hoạt CN`;
 				const tdsSH = $($('.table-morning.satur').find('tr').eq(5)).find('td');
 				const firstTdSH = tdsSH.first();
 				tdsSH.each(function() {
-					$(this).not(firstTdSH).empty().append(optionsSH);
+					$(this).not(firstTdSH).text(textSH);
 				});
+				
+				data.morningSchedules.forEach(item => {
+					if(!timetableMorningMap[`${item.dayOfWeek}_${item.period}`]) {
+						timetableMorningMap[`${item.dayOfWeek}_${item.period}`] = [];
+					}
+					timetableMorningMap[`${item.dayOfWeek}_${item.period}`].push(item);
+				})
+				console.log(timetableMorningMap)
+				$('.table-morning').each(function(index) {
+					let trs = $(this).find('tr');
+					const dayOfWeek = $(this).data('day');
+					let isSatur = false;
+					let startPeriod = 1;
+					console.log(dayOfWeek);
+					if($(this).hasClass('mon')) {
+						trs = trs.slice(2);
+						startPeriod = 2;
+					} else if($(this).hasClass('satur')) {
+						trs = trs.slice(1, -1);
+						isSatur = true;
+					} else {
+						trs = trs.slice(1);
+					}
+					trs.each(function() {
+						let tds = ``;
+						if(startPeriod === 5 && isSatur) return;
+						$(this).find('td').slice(1).each(function(index) {
+							const schedule = timetableMorningMap[`${dayOfWeek}_${startPeriod}`][index];
+							let content = `<p>${schedule.assignment.subject.name}</p>
+							<i>(${schedule.assignment.teacher.name})</i>`;
+							$(this).empty().append(content);
+						})
+						startPeriod++;
+					});
+				});
+
+				
+				
 				$('.thead-morning').append(ths);
 				$('.table-afternoon tr').not($('.thead-afternoon')).append(tdsAf);
+				$('.table-afternoon tbody tr').each(function() {
+					if(!$(this).hasClass('thead-afternoon')) {
+						let tds = ``;
+						for(let i = 0; i < data.afternoonClassNames.length; i++) {
+							tds += `<td></td>`;
+						}
+						$(this).append(tds);
+					}
+				})
 				$('.thead-afternoon').append(thsAf);
+				data.afternoonSchedules.forEach(item => {
+					if(!timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`]) {
+						timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`] = [];
+					}
+					timetableAfternoonMap[`${item.dayOfWeek}_${item.period}`].push(item);
+				})
+				console.log(timetableAfternoonMap)
+				$('.table-afternoon').each(function(index) {
+					let trs = $(this).find('tr');
+					const dayOfWeek = $(this).data('day');
+					let isMonAndSatur = false;
+					let startPeriod = 6;
+					console.log(dayOfWeek);
+					if($(this).hasClass('mon')) {
+						trs = trs.slice(1, -1);
+						isMonAndSatur = true;
+					} else if($(this).hasClass('satur')) {
+						trs = trs.slice(1, -1);
+						isMonAndSatur = true;
+					} else {
+						trs = trs.slice(1);
+					}
+					trs.each(function() {
+						let tds = ``;
+						if(startPeriod === 10 && isMonAndSatur) return;
+						$(this).find('td').slice(1).each(function(index) {
+							const schedule = timetableAfternoonMap[`${dayOfWeek}_${startPeriod}`][index];
+							let content = `<p>${schedule.assignment.subject.name}</p>
+							<i>(${schedule.assignment.teacher.name})</i>`;
+							$(this).empty().append(content);
+						})
+						startPeriod++;
+					});
+				});
 			})
 			.catch(error => {
 				console.log(error);
 				toastr.error('Lỗi');
 			});
-		})
+		});
+		$('#file-input').change(() => {
+			let name = $('#file-input')[0].files[0].name;
+			$('#file-name').text(name);
+			$('#file-name').removeClass('d-none');
+		});
+		$(".btn-save-timetableByExcel").click(() => {
+			const file = $('#file-input')[0].files[0];
+			if(file) {
+				const formData = new FormData();
+				formData.append('file', file);
+				$('#spinner').addClass('show');
+				fetch('/admin/addTimeTableByExcel', {
+					method: 'POST',
+					body: formData,
+				})
+				.then(response => {
+					if(!response.ok) {
+						throw new Error('Lỗi');
+					}
+					return response.json();
+				})
+				.then(data => {
+					console.log(data);
+					$('#spinner').removeClass('show');
+					toastr.success('Lưu thành công');
+					setTimeout(() => {
+						window.location.reload();
+					}, 1000);
+				})
+				.catch(error => {
+					console.error(error);
+					$('#spinner').removeClass('show');
+					toastr.error('Lỗi hệ thống');
+				});
+			}
+		});
 	})
 </script>
