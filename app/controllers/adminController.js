@@ -1163,7 +1163,7 @@ class AdminController {
 					absentMap[studentId] = item.numAbsent;
 				}
 			});
-
+			let iTerm = 1;
 			//console.log(absentMap);
 			const studentsMap = {};
 			students.forEach(student => {
@@ -1181,9 +1181,8 @@ class AdminController {
 				let count35 = 0;
 				let countL35 = 0;
 				let countCD = 0;
-				let numSubjectWithPoint;
+				let numSubjectWithPoint = 8;
 				student.termResults.forEach(term => {
-					numSubjectWithPoint = 0
 					let sumPoint = 0;
 					let pointWithChar;
 					let pointWithChar1;
@@ -1218,6 +1217,7 @@ class AdminController {
 							}
 						}
 					})
+					sumPoint /= numSubjectWithPoint;
 					// Nếu là học kì 2 thì * 2 
 					if (!term.is1stSemester) {
 						sumPoint *= 2;
@@ -1286,7 +1286,7 @@ class AdminController {
 				}
 				studentsMap[student.currentClass.name].push(returnStudent);
 			})
-			console.log(studentsMap);
+			//console.log(studentsMap);
 			res.status(200).json(studentsMap);
 		} catch (err) {
 			console.log(err);
