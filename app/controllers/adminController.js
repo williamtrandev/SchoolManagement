@@ -35,6 +35,20 @@ sortClass = (a, b) => {
 	return parseInt(numA2) - parseInt(numB2);
 }
 
+function rankingClass(grade) {
+	let currentRank = 1; // Bắt đầu với hạng 1
+	let numClass = 0;
+	for (let i = 0; i < grade.length; i++) {
+		numClass++;
+		if (i > 0 && grade[i].point !== grade[i - 1].point) {
+			// Nếu điểm khác với điểm trước đó, tăng hạng lên
+			currentRank++;
+			grade[i].rank = numClass;
+		} else {
+			grade[i].rank = currentRank; // Gán hạng cho lớp
+		}
+	}
+}
 
 class AdminController {
 	home = async (req, res) => {
@@ -842,14 +856,14 @@ class AdminController {
 		try {
 			const year = await Year.findOne({}).sort({ _id: -1 });
 			const classes = await Class.find({ year: year._id })
-			.populate({
-				path: 'assignments',
-				populate: [
-					{ path: 'teacher' },
-					{ path: 'subject' }
-				]
-			})
-			.lean();
+				.populate({
+					path: 'assignments',
+					populate: [
+						{ path: 'teacher' },
+						{ path: 'subject' }
+					]
+				})
+				.lean();
 			classes.sort((a, b) => {
 				const regex = /(\d+)([A-Za-z]+)(\d+)/;
 				const [, numA, charA, numA2] = a.name.match(regex);
@@ -1070,19 +1084,27 @@ class AdminController {
 			returnClasses.sort((a, b) => {
 				return b.point - a.point;
 			});
-			let currentRank = 1; // Bắt đầu với hạng 1
-			let numClass = 0;
-			for (let i = 0; i < returnClasses.length; i++) {
-				numClass++;
-				if (i > 0 && returnClasses[i].point !== returnClasses[i - 1].point) {
-					// Nếu điểm khác với điểm trước đó, tăng hạng lên
-					currentRank++;
-					returnClasses[i].rank = numClass;
-				} else {
-					returnClasses[i].rank = currentRank; // Gán hạng cho lớp
-				}
-			}
-			res.status(200).json(returnClasses);
+			const grade6 = returnClasses.filter(classItem => parseInt(classItem.name.charAt(0)) === 6);
+			const grade7 = returnClasses.filter(classItem => parseInt(classItem.name.charAt(0)) === 7);
+			const grade8 = returnClasses.filter(classItem => parseInt(classItem.name.charAt(0)) === 8);
+			const grade9 = returnClasses.filter(classItem => parseInt(classItem.name.charAt(0)) === 9);
+			// let currentRank = 1; // Bắt đầu với hạng 1
+			// let numClass = 0;
+			// for (let i = 0; i < grade6.length; i++) {
+			// 	numClass++;
+			// 	if (i > 0 && grade6[i].point !== grade6[i - 1].point) {
+			// 		// Nếu điểm khác với điểm trước đó, tăng hạng lên
+			// 		currentRank++;
+			// 		grade6[i].rank = numClass;
+			// 	} else {
+			// 		grade6[i].rank = currentRank; // Gán hạng cho lớp
+			// 	}
+			// }
+			rankingClass(grade6);
+			rankingClass(grade7);
+			rankingClass(grade8);
+			rankingClass(grade9);
+			res.status(200).json({ grade6, grade7, grade8, grade9 });
 		} catch (err) {
 			res.status(500).json({ err: err });
 		}
@@ -1564,13 +1586,13 @@ class AdminController {
 				const teacherId = await Teacher.findOne({ name: item.teacher });
 				const classId = await Class.findOne({ name: item.class });
 				const subjectId = await Subject.findOne({ name: item.subject });
-				if(!teacherId) {
+				if (!teacherId) {
 					console.log(item.teacher);
 				}
-				if(!classId) {
+				if (!classId) {
 					console.log(item.class);
 				}
-				if(!subjectId) {
+				if (!subjectId) {
 					console.log(item.subject);
 				}
 				const findAssignment = await Assignment.findOne({
@@ -1578,12 +1600,12 @@ class AdminController {
 					class: classId._id,
 					subject: subjectId._id,
 				});
-				if(!findAssignment) {
+				if (!findAssignment) {
 					console.log('null with teacher ' + teacherId.name + ' and class ' + classId.name + ' and subject ' + subjectId.name)
 				}
 				// Lưu kết quả vào bộ đệm
 				cache[cacheKey] = findAssignment._id;
-				
+
 			}));
 			scheduleArray.forEach(item => {
 				schedules.push(new Schedule({
