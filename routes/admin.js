@@ -9,7 +9,7 @@ const fileUpload = require('../app/middlewares/fileUpload');
 
 router.get('/', adminController.home);
 
-router.get('/attendance', adminController.attendance);
+router.get('/attendance', verifyToken, adminController.attendance);
 
 router.get('/login', (req, res) => {
 	if (!req.cookies.jwt)
@@ -28,10 +28,10 @@ router.post('/register', adminController.register);
 
 router.get('/logout', adminController.logout);
 
-router.post('/addClass', verifyToken, adminController.addClass);
+router.post('/addClass', adminController.addClass);
 
 // router.get('/classes/:grade',  adminController.getClasses);
-router.get('/classes/:grade', adminController.getClassesByGrade);
+router.get('/classes/:grade', verifyToken, adminController.getClassesByGrade);
 
 router.get('/class', adminController.getStudentByClass);
 
@@ -39,7 +39,7 @@ router.post('/addStudent/:id', adminController.addIntoClass);
 
 router.post('/checkAttendance', adminController.checkAttendance);
 
-router.get('/students', adminController.profileStudents);
+router.get('/students', verifyToken, adminController.profileStudents);
 
 router.get('/classes', adminController.profileClasses);
 
@@ -49,19 +49,19 @@ router.post('/addDataByFile', fileUpload(), adminController.addDataByFile);
 
 router.get('/getGradeByYear/:year', adminController.getGradeByYear);
 
-router.get('/data', adminController.data);
+router.get('/data', verifyToken, adminController.data);
 
 router.post('/setTeacher', adminController.setTeacher);
 
 router.post('/teacher', adminController.addTeacher);
 
-router.get('/teachers', adminController.teachers);
+router.get('/teachers', verifyToken, adminController.teachers);
 
 router.get('/getTeachersByGroup', adminController.getTeachersByGroup);
 
 router.put('/teacher/:teacherId', adminController.updateTeacher);
 
-router.get('/assignments', adminController.assignments);
+router.get('/assignments', verifyToken, adminController.assignments);
 
 router.get('/getAllClass', adminController.getAllClass);
 
@@ -71,7 +71,7 @@ router.get('/getAllSubject', adminController.getAllSubject);
 
 router.post('/saveAssignments', adminController.saveAssignments);
 
-router.get('/timeTable', adminController.timeTable);
+router.get('/timeTable', verifyToken, adminController.timeTable);
 
 router.post('/addSchedule', adminController.saveSchedule);
 router.post('/addTimeTableByExcel', fileUpload(), adminController.addTimeTableByExcel);
@@ -88,23 +88,23 @@ router.get('/student/:mssv', adminController.student);
 
 router.post('/editStudent/:mssv', adminController.editStudent);
 
-router.get('/rank', adminController.rank);
+router.get('/rank', verifyToken, adminController.rank);
 
 router.get('/getRanking', adminController.getRanking);
 
-router.get('/newYear', adminController.newYearPage);
+router.get('/newYear', verifyToken, adminController.newYearPage);
 
-router.get('/levelUp', adminController.levelUpPage);
+router.get('/levelUp', verifyToken, adminController.levelUpPage);
 
 router.get('/getLevelUp', adminController.levelUp);
 
-router.get('/studyResult', adminController.studyResult);
+router.get('/studyResult', verifyToken, adminController.studyResult);
 
 router.get('/getResult/:classId/:term', adminController.getResult);
 router.get('/printResult', adminController.printResult);
 router.get('/startNewSemester', adminController.newSemester);
 router.get('/startNewYear', adminController.startNewYear);
-router.get('/deleteTimeTable', async(req, res) => {
+router.get('/deleteTimeTable', async (req, res) => {
 	const id = `654d0c7bd6fe0f16e33ba30a`;
 	await Schedule.deleteMany({ timeTable: id });
 	res.status(200).json('ok')
