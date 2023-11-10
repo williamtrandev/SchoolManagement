@@ -22,9 +22,12 @@
                     {{#each timeTable}}
                     <tr>
                         <td>{{period}}</td>
-                        {{#each subject}}
-                        <td>{{.}}</td>
-                        {{/each}}
+                        <td>{{subject.[0]}}</td>
+                        <td>{{subject.[1]}}</td>
+                        <td>{{subject.[2]}}</td>
+                        <td>{{subject.[3]}}</td>
+                        <td>{{subject.[4]}}</td>
+                        <td>{{subject.[5]}}</td>
                     </tr>
                     {{/each}}
                 </tbody>

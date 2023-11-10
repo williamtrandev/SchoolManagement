@@ -9,6 +9,8 @@ const StudentClass = require('../models/StudentClass');
 const Submission = require('../models/Submission');
 const ScoreTable = require('../models/ScoreTable');
 const Student = require('../models/Student');
+const Schedule = require('../models/Schedule');
+const TimeTable = require('../models/TimeTable');
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -27,23 +29,40 @@ class TeacherController {
 				.populate('class')
 				.populate('schedules')
 				.lean();
-			console.log(assignments);
+
+			const findTimeTable = await TimeTable.findOne({ isUsed: true });
+			
 			const timeTable = [
 				{ period: 1, class: [] },
 				{ period: 2, class: [] },
 				{ period: 3, class: [] },
 				{ period: 4, class: [] },
 				{ period: 5, class: [] },
+				{ period: 6, class: [] },
+				{ period: 7, class: [] },
+				{ period: 8, class: [] },
+				{ period: 9, class: [] },
+				{ period: 10, class: [] },
 			];
 
-			assignments.forEach(assignment => {
-				assignment.schedules.forEach(schedule => {
-					const period = schedule.period;
-					const date = schedule.date;
-					timeTable[period - 1].class[date - 2] = assignment.class.name;
-				});
-			});
-			console.log(timeTable);
+			for (let i = 0; i < assignments.length; i++) {
+				const schedules = await Schedule.find({ assignment: assignments[i]._id, timeTable: findTimeTable._id });
+				for (let j = 0; j < schedules.length; j++) {
+					console.log(schedules[j]);
+					const period = schedules[j].period;
+					const date = schedules[j].dayOfWeek;
+					timeTable[period - 1].class[date - 2] = `${assignments[i].class.name} - ${assignments[i].subject.name}`;
+				}
+			}
+
+			// if (teacher.class != null) {
+			// 	if (timeTable[5].class.length == 0) {
+			// 		timeTable[4].class[5] = `${teacher.class.name} - Sinh hoạt lớp`;
+			// 	} else {
+			// 		timeTable[9].class[5] = 'Sinh hoạt lớp';
+			// 	}
+			// }
+
 			res.render('teacherHome', { 
 				layout: 'teacher_layout', 
 				title: "Trang chủ", 
@@ -61,7 +80,7 @@ class TeacherController {
 	async login(req, res) {
 		try {
 			const { email, password } = req.body;
-			const teacher = await Teacher.findOne({ email: email }).lean();
+			const teacher = await Teacher.findOne({ email: email }).populate('class').lean();
 			if (!teacher) {
 				return res.status(404).json({ error: 'Email không tồn tại' });
 			}
@@ -345,7 +364,7 @@ class TeacherController {
 				.lean();
 			
 			const students = studentClass.map(sc => sc.student);
-
+			console.log(students);
 			res.render('teacherScores', {
 				layout: 'teacher_layout', 
 				title: "Bảng điểm", 
@@ -424,38 +443,58 @@ class TeacherController {
 			const workbook = new exceljs.Workbook();
 			await workbook.xlsx.load(excelFile.data);
 			const worksheetData = workbook.getWorksheet(1); // Lấy trang tính toán đầu tiên
-			worksheetData.eachRow(async (row, rowNumber) => {
+			const promiseFunctions = [];
+		
+			worksheetData.eachRow((row, rowNumber) => {
 				if (rowNumber != 1) {
 					const studentId = row.getCell(1).value;
-					const student = await Student.findOne({ studentId: studentId });
-					const termResult = await TermResult.findOne({ student: student._id, year: newestYear }).sort({ _id: -1 });
-					const scoreTable = await ScoreTable.findOneAndUpdate(
-						{ assignment: assignmentId, student: student._id },
-						{ 
-							scoreFrequent: row.getCell(3).value,
-							scoreMidTerm: row.getCell(4).value,
-							scoreFinalTerm: row.getCell(5).value,
-							assignment: assignmentId,
-							student: student._id, 
-							termResult: termResult._id },
-						{ new: true, upsert: true }
-					);
-					if (!student.scoreTables.includes(scoreTable._id)) {
-						student.scoreTables.push(scoreTable._id);
-						await student.save();
-					}
-					if (!termResult.scoreTables.includes(scoreTable._id)) {
-						termResult.scoreTables.push(scoreTable._id);
-						await termResult.save();
-					}
+					const scoreFrequent = row.getCell(3).value.result ? row.getCell(3).value.result : row.getCell(3).value;
+					const scoreMidTerm = row.getCell(4).value.result ? row.getCell(4).value.result : row.getCell(4).value;
+					const scoreFinalTerm = row.getCell(5).value.result ? row.getCell(5).value.result : row.getCell(5).value;
+			
+					const promiseFunction = async () => {
+						const student = await Student.findOne({ studentId: studentId });
+						const termResult = await TermResult.findOne({ student: student._id, year: newestYear }).sort({ _id: -1 });
+						const assignment = await Assignment.findById(assignmentId);
+						const scoreTable = await ScoreTable.findOneAndUpdate(
+							{ assignment: assignmentId, student: student._id },
+							{
+								scoreFrequent: scoreFrequent,
+								scoreMidTerm: scoreMidTerm,
+								scoreFinalTerm: scoreFinalTerm,
+								assignment: assignmentId,
+								student: student._id,
+								termResult: termResult._id
+							},
+							{ new: true, upsert: true }
+						);
+			
+						if (!student.scoreTables.includes(scoreTable._id)) {
+							student.scoreTables.push(scoreTable._id);
+							await student.save();
+						}
+			
+						if (!termResult.scoreTables.includes(scoreTable._id)) {
+							termResult.scoreTables.push(scoreTable._id);
+							await termResult.save();
+						}
+			
+						if (!assignment.scoreTables.includes(scoreTable._id)) {
+							assignment.scoreTables.push(scoreTable._id);
+							await assignment.save();
+						}
+					};
+		
+					promiseFunctions.push(promiseFunction);
 				}
 			});
+		
+			await Promise.all(promiseFunctions.map(func => func()));
 			return res.json('Success');
 		} catch (err) {
 			console.log(err);
 			return res.status(500).send('Internal Server Error');
 		}
-		
 	}
 
 	async attendancePage(req, res) {
