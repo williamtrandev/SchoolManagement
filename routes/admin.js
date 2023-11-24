@@ -98,12 +98,18 @@ router.get('/levelUp', verifyToken, adminController.levelUpPage);
 
 router.get('/getLevelUp', adminController.levelUp);
 
+router.post('/confirmLevelUp', adminController.confirmLevelUp);
+
 router.get('/studyResult', verifyToken, adminController.studyResult);
 
 router.get('/getResult/:year/:classId/:term', adminController.getResult);
+
 router.get('/printResult', adminController.printResult);
+
 router.get('/startNewSemester', adminController.newSemester);
+
 router.get('/startNewYear', adminController.startNewYear);
+
 router.get('/deleteTimeTable', async (req, res) => {
 	const id = `654d0c7bd6fe0f16e33ba30a`;
 	await Schedule.deleteMany({ timeTable: id });
