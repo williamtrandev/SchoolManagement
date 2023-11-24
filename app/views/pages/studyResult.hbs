@@ -161,6 +161,7 @@
 					console.log(subjectMap);
 					let pointTds = ``;
 					let pointTdsDownload = ``;
+					let scoreAvgTotal = 0;
 					for (const key of subjectOrder) {
 						const value = subjectMap[key];
 						console.log(value);
@@ -168,10 +169,13 @@
 						let scoreMidTerm = value ? value.scoreMidTerm : '';
 						let scoreFinalTerm = value ? value.scoreFinalTerm : '';
 						let scoreAvg = '';
-						if(scoreFrequent !== '' && scoreMidTerm !== '' && scoreFinalTerm !== '') {
+						if(scoreFrequent === 'Đ' || scoreFrequent === 'CĐ') {
+							scoreAvg = 'Đ';
+						} else if(scoreFrequent !== '' && scoreMidTerm !== '' && scoreFinalTerm !== '') {
 							scoreAvg = ((parseFloat(scoreFrequent) 
 										+ 2 * parseFloat(scoreMidTerm) 
 										+ 3 * parseFloat(scoreFinalTerm)) / 6).toFixed(2);
+							scoreAvgTotal += parseFloat(scoreAvg);
 						}
 						pointTds += `<td>${scoreFrequent}</td>
 						<td>${scoreMidTerm}</td>
@@ -179,17 +183,18 @@
 						`;
 						pointTdsDownload += `<td>${scoreAvg}</td>`;
 					}
+					scoreAvgTotal = (scoreAvgTotal / 8).toFixed(2);
 					trs += `<td>${item.studentId}</td>
 					<td>${item.name}</td>
 					<td>${item.currentClass.name}</td>
 					${pointTds}
-					<td></td>
+					<td>${scoreAvgTotal}</td>
 					</tr>`;
 					trsDownload += `<td>${item.studentId}</td>
 					<td>${item.name}</td>
 					<td>${item.currentClass.name}</td>
 					${pointTdsDownload}
-					<td></td>
+					<td>${scoreAvgTotal}</td>
 					</tr>`;
 				});
 				$('.tbody-show').append(trs);
