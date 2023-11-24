@@ -123,13 +123,14 @@
 			$('.table-responsive').removeClass('d-none');
 			let trs = ``;
 			let trsDownload = ``;
-			fetch(`/admin/getResult/${classSelected}/${semesterSelected}`)
+			$('#spinner').addClass('show');
+			fetch(`/admin/getResult/${yearSelected}/${classSelected}/${semesterSelected}`)
 			.then(res => {
 				if(!res.ok) throw new Error('Lỗi');
 				return res.json();
 			})
 			.then(data => {
-				console.log(data);
+				$('#spinner').removeClass('show');
 				const subjectMap = {};
 				const subjectOrder = [
 					'Toán',
