@@ -566,7 +566,7 @@ class AdminController {
 		try {
 			const idClass = req.params.id;
 			const formTeacher = await Teacher.findOne({ class: idClass }).lean();
-			const noFormTeachers = await Teacher.find({ class: null }).lean();
+			const noFormTeachers = await Teacher.find({ class: null, role: ROLES.Teacher }).lean();
 			res.status(200).json({ formTeacher, noFormTeachers });
 		} catch (err) {
 			console.log(err);
@@ -1188,6 +1188,8 @@ class AdminController {
 			let iTerm = 1;
 			//console.log(absentMap);
 			const studentsMap = {};
+			const oldClasses = await Class.find().lean();
+			const newClasses = oldClasses.map(cl => cl.name);
 			students.forEach(student => {
 				if (!studentsMap[student.currentClass.name]) {
 					studentsMap[student.currentClass.name] = [];
@@ -1203,30 +1205,25 @@ class AdminController {
 				let count35 = 0;
 				let countL35 = 0;
 				let countCD = 0;
-				let numSubjectWithPoint = 8;
+				let arrAvg1 = [];
+				let arrAvg2 = [];
 				student.termResults.forEach(term => {
 					let sumPoint = 0;
 					let pointWithChar;
 					let pointWithChar1;
 					let pointWithChar2;
 					term.scoreTables.forEach(scoreTable => {
-						console.log(scoreTable);
 						if (scoreTable.scoreFrequent !== 'Đ' && scoreTable.scoreFrequent !== 'CĐ'
 							&& scoreTable.scoreMidTerm !== 'Đ' && scoreTable.scoreMidTerm !== 'CĐ'
 							&& scoreTable.scoreFinalTerm !== 'Đ' && scoreTable.scoreFinalTerm !== 'CĐ') {
-							numSubjectWithPoint++;
+							console.log(scoreTable.scoreFrequent, scoreTable.scoreFrequent, scoreTable.scoreFinalTerm);
 							const avgSubject = (parseFloat(scoreTable.scoreFrequent) + 2 * parseFloat(scoreTable.scoreMidTerm) + 3 * parseFloat(scoreTable.scoreFinalTerm)) / 6;
-							if (avgSubject >= 8) {
-								count8++;
-							} else if (avgSubject >= 6.5) {
-								count65++;
-							} else if (avgSubject >= 5) {
-								count5++;
-							} else if (avgSubject >= 3.5) {
-								count35++;
+							if(term.is1stSemester) {
+								arrAvg1.push(avgSubject);
 							} else {
-								countL35++;
+								arrAvg2.push(avgSubject);
 							}
+							
 							sumPoint += avgSubject;
 							// Nếu là điểm chữ
 						} else {
@@ -1239,7 +1236,7 @@ class AdminController {
 							}
 						}
 					})
-					sumPoint /= numSubjectWithPoint;
+					sumPoint /= 8;
 					// Nếu là học kì 2 thì * 2 
 					if (!term.is1stSemester) {
 						sumPoint *= 2;
@@ -1258,6 +1255,26 @@ class AdminController {
 				})
 				// Điểm sau khi tính trung bình
 				pointAvg /= 3;
+				console.log(arrAvg1, arrAvg2);
+				if(arrAvg2.length === 0) {
+					arrAvg2 = [0, 0, 0, 0, 0, 0, 0, 0];
+				}
+				const sumArray = arrAvg1.map((element, index) => element + arrAvg2[index]*2);
+				const resultArray = sumArray.map(element => element / 3);
+				resultArray.forEach(avgSubject => {
+					if (avgSubject >= 8) {
+						count8++;
+					} else if (avgSubject >= 6.5) {
+						count65++;
+					} else if (avgSubject >= 5) {
+						count5++;
+					} else if (avgSubject >= 3.5) {
+						count35++;
+					} else {
+						countL35++;
+					}
+				})
+				console.log("Total avg ", pointAvg);
 				let conduct;
 				let academicPerformance;
 				const acaMap = {
@@ -1310,6 +1327,64 @@ class AdminController {
 			})
 			//console.log(studentsMap);
 			res.status(200).json(studentsMap);
+		} catch (err) {
+			console.log(err);
+			res.status(500).json({ err: err });
+		}
+	}
+	confirmLevelUp = async (req, res) => {
+		try {
+			const { oldClasses, studentsLuuBan, studentsLenLop } = req.body;
+			// Tìm bản ghi mới nhất sử dụng phương thức findOne và sắp xếp theo trường startYear giảm dần
+			const latestYear = await Year.findOne({}).sort({ startYear: -1 });
+
+			const newStartYear = latestYear.endYear;
+			const newEndYear = newStartYear + 1;
+
+			// Tạo một bản ghi mới với các giá trị đã tính toán
+			const newYearObj = new Year({
+				startYear: newStartYear,
+				endYear: newEndYear,
+				// Các trường dữ liệu khác nếu có
+			});
+
+			// Lưu bản ghi mới vào cơ sở dữ liệu
+			const newYear = await newYearObj.save();
+			const newClasses = [];
+			oldClasses.forEach(cl => {
+				newClasses.push(new Class({ name: cl.name, year: newYear._id }));
+			});
+
+			const savedNewClasses = await Class.insertMany(newClasses);
+			const classMap = {};
+			savedNewClasses.forEach(newClass => {
+				classMap[newClass.name] = newClass._id;
+			});
+			const bulkUpdateOperationsLuuBan = studentsLuuBan.map(student => ({
+				updateOne: {
+					filter: { _id: student._id }, // Điều kiện lọc để tìm học sinh cần cập nhật
+					update: { $set: { currentClass: classMap[student.currentClass.name] } } // Cập nhật trường currentClass
+				}
+			}));
+
+			await Student.bulkWrite(bulkUpdateOperationsLuuBan);
+
+
+			const bulkUpdateOperations = studentsLenLop.map(student => {
+				// Nếu có thể chuyển đổi số thành dạng số nguyên
+				const newNumber = parseInt(student.currentClass.name) + 1;
+
+				const newClass = newNumber === 10 ? null : classMap[newNumber + student.currentClass.name.substring(1)];
+
+				return {
+					updateOne: {
+						filter: { _id: student._id },
+						update: { $set: { currentClass: newClass } }
+					}
+				};
+			});
+
+			await Student.bulkWrite(bulkUpdateOperations);
 		} catch (err) {
 			console.log(err);
 			res.status(500).json({ err: err });
@@ -1691,7 +1766,7 @@ class AdminController {
 		try {
 			const id = req.params.id;
 			await TimeTable.findOneAndUpdate(
-				{ isUsed: true }, 
+				{ isUsed: true },
 				{ isUsed: false },
 			);
 			const timeTable = await TimeTable.findByIdAndUpdate(id, { isUsed: true });

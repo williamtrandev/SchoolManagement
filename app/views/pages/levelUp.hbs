@@ -19,6 +19,7 @@
 				<option value="none" disabled selected>Chọn lớp</option>
 			</select>
 		</div>
+		<button class="btn btn-primary btn-confirm-levelUp">Xác nhận xét</button>
 	</div>
 	<div class="table-responsive">
 		<table class="table text-center align-middle table-bordered table-hover mb-0 overflow-auto text-nowrap" id="levelUp-table">
@@ -53,6 +54,10 @@
 
 
 <script>
+	let studentsMap = {};
+	let studentsLuuBan = {};
+	let studentsLenLop = {};
+	let allClass = [];
 	$('.start-levelUp').click(() => {
 		Swal.fire({
 			title: 'Xác nhận xét lên lớp',
@@ -70,6 +75,30 @@
 				.then(res => res.json())
 				.then(data => {
 					studentsMap = data;
+					console.log(studentsMap);
+					// Lặp qua từng key (tên lớp) trong object studentsMap
+					for (const className in studentsMap) {
+						if (Object.hasOwnProperty.call(studentsMap, className)) {
+							// Lọc sinh viên có result là 'Lưu ban' từ mảng sinh viên của lớp hiện tại
+							const studentsLuuBanFiltered = studentsMap[className].filter(student => {
+								return student.result === 'Lưu ban';
+							});
+							// Lọc sinh viên có result là 'Lên lớp' từ mảng sinh viên của lớp hiện tại
+							const studentsLenLopFiltered = studentsMap[className].filter(student => {
+								return student.result === 'Lên lớp';
+							});
+
+							// Nếu có sinh viên thỏa điều kiện, thêm vào object riêng
+							if (studentsLuuBanFiltered.length > 0) {
+								studentsLuuBan[className] = studentsLuuBanFiltered;
+							}
+							if (studentsLenLopFiltered.length > 0) {
+								studentsLenLop[className] = studentsLenLopFiltered;
+							}
+						}
+					}
+					console.log(studentsLuuBan);
+					console.log(studentsLenLop);
 					$('#spinner').removeClass('show');
 				})
 				.catch(err => console.log(err))
@@ -81,8 +110,7 @@
 		});
 		
 	})
-	let studentsMap = {};
-	let allClass = [];
+	
 	$(async function() {
 		fetch(`/admin/getAllClass`)
 		.then(res => res.json())

@@ -256,7 +256,7 @@
 					console.log(data);
 					data.noFormTeachers.forEach((item, index) => {
 						let gender = item.gender === true ? 'Nam' : 'Nữ';
-						const inputDateStr = item.birthday;
+						let inputDateStr = item.birthday;
 						const year = inputDateStr.substr(0, 4);    // Trích xuất 4 ký tự đầu là năm
 						const month = inputDateStr.substr(5, 2);   // Trích xuất 2 ký tự sau là tháng
 						const day = inputDateStr.substr(8, 2);     // Trích xuất 2 ký tự sau là ngày
