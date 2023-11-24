@@ -11,6 +11,7 @@ const ScoreTable = require('../models/ScoreTable');
 const Student = require('../models/Student');
 const Schedule = require('../models/Schedule');
 const TimeTable = require('../models/TimeTable');
+const { sendMailNotification } = require('../utils/mail');
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -19,7 +20,7 @@ const fs = require('fs');
 const TermResult = require('../models/TermResult');
 
 class TeacherController {
-    async home(req, res) {
+	async home(req, res) {
 		try {
 			const teacher = req.session.teacher;
 			const currentYear = await Year.findOne({}).sort({ _id: -1 });
@@ -31,7 +32,7 @@ class TeacherController {
 				.lean();
 
 			const findTimeTable = await TimeTable.findOne({ isUsed: true });
-			
+
 			const timeTable = [
 				{ period: 1, class: [] },
 				{ period: 2, class: [] },
@@ -63,11 +64,11 @@ class TeacherController {
 			// 	}
 			// }
 
-			res.render('teacherHome', { 
-				layout: 'teacher_layout', 
-				title: "Trang chủ", 
+			res.render('teacherHome', {
+				layout: 'teacher_layout',
+				title: "Trang chủ",
 				activeHome: "active",
-				teacher, 
+				teacher,
 				assignments,
 				timeTable,
 			});
@@ -128,7 +129,21 @@ class TeacherController {
 				.populate('subject')
 				.populate('class')
 				.lean();
+			assignments.sort((a, b) => {
+				const regex = /(\d+)([A-Za-z]+)(\d+)/;
+				const [, numA, charA, numA2] = a.class.name.match(regex);
+				const [, numB, charB, numB2] = b.class.name.match(regex);
 
+				if (charA.localeCompare(charB) !== 0) {
+					return charA.localeCompare(charB);
+				}
+
+				if (parseInt(numA) !== parseInt(numB)) {
+					return parseInt(numA) - parseInt(numB);
+				}
+
+				return parseInt(numA2) - parseInt(numB2);
+			});
 			const assignmentId = req.params.id;
 
 			const assignment = await Assignment.findById(assignmentId)
@@ -144,9 +159,9 @@ class TeacherController {
 				}).lean();
 
 			const number = await StudentClass.countDocuments({ class: assignment.class._id });
-			
+
 			let combinedData = [];
-			if (assignment.announcements && assignment.exercises ) {
+			if (assignment.announcements && assignment.exercises) {
 				const announcements = assignment.announcements;
 				const exercises = assignment.exercises.map(exercise => {
 					const submissions = exercise.submissions;
@@ -158,16 +173,16 @@ class TeacherController {
 					}
 					return { ...exercise, notGradedCount: count };
 				});
-	
+
 				combinedData = announcements.concat(exercises);
 				combinedData.sort((a, b) => b.createdAt - a.createdAt);
 			}
-			
-			res.render('teacherClassroom', { 
-				layout: 'teacher_layout', 
-				title: "Lớp học", 
+
+			res.render('teacherClassroom', {
+				layout: 'teacher_layout',
+				title: "Lớp học",
 				activeClassroom: "active",
-				teacher, 
+				teacher,
 				assignment,
 				assignments,
 				combinedData,
@@ -183,7 +198,28 @@ class TeacherController {
 			const { title, message, assignmentId } = req.body;
 			const newAnnouncement = new Announcement({ title, message, assignment: assignmentId });
 			const savedAnnouncement = await newAnnouncement.save();
-			await Assignment.findByIdAndUpdate(assignmentId, { $push: { announcements: savedAnnouncement._id } });
+			const updatedAssignment = await Assignment.findByIdAndUpdate(assignmentId, { $push: { announcements: savedAnnouncement._id } });
+			const findTeacher = await Teacher.findById(updatedAssignment.teacher).lean();
+			const students = await Student.find({ currentClass: updatedAssignment.class })
+			.populate('parents').lean();
+			const parents = [];
+			students.forEach(student => {
+				student.parents.forEach(parent => {
+					parents.push({
+						teacher: findTeacher,
+						emailParent: parent.email,
+					})
+				})
+			})
+
+			const content = {
+				title,
+				description: message,
+			};
+			const teacher = findTeacher.name;
+			if (parents.length > 0) {
+				sendMailNotification(teacher, content, parents, 'notification');
+			}
 			return res.json({ success: savedAnnouncement });
 		} catch (err) {
 			console.log(err);
@@ -264,7 +300,7 @@ class TeacherController {
 				.populate('subject')
 				.populate('class')
 				.lean();
-				
+
 			const studentClass = await StudentClass.find({ class: assignment.class._id })
 				.populate({
 					path: 'student',
@@ -301,12 +337,12 @@ class TeacherController {
 
 			console.log(exercise);
 
-			res.render('teacherGrading', { 
-				layout: 'teacher_layout', 
-				title: "Chấm điểm", 
+			res.render('teacherGrading', {
+				layout: 'teacher_layout',
+				title: "Chấm điểm",
 				activeClassroom: "active",
 				teacher,
-				assignment, 
+				assignment,
 				exercise,
 				assignments,
 				students,
@@ -316,7 +352,7 @@ class TeacherController {
 				countSubmitted: submissions.length,
 				displayBackToTop: 'd-none',
 			});
-		} catch(err) {
+		} catch (err) {
 			console.log(err);
 		}
 	}
@@ -326,7 +362,7 @@ class TeacherController {
 			const exerciseId = req.params.id;
 			const table = req.body;
 			table.forEach(async line => {
-				await Submission.findOneAndUpdate({ exercise: exerciseId, student: line.studentId }, { score: line.score});
+				await Submission.findOneAndUpdate({ exercise: exerciseId, student: line.studentId }, { score: line.score });
 			});
 			return res.json({ success: 'Lưu điểm thành công' });
 		} catch (err) {
@@ -350,7 +386,7 @@ class TeacherController {
 				.populate('class')
 				.populate('year')
 				.lean();
-			
+
 			const studentClass = await StudentClass.find({ class: assignment.class._id })
 				.populate({
 					path: 'student',
@@ -362,17 +398,17 @@ class TeacherController {
 					}
 				})
 				.lean();
-			
+
 			const students = studentClass.map(sc => sc.student);
 			console.log(students);
 			res.render('teacherScores', {
-				layout: 'teacher_layout', 
-				title: "Bảng điểm", 
+				layout: 'teacher_layout',
+				title: "Bảng điểm",
 				activeClassroom: "active",
 				teacher,
 				assignments,
 				assignment,
-				students, 
+				students,
 			});
 
 		} catch (err) {
@@ -389,7 +425,7 @@ class TeacherController {
 		// Sử dụng exceljs để tạo một workbook và worksheet
 		const workbook = new exceljs.Workbook();
 		const worksheet = workbook.addWorksheet('Sheet 1');
-	
+
 		// Thêm dữ liệu từ bảng vào worksheet
 		for (const row of tableData) {
 			worksheet.addRow(row);
@@ -407,11 +443,11 @@ class TeacherController {
 			for (let row = 2; row <= tableData.length; row++) {
 				worksheet.getCell(`F${row}`).value = {
 					formula: `ROUND((C${row} + D${row}*2 + E${row}*3)/6, 1)`,
-					result: ((parseFloat(tableData[row - 1][2]) + parseFloat(tableData[row - 1][3])*2 + parseFloat(tableData[row - 1][4])*3)/6).toFixed(1),
+					result: ((parseFloat(tableData[row - 1][2]) + parseFloat(tableData[row - 1][3]) * 2 + parseFloat(tableData[row - 1][4]) * 3) / 6).toFixed(1),
 				};
 			}
 		}
-	
+
 		// Tạo một tệp Excel tạm thời
 		const tempFilePath = 'public/file/temp.xlsx';
 		workbook.xlsx.writeFile(tempFilePath)
@@ -444,14 +480,14 @@ class TeacherController {
 			await workbook.xlsx.load(excelFile.data);
 			const worksheetData = workbook.getWorksheet(1); // Lấy trang tính toán đầu tiên
 			const promiseFunctions = [];
-		
+
 			worksheetData.eachRow((row, rowNumber) => {
 				if (rowNumber != 1) {
 					const studentId = row.getCell(1).value;
 					const scoreFrequent = row.getCell(3).value.result ? row.getCell(3).value.result : row.getCell(3).value;
 					const scoreMidTerm = row.getCell(4).value.result ? row.getCell(4).value.result : row.getCell(4).value;
 					const scoreFinalTerm = row.getCell(5).value.result ? row.getCell(5).value.result : row.getCell(5).value;
-			
+
 					const promiseFunction = async () => {
 						const student = await Student.findOne({ studentId: studentId });
 						const termResult = await TermResult.findOne({ student: student._id, year: newestYear }).sort({ _id: -1 });
@@ -468,27 +504,27 @@ class TeacherController {
 							},
 							{ new: true, upsert: true }
 						);
-			
+
 						if (!student.scoreTables.includes(scoreTable._id)) {
 							student.scoreTables.push(scoreTable._id);
 							await student.save();
 						}
-			
+
 						if (!termResult.scoreTables.includes(scoreTable._id)) {
 							termResult.scoreTables.push(scoreTable._id);
 							await termResult.save();
 						}
-			
+
 						if (!assignment.scoreTables.includes(scoreTable._id)) {
 							assignment.scoreTables.push(scoreTable._id);
 							await assignment.save();
 						}
 					};
-		
+
 					promiseFunctions.push(promiseFunction);
 				}
 			});
-		
+
 			await Promise.all(promiseFunctions.map(func => func()));
 			return res.json('Success');
 		} catch (err) {
@@ -509,7 +545,7 @@ class TeacherController {
 			const schoolClass = await Class.findById(teacher.class)
 				.populate('year')
 				.lean();
-			
+
 			const studentClass = await StudentClass.find({ class: schoolClass._id })
 				.populate('student')
 				.lean();
@@ -517,12 +553,12 @@ class TeacherController {
 			const students = studentClass.map(sc => sc.student);
 
 			res.render('teacherAttendance', {
-				layout: 'teacher_layout', 
-				activeAttendance: 'active', 
+				layout: 'teacher_layout',
+				activeAttendance: 'active',
 				title: 'Điểm danh',
 				displayBackToTop: 'd-none',
 				teacher,
-				assignments, 
+				assignments,
 				schoolClass,
 				students,
 			});
@@ -541,7 +577,7 @@ class TeacherController {
 				.lean();
 
 			res.render('teacherInformation', {
-				layout: 'teacher_layout', 
+				layout: 'teacher_layout',
 				title: 'Thông tin',
 				teacher,
 				assignments,
@@ -566,7 +602,7 @@ class TeacherController {
 			}
 
 			const hashedPassword = await bcrypt.hash(newPassword, 10);
-			
+
 			await Teacher.updateOne({ _id: teacher._id }, { password: hashedPassword });
 			return res.json({ success: 'Thay đổi mật khẩu thành công' })
 
