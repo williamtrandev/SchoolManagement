@@ -100,7 +100,7 @@ router.get('/getLevelUp', adminController.levelUp);
 
 router.get('/studyResult', verifyToken, adminController.studyResult);
 
-router.get('/getResult/:classId/:term', adminController.getResult);
+router.get('/getResult/:year/:classId/:term', adminController.getResult);
 router.get('/printResult', adminController.printResult);
 router.get('/startNewSemester', adminController.newSemester);
 router.get('/startNewYear', adminController.startNewYear);

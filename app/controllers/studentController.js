@@ -46,7 +46,7 @@ class StudentController {
 			for (let i = 0; i < assignments.length; i++) {
 				const schedules = await Schedule.find({ assignment: assignments[i]._id, timeTable: findTimeTable._id });
 				for (let j = 0; j < schedules.length; j++) {
-					console.log(schedules[j]);
+					// console.log(schedules[j]);
 					const period = schedules[j].period;
 					const date = schedules[j].dayOfWeek;
 					timeTable[period - 1].subject[date - 2] = assignments[i].subject.name;
@@ -269,7 +269,7 @@ class StudentController {
 					}
 				}).lean();
 
-			console.log(studentClass);
+			// console.log(studentClass);
 			// const classes = studentClass.map(sc => sc.class._id);
 			const years = studentClass.map(sc => sc.class.year);
 			for (let i = 0; i < years.length; i++) {

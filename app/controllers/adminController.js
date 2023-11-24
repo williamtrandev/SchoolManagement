@@ -1316,7 +1316,7 @@ class AdminController {
 		}
 	}
 	studyResult = async (req, res) => {
-		const subjects = await Subject.find().lean();
+		const subjects = await Subject.find().sort({ _id: 1 }).lean();
 		const years = await Year.find().sort().lean();
 		res.render('studyResult', {
 			layout: 'manager_layout', title: 'Xem điểm',
@@ -1326,20 +1326,39 @@ class AdminController {
 	}
 	getResult = async (req, res) => {
 		try {
-			const { classId, term } = req.params;
+			const { year, classId, term } = req.params;
 			console.log(term);
-			const students = await Student.find({ currentClass: classId })
-				.populate('currentClass')
-				.populate({
+			const is1stSemester = term == 1;
+			const termResults = await TermResult.find({ year, is1stSemester });
+			const termResultIds = termResults.map(termResult => termResult._id);
+			// const students = await Student.find({ currentClass: classId })
+			// 	.populate('currentClass')
+			// 	.populate({
+			// 		path: 'scoreTables',
+			// 		match: { termResult: { $in: termResultIds } },
+			// 		populate: {
+			// 			path: 'assignment',
+			// 			populate: {
+			// 				path: 'subject'
+			// 			}
+			// 		}
+			// 	})
+			// 	.lean();
+
+			// Sử dụng Promise.all để chạy các promises đồng thời
+			const [students] = await Promise.all([
+				Student.find({ currentClass: classId }).populate('currentClass').populate({
 					path: 'scoreTables',
+					match: { termResult: { $in: termResultIds } },
 					populate: {
 						path: 'assignment',
 						populate: {
 							path: 'subject'
 						}
 					}
-				})
-				.lean();
+				}).lean()
+			]);
+
 			console.log(students);
 			res.status(200).json(students);
 		} catch (err) {
