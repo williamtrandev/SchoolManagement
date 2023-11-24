@@ -30,7 +30,21 @@ class TeacherController {
 				.populate('class')
 				.populate('schedules')
 				.lean();
+			assignments.sort((a, b) => {
+				const regex = /(\d+)([A-Za-z]+)(\d+)/;
+				const [, numA, charA, numA2] = a.class.name.match(regex);
+				const [, numB, charB, numB2] = b.class.name.match(regex);
 
+				if (charA.localeCompare(charB) !== 0) {
+					return charA.localeCompare(charB);
+				}
+
+				if (parseInt(numA) !== parseInt(numB)) {
+					return parseInt(numA) - parseInt(numB);
+				}
+
+				return parseInt(numA2) - parseInt(numB2);
+			});
 			const findTimeTable = await TimeTable.findOne({ isUsed: true });
 
 			const timeTable = [
@@ -541,7 +555,21 @@ class TeacherController {
 				.populate('subject')
 				.populate('class')
 				.lean();
+			assignments.sort((a, b) => {
+				const regex = /(\d+)([A-Za-z]+)(\d+)/;
+				const [, numA, charA, numA2] = a.class.name.match(regex);
+				const [, numB, charB, numB2] = b.class.name.match(regex);
 
+				if (charA.localeCompare(charB) !== 0) {
+					return charA.localeCompare(charB);
+				}
+
+				if (parseInt(numA) !== parseInt(numB)) {
+					return parseInt(numA) - parseInt(numB);
+				}
+
+				return parseInt(numA2) - parseInt(numB2);
+			});
 			const schoolClass = await Class.findById(teacher.class)
 				.populate('year')
 				.lean();
